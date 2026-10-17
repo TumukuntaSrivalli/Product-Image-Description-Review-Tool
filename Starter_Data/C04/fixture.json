@@ -1,0 +1,87 @@
+{
+  "case_id": "C04",
+  "synthetic": true,
+  "data_version": "v3.2",
+  "currency": "INR unless explicitly stated",
+  "missing_values": "null means unknown, never zero",
+  "records": {
+    "images": [
+      {
+        "product_id": "P01",
+        "path": "../assets/P01.png",
+        "visible_description": "Blue rounded rectangular product illustration",
+        "metadata_title": "Blue Tshirt",
+        "review_note": "This is a synthetic illustration; title and product type are metadata, not proof of visible material or performance."
+      },
+      {
+        "product_id": "P02",
+        "path": "../assets/P02.png",
+        "visible_description": "Blue rounded rectangular product illustration",
+        "metadata_title": "Blue Tshirt",
+        "review_note": "This is a synthetic illustration; title and product type are metadata, not proof of visible material or performance."
+      },
+      {
+        "product_id": "P03",
+        "path": "../assets/P03.png",
+        "visible_description": "Red rounded rectangular product illustration",
+        "metadata_title": "Red Tshirt",
+        "review_note": "This is a synthetic illustration; title and product type are metadata, not proof of visible material or performance."
+      },
+      {
+        "product_id": "P04",
+        "path": "../assets/P04.png",
+        "visible_description": "Blue rounded rectangular product illustration",
+        "metadata_title": "Blue Tshirt",
+        "review_note": "This is a synthetic illustration; title and product type are metadata, not proof of visible material or performance."
+      },
+      {
+        "product_id": "P05",
+        "path": "../assets/P05.png",
+        "visible_description": "Blue rounded rectangular product illustration",
+        "metadata_title": "Blue Mug",
+        "review_note": "This is a synthetic illustration; title and product type are metadata, not proof of visible material or performance."
+      },
+      {
+        "product_id": "P06",
+        "path": "../assets/P06.png",
+        "visible_description": "Red rounded rectangular product illustration",
+        "metadata_title": "Red Mug",
+        "review_note": "This is a synthetic illustration; title and product type are metadata, not proof of visible material or performance."
+      },
+      {
+        "product_id": "P07",
+        "path": "../assets/P07.png",
+        "visible_description": "Black rounded rectangular product illustration",
+        "metadata_title": "Black Mouse",
+        "review_note": "This is a synthetic illustration; title and product type are metadata, not proof of visible material or performance."
+      },
+      {
+        "product_id": "P08",
+        "path": "../assets/P08.png",
+        "visible_description": "Black rounded rectangular product illustration",
+        "metadata_title": "Black Keyboard",
+        "review_note": "This is a synthetic illustration; title and product type are metadata, not proof of visible material or performance."
+      },
+      {
+        "product_id": "P09",
+        "path": "../assets/P09.png",
+        "visible_description": "Grey rounded rectangular product illustration",
+        "metadata_title": "Grey Hub",
+        "review_note": "This is a synthetic illustration; title and product type are metadata, not proof of visible material or performance."
+      },
+      {
+        "product_id": "P10",
+        "path": "../assets/P10.png",
+        "visible_description": "Green rounded rectangular product illustration",
+        "metadata_title": "Green Bottle",
+        "review_note": "This is a synthetic illustration; title and product type are metadata, not proof of visible material or performance."
+      }
+    ]
+  },
+  "public_checks": [
+    "Ten outputs preserve the image’s important purpose and observable details under the reference guide.",
+    "No unsupported material, certification, performance or identity claim; uncertainty remains editable.",
+    "Review state and CSV export preserve every product ID and the edited text."
+  ],
+  "limit": "Small teaching fixture for a bounded prototype. Market demand, willingness to pay and production performance remain unproven."
+}
