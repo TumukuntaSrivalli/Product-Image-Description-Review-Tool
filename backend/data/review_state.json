@@ -4,14 +4,12 @@
       "product_id": "P01",
       "status": "edited",
       "draft": "Blue rounded rectangular product illustration; catalogue lists this as Blue Tshirt",
-      "edited_text": "hii",
+      "edited_text": "=SUM(1,2) formula test description",
       "page_context": "axcvb",
-      "is_decorative": true,
-      "contains_text": true,
-      "multiple_products": true,
-      "flags": [
-        "multiple products should describe group, not just a single item"
-      ],
+      "is_decorative": false,
+      "contains_text": false,
+      "multiple_products": false,
+      "flags": [],
       "source_label": "rule-based fallback",
       "metadata_title": "Blue Tshirt",
       "visible_description": "Blue rounded rectangular product illustration",
@@ -39,7 +37,7 @@
     {
       "product_id": "P03",
       "status": "needs_re_review",
-      "draft": "Red rounded rectangular product illustration; catalogue lists this as Red Tshirt",
+      "draft": "Red rounded rectangular product illustration",
       "edited_text": "Red rounded rectangular illustration update",
       "page_context": "Summer catalogue",
       "is_decorative": false,
@@ -73,7 +71,7 @@
     {
       "product_id": "P05",
       "status": "draft",
-      "draft": "Blue rounded rectangular product illustration; catalogue lists this as Blue Mug",
+      "draft": "Blue rounded rectangular product illustration",
       "edited_text": "",
       "page_context": "",
       "is_decorative": false,
@@ -90,7 +88,7 @@
     {
       "product_id": "P06",
       "status": "approved",
-      "draft": "Red rounded rectangular product illustration; catalogue lists this as Red Mug",
+      "draft": "Red rounded rectangular product illustration",
       "edited_text": "",
       "page_context": "",
       "is_decorative": true,
