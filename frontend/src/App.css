@@ -1348,3 +1348,246 @@ kbd {
     padding: 16px;
   }
 }
+
+/* ==========================================================================
+   VernX HUMAN-IN-THE-LOOP EXTENSIONS
+   Upload Dropzone, Feature Review Cards, Custom Feature Form & Bullet Editor
+   ========================================================================== */
+
+.upload-card-wrapper {
+  background: var(--panel-card);
+  border: 1.5px dashed var(--border-strong);
+  border-radius: 12px;
+  padding: 18px;
+  margin-bottom: 20px;
+  transition: all 0.2s ease;
+}
+
+.upload-card-wrapper:hover {
+  border-color: var(--amazon-gold);
+  background: rgba(255, 153, 0, 0.02);
+}
+
+.upload-dropzone-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  cursor: pointer;
+  padding: 14px;
+}
+
+.upload-icon-circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--accent-light);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+
+.upload-filename-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--paper-strong);
+  border: 1px solid var(--border);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-family: var(--font-mono);
+  color: var(--ink);
+  margin-top: 6px;
+}
+
+.upload-inputs-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.upload-input-field {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 0.84rem;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.upload-input-field:focus {
+  border-color: var(--amazon-gold);
+}
+
+/* Feature Review Section */
+.features-review-container {
+  background: var(--panel-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  margin: 18px 0;
+}
+
+.features-review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.features-review-title {
+  font-weight: 700;
+  font-size: 0.94rem;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  max-height: 280px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.feature-item-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border);
+  background: var(--paper);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.feature-item-card:hover {
+  border-color: var(--accent);
+}
+
+.feature-item-card.selected {
+  border-color: var(--amazon-gold);
+  background: rgba(255, 153, 0, 0.05);
+}
+
+.feature-checkbox {
+  margin-top: 3px;
+  accent-color: #FF9900;
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+}
+
+.feature-content {
+  flex: 1;
+}
+
+.feature-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2px;
+}
+
+.feature-name {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--ink);
+}
+
+.feature-value {
+  font-size: 0.8rem;
+  color: var(--ink-secondary);
+}
+
+.confidence-chip {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 4px;
+  text-transform: capitalize;
+}
+
+.confidence-high {
+  background: #D1FAE5;
+  color: #065F46;
+  border: 1px solid #A7F3D0;
+}
+
+.confidence-medium {
+  background: #FEF3C7;
+  color: #92400E;
+  border: 1px solid #FDE68A;
+}
+
+.confidence-low {
+  background: #FEE2E2;
+  color: #991B1B;
+  border: 1px solid #FECACA;
+}
+
+.confidence-custom {
+  background: #E0E7FF;
+  color: #3730A3;
+  border: 1px solid #C7D2FE;
+}
+
+/* Custom Feature Inline Form */
+.custom-feature-box {
+  background: var(--paper-strong);
+  border: 1px dashed var(--border-strong);
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 10px;
+}
+
+.btn-small-action {
+  padding: 4px 10px;
+  font-size: 0.76rem;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: var(--panel-card);
+  color: var(--ink);
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.15s ease;
+}
+
+.btn-small-action:hover {
+  background: var(--paper-strong);
+  border-color: var(--border-strong);
+}
+
+.editor-textarea-bullets {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border);
+  background: var(--panel-card);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: 0.88rem;
+  line-height: 1.6;
+  resize: vertical;
+  min-height: 140px;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.editor-textarea-bullets:focus {
+  border-color: var(--amazon-gold);
+}

@@ -14,6 +14,10 @@ export default defineConfig({
         target: 'http://localhost:5000',
         changeOrigin: true,
       },
+      '/analyze-image': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+      },
       '/assets': {
         target: 'http://localhost:5000',
         changeOrigin: true,
