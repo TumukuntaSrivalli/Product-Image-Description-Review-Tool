@@ -32,12 +32,12 @@ export function AmazonNavbar({ reviewedCount = 0, totalCount = 10 }: AmazonNavba
     <header className="amazon-topbar" role="banner">
       <div className="amazon-topbar-inner">
         {/* Amazon Logo & Brand */}
-        <Link to="/" className="amazon-brand" aria-label="ALTLUME Home">
+        <Link to="/" className="amazon-brand" aria-label="VarnX Home">
           <div className="amazon-brand-logo" aria-hidden="true">
-            <span>A</span>
+            <span>V</span>
           </div>
           <div className="amazon-brand-text">
-            <span className="amazon-brand-title">ALTLUME</span>
+            <span className="amazon-brand-title">VarnX</span>
             <span className="amazon-brand-subtitle">Catalog Review Studio</span>
           </div>
         </Link>

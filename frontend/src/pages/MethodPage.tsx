@@ -142,7 +142,7 @@ export function MethodPage() {
         <section className="compliance-disclaimer-box" role="note" style={{ marginTop: '24px' }}>
           <div className="disclaimer-icon">⚠️</div>
           <div className="disclaimer-text">
-            <strong>Mandatory Legal & Accessibility Notice:</strong> ALTLUME alone does NOT constitute or prove website
+            <strong>Mandatory Legal & Accessibility Notice:</strong> VarnX alone does NOT constitute or prove website
             accessibility compliance. While accurate alternative text is a WCAG 2.1 Success Criterion 1.1.1 requirement,
             conformance requires comprehensive site-wide evaluations including keyboard navigation, color contrast, focus order,
             and user testing with assistive devices.

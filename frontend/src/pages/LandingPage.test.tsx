@@ -11,7 +11,7 @@ describe('LandingPage', () => {
         <LandingPage />
       </BrowserRouter>
     )
-    expect(screen.getAllByText('ALTLUME')[0]).toBeInTheDocument()
+    expect(screen.getAllByText('VarnX')[0]).toBeInTheDocument()
     const results = await axe(container)
     expect(results.violations).toHaveLength(0)
   })

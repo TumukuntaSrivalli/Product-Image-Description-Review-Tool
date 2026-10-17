@@ -6,12 +6,12 @@ export function SiteFooter() {
       <div className="site-footer-inner">
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-            <span style={{ fontWeight: 800, color: '#FF9900', letterSpacing: '0.04em' }}>ALTLUME</span>
+            <span style={{ fontWeight: 800, color: '#FF9900', letterSpacing: '0.04em' }}>VarnX</span>
             <span style={{ color: '#666' }}>|</span>
             <span>Product Image Description Review Tool</span>
           </div>
           <div style={{ fontSize: '0.78rem', color: '#999', maxWidth: '680px', lineHeight: 1.5 }}>
-            <strong>Mandatory Transparency Disclosure:</strong> This tool alone does NOT prove site accessibility
+            <strong>Mandatory Transparency Disclosure:</strong> VarnX is an editorial image description review tool. This tool alone does NOT prove site accessibility
             compliance or legal WCAG conformance. It provides structured editorial workflows and transparent validation
             for merchant content editors. Synthetic demonstration fixture (Case C04).
           </div>

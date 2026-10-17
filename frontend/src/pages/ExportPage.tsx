@@ -21,12 +21,12 @@ export function ExportPage() {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = 'altlume-export.json'
+    a.download = 'varnx-export.json'
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
     URL.revokeObjectURL(url)
-    toast.success('Downloaded altlume-export.json')
+    toast.success('Downloaded varnx-export.json')
   }
 
   return (
@@ -71,10 +71,10 @@ export function ExportPage() {
             <div style={{ display: 'flex', gap: '12px' }}>
               <a
                 href={getExportCsvUrl()}
-                download="altlume-export.csv"
+                download="varnx-export.csv"
                 className="btn-amazon-primary"
                 style={{ textDecoration: 'none' }}
-                onClick={() => toast.success('Downloaded altlume-export.csv (UTF-8 with BOM)')}
+                onClick={() => toast.success('Downloaded varnx-export.csv (UTF-8 with BOM)')}
               >
                 📥 Download CSV (UTF-8 BOM)
               </a>

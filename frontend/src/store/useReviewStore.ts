@@ -30,7 +30,9 @@ interface ReviewStoreState {
 
 function getInitialTheme(): ThemeMode {
   try {
-    const stored = typeof localStorage !== 'undefined' ? (localStorage.getItem('altlume-theme') as ThemeMode) : null
+    const stored = typeof localStorage !== 'undefined'
+      ? ((localStorage.getItem('varnx-theme') || localStorage.getItem('altlume-theme')) as ThemeMode)
+      : null
     if (stored === 'light' || stored === 'dark') return stored
     if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
       return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
@@ -54,7 +56,7 @@ export const useReviewStore = create<ReviewStoreState>((set) => ({
   lastAction: null,
 
   setTheme: (theme) => {
-    localStorage.setItem('altlume-theme', theme)
+    localStorage.setItem('varnx-theme', theme)
     document.documentElement.setAttribute('data-theme', theme)
     set({ theme })
   },
@@ -62,7 +64,7 @@ export const useReviewStore = create<ReviewStoreState>((set) => ({
   toggleTheme: () => {
     set((state) => {
       const nextTheme = state.theme === 'light' ? 'dark' : 'light'
-      localStorage.setItem('altlume-theme', nextTheme)
+      localStorage.setItem('varnx-theme', nextTheme)
       document.documentElement.setAttribute('data-theme', nextTheme)
       return { theme: nextTheme }
     })

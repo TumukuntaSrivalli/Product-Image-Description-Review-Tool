@@ -278,7 +278,7 @@ def export_csv() -> Response:
         content=csv_bytes,
         media_type="text/csv; charset=utf-8",
         headers={
-            "Content-Disposition": 'attachment; filename="altlume-export.csv"',
+            "Content-Disposition": 'attachment; filename="varnx-export.csv"',
             "Content-Type": "text/csv; charset=utf-8",
         },
     )

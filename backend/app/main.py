@@ -10,7 +10,7 @@ ASSETS_DIR = BASE_DIR / "assets"
 ASSETS_DIR.mkdir(parents=True, exist_ok=True)
 
 app = FastAPI(
-    title="ALTLUME API",
+    title="VarnX API",
     description="Product Image Description Review Tool API",
     version="1.0.0",
 )
@@ -49,4 +49,4 @@ def get_asset(filename: str):
 
 @app.get("/api/health")
 def health() -> dict[str, str]:
-    return {"status": "ok", "app": "ALTLUME"}
+    return {"status": "ok", "app": "VarnX"}

@@ -1,4 +1,4 @@
-# ALTLUME — Product Image Description Review Tool
+# VarnX — Product Image Description Review Tool
 
 > **Editorial Review Platform for Accessible E-Commerce Catalogues**
 > Built with Amazon Seller Central / Catalog Studio ergonomics, real-time accessibility validation, and human-in-the-loop audit trails.

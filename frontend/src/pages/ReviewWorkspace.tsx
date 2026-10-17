@@ -101,7 +101,7 @@ export function ReviewWorkspace() {
 
   // Dynamic document title
   useEffect(() => {
-    document.title = `${counts.approved}/10 approved — Altlume`
+    document.title = `${counts.approved}/10 approved — VarnX`
   }, [counts.approved])
 
   // Save Mutation

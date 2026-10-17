@@ -17,7 +17,7 @@ export function LandingPage() {
               Describe what the camera sees. <span className="hero-headline-accent">Nothing more.</span>
             </h1>
             <p className="hero-desc">
-              ALTLUME empowers e-commerce content editors and screen-reader users to publish verifiable, context-aware
+              VarnX empowers e-commerce content editors and screen-reader users to publish verifiable, context-aware
               image descriptions. We enforce strict business rules: no unobservable materials, no fake certifications,
               and 100% human-in-the-loop review.
             </p>
@@ -55,7 +55,7 @@ export function LandingPage() {
         </section>
 
         {/* How It Works Scroll Story */}
-        <section className="how-it-works-section" aria-label="How ALTLUME Works">
+        <section className="how-it-works-section" aria-label="How VarnX Works">
           <p className="section-eyebrow">The Editorial Journey</p>
           <h2 className="section-title">From Observable Signal to Compliant Copy</h2>
 
@@ -93,7 +93,7 @@ export function LandingPage() {
         <section className="compliance-disclaimer-box" role="note">
           <div className="disclaimer-icon">ℹ️</div>
           <div className="disclaimer-text">
-            <strong>Prototype Notice:</strong> ALTLUME is built with synthetic training fixture data (Case C04). This tool alone
+            <strong>Prototype Notice:</strong> VarnX is built with synthetic training fixture data (Case C04). This tool alone
             does NOT prove overall site accessibility compliance, and should be paired with hands-on assistive technology evaluation.
           </div>
         </section>

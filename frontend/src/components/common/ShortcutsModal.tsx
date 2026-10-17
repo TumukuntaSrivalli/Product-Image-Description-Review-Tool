@@ -30,7 +30,7 @@ export function ShortcutsModal() {
         </div>
 
         <p style={{ fontSize: '0.86rem', color: 'var(--muted)', marginTop: '8px' }}>
-          ALTLUME is built for high-speed editorial workflows with comprehensive keyboard navigation.
+          VarnX is built for high-speed editorial workflows with comprehensive keyboard navigation.
         </p>
 
         <div className="shortcuts-list">
