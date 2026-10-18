@@ -4599,28 +4599,17 @@ export default function App() {
                                 {isAnalyzingProduct ? '⚡ Deep Multi-View Analyzing with Gemini Vision...' : '✨ Deep Multi-View Analysis (All Angles Together)'}
                               </button>
                             ) : (
-                              <>
+                              singleProductIntelligenceEnabled && (
                                 <button
                                   type="button"
                                   className="btn-primary-action"
-                                  style={{ fontSize: '0.78rem', padding: '6px 14px', flex: 2, background: 'linear-gradient(135deg, #4F46E5, #6366F1)' }}
-                                  onClick={handleAnalyzeImage}
-                                  disabled={isAnalyzingImage || currentProduct.imageError}
+                                  style={{ fontSize: '0.78rem', padding: '7px 14px', flex: '1 1 100%', background: 'linear-gradient(135deg, #4338CA, #6D28D9)', marginTop: '4px' }}
+                                  onClick={() => handleAnalyzeProduct(currentProduct)}
+                                  disabled={isAnalyzingProduct || currentProduct.imageError}
                                 >
-                                  {isAnalyzingImage ? '🔍 Analyzing image...' : '🔍 Analyze Image (Detect Features)'}
+                                  {isAnalyzingProduct ? '⚡ Deep Analyzing with Gemini Vision...' : '✨ Deep Intelligence Analysis (Identify Product & Questions)'}
                                 </button>
-                                {singleProductIntelligenceEnabled && (
-                                  <button
-                                    type="button"
-                                    className="btn-primary-action"
-                                    style={{ fontSize: '0.78rem', padding: '7px 14px', flex: '1 1 100%', background: 'linear-gradient(135deg, #4338CA, #6D28D9)', marginTop: '4px' }}
-                                    onClick={() => handleAnalyzeProduct(currentProduct)}
-                                    disabled={isAnalyzingProduct || currentProduct.imageError}
-                                  >
-                                    {isAnalyzingProduct ? '⚡ Deep Analyzing with Gemini Vision...' : '✨ Deep Intelligence Analysis (Identify Product & Questions)'}
-                                  </button>
-                                )}
-                              </>
+                              )
                             )}
                           </div>
 
