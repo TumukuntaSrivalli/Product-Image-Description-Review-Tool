@@ -1,5 +1,11 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import './App.css';
+import './components/onboarding/onboarding-subscription.css';
+import { LoginModal } from './components/auth/LoginModal';
+import { OnboardingFlow } from './components/onboarding/OnboardingFlow';
+import { SubscriptionFlow } from './components/subscription/SubscriptionFlow';
+import { HomeLandingPage } from './components/landing/HomeLandingPage';
+import { BatchView } from './components/workspace/BatchView';
 
 // Authoritative fallback fixture data for Case C04 (P01 - P10)
 const DEFAULT_PRODUCTS = [
@@ -235,8 +241,92 @@ function ScrollProgressLine() {
 }
 
 export default function App() {
-  // Navigation tabs: 'home' | 'workspace' | 'overview' | 'evidence' | 'export'
-  const [activeTab, setActiveTab] = useState('home');
+  // Auth state persisted in localStorage
+  const [currentUser, setCurrentUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem('altlume_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  // Business Onboarding answers persisted in localStorage
+  const [onboardingData, setOnboardingData] = useState(() => {
+    try {
+      const saved = localStorage.getItem('altlume_onboarding');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  // Subscription plan selection persisted in localStorage
+  const [subscriptionPlan, setSubscriptionPlan] = useState(() => {
+    try {
+      const saved = localStorage.getItem('altlume_subscription');
+      return saved ? JSON.parse(saved) : { planId: 'pro', planName: 'Pro Growth', price: '$49' };
+    } catch {
+      return { planId: 'pro', planName: 'Pro Growth', price: '$49' };
+    }
+  });
+
+  // Login modal open/close
+  const [showLoginModal, setShowLoginModal] = useState(false);
+
+  // Active Flow: 'home' | 'onboarding' | 'subscription' | 'workspace'
+  const [activeFlow, setActiveFlow] = useState(() => {
+    try {
+      const u = localStorage.getItem('altlume_user');
+      const o = localStorage.getItem('altlume_onboarding');
+      const s = localStorage.getItem('altlume_subscription');
+      if (u && o && s) return 'workspace';
+      if (u && !o) return 'onboarding';
+      if (u && o && !s) return 'subscription';
+    } catch {}
+    return 'home';
+  });
+
+  // Navigation tabs within Workspace: 'dashboard' | 'batch' | 'workspace' (Studio) | 'method' | 'export'
+  const [activeTab, setActiveTab] = useState('dashboard');
+
+  const handleLoginSuccess = (user) => {
+    localStorage.setItem('altlume_user', JSON.stringify(user));
+    setCurrentUser(user);
+    setShowLoginModal(false);
+
+    if (!onboardingData || !onboardingData.businessType) {
+      setActiveFlow('onboarding');
+    } else if (!subscriptionPlan || !subscriptionPlan.planId) {
+      setActiveFlow('subscription');
+    } else {
+      setActiveFlow('workspace');
+      setActiveTab('dashboard');
+    }
+    setSuccessMessage(`Welcome, ${user.name || 'Editor'}!`);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('altlume_user');
+    setCurrentUser(null);
+    setActiveFlow('home');
+    setSuccessMessage('Signed out successfully.');
+  };
+
+  const handleOnboardingComplete = (data) => {
+    setOnboardingData(data);
+    localStorage.setItem('altlume_onboarding', JSON.stringify(data));
+    setActiveFlow('subscription');
+    setSuccessMessage('Business onboarding completed! Please choose your catalogue plan.');
+  };
+
+  const handleSelectSubscription = (plan) => {
+    setSubscriptionPlan(plan);
+    localStorage.setItem('altlume_subscription', JSON.stringify(plan));
+    setActiveFlow('workspace');
+    setActiveTab('dashboard');
+    setSuccessMessage(`Subscribed to ${plan.planName}! Welcome to your workspace.`);
+  };
 
   // Session-wide Merchant Name
   const [merchantName, setMerchantName] = useState('VarnX Store');
@@ -1605,6 +1695,21 @@ export default function App() {
       setSuccessMessage(`Regenerated ${formatKey} for ${currentProduct.product_id}`);
     } catch (err) {
       setErrorMessage(err.message || `Failed to regenerate ${formatKey}`);
+    } finally {
+      setIsGeneratingMultiFormat(false);
+    }
+  };
+
+  // Batch runner: generate multi-format for all items in catalogue
+  const handleBatchGenerateAllMultiFormat = async () => {
+    setIsGeneratingMultiFormat(true);
+    try {
+      for (const prod of products) {
+        await handleGenerateMultiFormat(prod);
+      }
+      setSuccessMessage('Batch multi-format generation completed for all catalogue items.');
+    } catch (err) {
+      setErrorMessage('Batch multi-format generation notice: ' + (err?.message || String(err)));
     } finally {
       setIsGeneratingMultiFormat(false);
     }
@@ -3059,66 +3164,113 @@ export default function App() {
       <CustomCursor />
       <ScrollProgressLine />
 
-      {/* Global Slim Top Navbar */}
+      {/* Global Contextual Navbar */}
       <header className={`altlume-navbar ${isScrolled ? 'scrolled' : ''}`}>
         <div className="navbar-inner">
-          <div className="brand-section" onClick={() => setActiveTab('workspace')} title="ALTLUME Review Studio">
+          <div
+            className="brand-section"
+            onClick={() => {
+              if (currentUser && onboardingData && subscriptionPlan) {
+                setActiveFlow('workspace');
+                setActiveTab('dashboard');
+              } else {
+                setActiveFlow('home');
+              }
+            }}
+            title="ALTLUME Review Studio"
+            style={{ cursor: 'pointer' }}
+          >
             <span className="brand-wordmark">ALTLUME</span>
-            <span className="brand-pill">REVIEW STUDIO</span>
+            <span className="brand-pill">
+              {activeFlow === 'home'
+                ? 'COMMERCE STUDIO'
+                : activeFlow === 'onboarding'
+                ? 'ONBOARDING'
+                : activeFlow === 'subscription'
+                ? 'EDITORIAL PLANS'
+                : 'REVIEW STUDIO'}
+            </span>
           </div>
 
-          {/* Navigation Links */}
-          <nav className="nav-links" aria-label="Main Navigation">
-            <button
-              type="button"
-              className={`nav-btn ${activeTab === 'home' || activeTab === 'landing' ? 'active' : ''}`}
-              onClick={() => setActiveTab('home')}
-            >
-              ✦ Landing
-            </button>
-            <button
-              type="button"
-              className={`nav-btn ${activeTab === 'workspace' ? 'active' : ''}`}
-              onClick={() => setActiveTab('workspace')}
-            >
-              🏢 Workspace
-            </button>
-            <button
-              type="button"
-              className={`nav-btn ${activeTab === 'dashboard' ? 'active' : ''}`}
-              onClick={() => setActiveTab('dashboard')}
-            >
-              📊 Batch Dashboard
-            </button>
-            <button
-              type="button"
-              className={`nav-btn ${activeTab === 'method' ? 'active' : ''}`}
-              onClick={() => setActiveTab('method')}
-            >
-              📖 Method
-            </button>
-            <button
-              type="button"
-              className={`nav-btn ${activeTab === 'export' ? 'active' : ''}`}
-              onClick={() => setActiveTab('export')}
-            >
-              📥 Export
-            </button>
-          </nav>
+          {/* Navigation for Workspace */}
+          {activeFlow === 'workspace' && (
+            <nav className="workspace-master-nav" aria-label="Workspace Main Navigation">
+              <button
+                type="button"
+                className={`workspace-nav-tab ${activeTab === 'dashboard' ? 'active' : ''}`}
+                onClick={() => setActiveTab('dashboard')}
+                title="Catalogue Readiness & Portfolio Metrics"
+              >
+                📊 Dashboard
+              </button>
+              <button
+                type="button"
+                className={`workspace-nav-tab ${activeTab === 'batch' ? 'active' : ''}`}
+                onClick={() => setActiveTab('batch')}
+                title="Batch Multi-Image & Angle Processing"
+              >
+                ⚡ Batch
+              </button>
+              <button
+                type="button"
+                className={`workspace-nav-tab ${activeTab === 'workspace' ? 'active' : ''}`}
+                onClick={() => setActiveTab('workspace')}
+                title="Editorial Product Review Studio"
+              >
+                ✍️ Review Studio
+              </button>
+              <button
+                type="button"
+                className={`workspace-nav-tab ${activeTab === 'method' ? 'active' : ''}`}
+                onClick={() => setActiveTab('method')}
+                title="Editorial Guidelines & W3C Standards"
+              >
+                📖 Method
+              </button>
+              <button
+                type="button"
+                className={`workspace-nav-tab ${activeTab === 'export' ? 'active' : ''}`}
+                onClick={() => setActiveTab('export')}
+                title="Export Verified CSV & JSON"
+              >
+                📥 Export
+              </button>
+            </nav>
+          )}
 
           {/* Right Tools & Theme Toggle */}
           <div className="nav-tools">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'var(--surface-card-subtle)', padding: '2px 8px', borderRadius: '6px', border: '1px solid var(--border)' }}>
-              <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600 }}>Store:</span>
-              <input
-                type="text"
-                value={merchantName}
-                onChange={(e) => setMerchantName(e.target.value)}
-                placeholder="Store Name"
-                style={{ background: 'transparent', border: 'none', outline: 'none', fontSize: '0.74rem', fontWeight: 700, width: '85px', color: 'var(--text-ink)' }}
-                title="Merchant catalogue store tag"
-              />
-            </div>
+            {activeFlow === 'workspace' && (
+              <>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'var(--surface-card-subtle)', padding: '2px 8px', borderRadius: '6px', border: '1px solid var(--border)' }}>
+                  <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600 }}>Store:</span>
+                  <input
+                    type="text"
+                    value={merchantName}
+                    onChange={(e) => setMerchantName(e.target.value)}
+                    placeholder="Store Name"
+                    style={{ background: 'transparent', border: 'none', outline: 'none', fontSize: '0.74rem', fontWeight: 700, width: '80px', color: 'var(--text-ink)' }}
+                    title="Merchant catalogue store tag"
+                  />
+                </div>
+
+                <div className="user-profile-badge" title={`Signed in as ${currentUser?.email || 'Editor'}`}>
+                  <span>👤 {currentUser?.name || 'Editor'}</span>
+                  {onboardingData?.role && (
+                    <span style={{ color: 'var(--text-muted)' }}>• {onboardingData.role.split('/')[0].trim()}</span>
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  className="user-plan-pill"
+                  onClick={() => setActiveFlow('subscription')}
+                  title="View or Change Editorial Subscription Plan"
+                >
+                  {subscriptionPlan?.planName || 'PRO PLAN'} ↗
+                </button>
+              </>
+            )}
 
             <button
               type="button"
@@ -3128,29 +3280,6 @@ export default function App() {
               style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', padding: '5px 8px' }}
             >
               🔍 ⌘K
-            </button>
-
-            <button
-              type="button"
-              className="theme-toggle-btn"
-              onClick={toggleTheme}
-              title={`Switch to ${theme === 'light' ? 'Midnight Dark' : 'Warm Paper'} Theme`}
-              aria-label="Toggle Theme"
-            >
-              {theme === 'light' ? '🌙' : '☀️'}
-            </button>
-
-            <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
-              <strong style={{ color: 'var(--accent-indigo)' }}>{approvedCount}</strong>/{products.length}
-            </span>
-
-            <button
-              type="button"
-              className="btn-editorial-primary"
-              onClick={handleExportCsv}
-              style={{ padding: '6px 14px', fontSize: '0.76rem' }}
-            >
-              📥 Export CSV
             </button>
 
             <a
@@ -3163,6 +3292,74 @@ export default function App() {
             >
               🗄️ Database
             </a>
+
+            <button
+              type="button"
+              className="theme-toggle-btn"
+              onClick={toggleTheme}
+              title={`Switch to ${theme === 'light' ? 'Midnight Dark' : 'Warm Paper'} Theme`}
+              aria-label="Toggle Theme"
+            >
+              {theme === 'light' ? '🌙' : '☀️'}
+            </button>
+
+            {activeFlow === 'home' && (
+              currentUser ? (
+                <button
+                  type="button"
+                  className="btn-editorial-primary"
+                  onClick={() => {
+                    setActiveFlow('workspace');
+                    setActiveTab('dashboard');
+                  }}
+                  style={{ padding: '6px 14px', fontSize: '0.78rem' }}
+                >
+                  ✦ Open Workspace →
+                </button>
+              ) : (
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    type="button"
+                    className="btn-editorial-secondary"
+                    onClick={() => setShowLoginModal(true)}
+                    style={{ padding: '6px 12px', fontSize: '0.78rem' }}
+                  >
+                    Sign In
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-editorial-primary"
+                    onClick={() => setShowLoginModal(true)}
+                    style={{ padding: '6px 14px', fontSize: '0.78rem' }}
+                  >
+                    Get Started →
+                  </button>
+                </div>
+              )
+            )}
+
+            {activeFlow === 'workspace' && (
+              <button
+                type="button"
+                className="btn-editorial-secondary"
+                onClick={handleLogout}
+                style={{ padding: '6px 12px', fontSize: '0.76rem' }}
+                title="Sign out and return to Home"
+              >
+                Sign Out
+              </button>
+            )}
+
+            {(activeFlow === 'onboarding' || activeFlow === 'subscription') && (
+              <button
+                type="button"
+                className="btn-editorial-secondary"
+                onClick={() => setActiveFlow('home')}
+                style={{ padding: '6px 12px', fontSize: '0.76rem' }}
+              >
+                Exit to Home
+              </button>
+            )}
           </div>
         </div>
       </header>
@@ -3223,8 +3420,67 @@ export default function App() {
           </div>
         )}
 
-        {/* TAB 0: HOMEPAGE / LANDING SCREEN */}
-        {activeTab === 'home' && (
+        {/* FLOW 1: MODERN INTERACTIVE HERO / LANDING PAGE */}
+        {activeFlow === 'home' && (
+          <HomeLandingPage
+            onGetStarted={() => {
+              if (currentUser) {
+                setActiveFlow('workspace');
+                setActiveTab('dashboard');
+              } else {
+                setShowLoginModal(true);
+              }
+            }}
+            onLogin={() => setShowLoginModal(true)}
+            products={products}
+            onSelectProduct={(id) => {
+              setSelectedId(id);
+              if (currentUser) {
+                setActiveFlow('workspace');
+                setActiveTab('workspace');
+              } else {
+                setShowLoginModal(true);
+              }
+            }}
+          />
+        )}
+
+        {/* FLOW 2: 3-STEP USER ONBOARDING QUESTIONNAIRE */}
+        {activeFlow === 'onboarding' && (
+          <OnboardingFlow
+            initialValues={onboardingData || {}}
+            onComplete={handleOnboardingComplete}
+          />
+        )}
+
+        {/* FLOW 3: SUBSCRIPTION & PRICING PLANS */}
+        {activeFlow === 'subscription' && (
+          <SubscriptionFlow
+            currentPlanId={subscriptionPlan?.planId || 'pro'}
+            onSelectPlan={handleSelectSubscription}
+          />
+        )}
+
+        {/* FLOW 4: WORKSPACE - BATCH OPERATIONS & VIEW COVERAGE */}
+        {activeFlow === 'workspace' && activeTab === 'batch' && (
+          <BatchView
+            products={products}
+            onOpenUpload={() => bulkFileInputRef.current?.click()}
+            onOpenGroupingStudio={() => setShowMultiImageStudio(true)}
+            onGenerateAllMultiFormat={handleBatchGenerateAllMultiFormat}
+            onApproveLowRisk={() => setShowApproveLowRiskModal(true)}
+            onSelectProduct={(id) => {
+              setSelectedId(id);
+              setActiveTab('workspace');
+            }}
+            computeClientReadinessScore={computeClientReadinessScore}
+            computeClientViewCoverage={computeClientViewCoverage}
+            isBatchGenerating={isGeneratingMultiFormat}
+          />
+        )}
+
+        {/* TAB 0: HOMEPAGE / LANDING SCREEN (RETIRED) */}
+        {false && (
           <div style={{ maxWidth: '1080px', margin: '0 auto' }}>
             <div className="landing-page-container">
               {/* Cinematic Hero */}
@@ -3402,7 +3658,7 @@ export default function App() {
         )}
 
         {/* TAB 1: 3-COLUMN REVIEW WORKSPACE */}
-        {activeTab === 'workspace' && (
+        {activeFlow === 'workspace' && activeTab === 'workspace' && (
           <div className="workspace-wrapper">
             {/* Workspace Subnav & Editorial Progress Bar */}
             <div className="workspace-subnav">
@@ -5410,7 +5666,7 @@ export default function App() {
         )}
 
         {/* TAB 3: METHOD PAGE (ALTLUME DISCIPLINE) */}
-        {activeTab === 'method' && (
+        {activeFlow === 'workspace' && activeTab === 'method' && (
           <div style={{ maxWidth: '980px', margin: '40px auto 60px', padding: '0 24px' }}>
             <div style={{ textAlign: 'center', marginBottom: '36px' }}>
               <span className="brand-pill" style={{ marginBottom: '12px', display: 'inline-block' }}>
@@ -5475,7 +5731,7 @@ export default function App() {
         )}
 
         {/* TAB 4: EXPORT HUB (ALTLUME READINESS & AUDIT) */}
-        {activeTab === 'export' && (
+        {activeFlow === 'workspace' && activeTab === 'export' && (
           <div style={{ maxWidth: '1080px', margin: '30px auto 60px', padding: '0 20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '14px' }}>
               <div>
@@ -5638,7 +5894,7 @@ export default function App() {
         )}
 
         {/* TAB 5: BATCH DASHBOARD VIEW (Batch 3 Feature) */}
-        {batchDashboardEnabled && activeTab === 'dashboard' && (
+        {activeFlow === 'workspace' && activeTab === 'dashboard' && (
           <div className="batch-dashboard-container">
             {/* Dashboard Header Bar */}
             <div className="batch-dashboard-header">
@@ -6602,6 +6858,13 @@ export default function App() {
           </div>
         </div>
       )}
+
+      {/* SaaS Authentication Modal */}
+      <LoginModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        onLoginSuccess={handleLoginSuccess}
+      />
 
       {/* Global ALTLUME Footer */}
       <footer className="altlume-footer">
