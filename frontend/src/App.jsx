@@ -3538,17 +3538,6 @@ export default function App() {
           <div className="nav-tools">
             {activeFlow === 'workspace' && (
               <>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'var(--surface-card-subtle)', padding: '2px 8px', borderRadius: '6px', border: '1px solid var(--border)' }}>
-                  <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600 }}>Store:</span>
-                  <input
-                    type="text"
-                    value={merchantName}
-                    onChange={(e) => setMerchantName(e.target.value)}
-                    placeholder="Store Name"
-                    style={{ background: 'transparent', border: 'none', outline: 'none', fontSize: '0.74rem', fontWeight: 700, width: '80px', color: 'var(--text-ink)' }}
-                    title="Merchant catalogue store tag"
-                  />
-                </div>
 
                 <div className="user-profile-badge" title={`Signed in as ${currentUser?.email || 'Editor'}`}>
                   <span>👤 {currentUser?.name || 'Editor'}</span>
