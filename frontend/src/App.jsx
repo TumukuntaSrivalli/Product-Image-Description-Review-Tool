@@ -3584,16 +3584,6 @@ export default function App() {
               🔍 ⌘K
             </button>
 
-            <a
-              href="/database"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-editorial-secondary"
-              style={{ padding: '6px 12px', fontSize: '0.76rem', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-              title="Inspect live SQLite database tables & records"
-            >
-              🗄️ Database
-            </a>
 
             <button
               type="button"
