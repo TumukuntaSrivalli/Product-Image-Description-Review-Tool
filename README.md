@@ -1,115 +1,185 @@
-# VarnX — Product Image Description Review Tool
+# VarnX — AI Product Description & Image Review Studio
 
-> **Editorial Review Platform for Accessible E-Commerce Catalogues**
-> Built with Amazon Seller Central / Catalog Studio ergonomics, real-time accessibility validation, and human-in-the-loop audit trails.
+<p align="center">
+  <img src="frontend/public/varnx-logo.png" alt="VarnX Logo" width="220" />
+</p>
 
----
+<p align="center">
+  <strong>An Intelligent Human-in-the-Loop Review Platform for High-Converting, Accessible E-Commerce Catalogues</strong>
+</p>
 
-## 🌟 Key Highlights & Architectural Decisions
-
-- **Amazon Catalog Ergonomics**: Clean 3-pane workflow (filmstrip thumbnail queue, high-magnification image pan/zoom viewer, structured editorial card with live validation and Amazon-grade 1-Click approval action).
-- **Truth in Describing**: Enforces strict business rules that prevent unobservable claims (materials like cotton/leather/steel, certifications like ISO/CE, performance like waterproof/durable, and superlatives like premium/best). Offending words are highlighted live with interactive tooltips.
-- **Provenance Transparency**: Every draft is stamped with its source label (`rule-based fallback` or `AI model (needs review)`).
-- **Uncertainty & Ambiguity Kept Visible**:
-  - Conflicting metadata or subjective words (e.g., "appears blue") surface an editable **"colour uncertain"** chip.
-  - Visually duplicate illustrations (P01, P02, P04) carry an **"Identical to P01"** catalog badge.
-- **Interactive 3D Hero (React Three Fiber)**: 10 floating rounded glass tiles matching the fixture colors (blue, red, black, grey, green) orbiting with a scanning light beam and dynamic typing caption.
-  - *Easter Egg*: Typing `alt` on the landing page rearranges the tiles into the letters **A-L-T**.
-- **Keyboard Shortcuts & Command Palette**: Complete keyboard operations via `J`/`K` navigation, `A` approve, `F` flag, `E` edit, `D` decorative, `G` generate draft, `T` theme toggle, `Ctrl+S` save, and `Ctrl+K` command palette via `cmdk`.
-- **Export Integrity**: CSV export is UTF-8 with BOM (`utf-8-sig`), properly quoted, and protected against formula injection (`=`, `+`, `-`, `@` prefixed with apostrophe). All 10 product IDs are strictly preserved.
-- **Mandatory Compliance Disclaimer**: Prominently notes in the UI header, footer, export studio, and methodology page that this tool alone does **NOT** prove overall site accessibility compliance or legal WCAG certification.
+<p align="center">
+  <a href="#-core-workflow"><img src="https://img.shields.io/badge/Workflow-7--Step%20Pipeline-blue.svg?style=flat-square" alt="Workflow" /></a>
+  <a href="#-features"><img src="https://img.shields.io/badge/Batch%20Upload-Up%20to%2020%20Images-emerald.svg?style=flat-square" alt="Batch Upload" /></a>
+  <a href="#-tech-stack"><img src="https://img.shields.io/badge/React%2019-Vite%20%7C%20FastAPI-indigo.svg?style=flat-square" alt="Tech Stack" /></a>
+  <a href="#-ecommerce-preview"><img src="https://img.shields.io/badge/Storefront-Live%20Ecommerce%20Preview-purple.svg?style=flat-square" alt="Ecommerce Preview" /></a>
+  <a href="#-license"><img src="https://img.shields.io/badge/License-MIT-gray.svg?style=flat-square" alt="License" /></a>
+</p>
 
 ---
 
-## 🛠️ Tech Stack
+## 📌 Executive Overview
 
-- **Frontend**: Vite + React 19 + TypeScript, Tailwind CSS, Framer Motion, React Three Fiber + Three.js + @react-three/drei, Zustand, TanStack Query, cmdk, Sonner, Vitest + React Testing Library + vitest-axe.
-- **Backend**: Python 3.12+, FastAPI, Pydantic v2, Uvicorn, pytest.
-- **Persistence**: Atomic file writes to `backend/data/review_state.json` (no external database needed).
+**VarnX** is an editorial review studio built for digital commerce brands, marketplace sellers, and catalogue managers. It bridges the gap between raw computer vision outputs and buyer-ready, accessibility-compliant product listings. 
+
+By pairing automated visual analysis with a disciplined human review workflow, VarnX ensures every published product description is:
+- **Accurate & Observable**: Derived strictly from visible pixel details and verified merchant specifications.
+- **High-Impact & Persuasive**: Crafted for maximum customer engagement, search discoverability, and conversion optimization.
+- **Accessible (WCAG 2.2)**: Structured for screen readers, assistive technology, and multi-language e-commerce audiences.
+- **Storefront-Ready**: Instantly previewable and exportable to major e-commerce platforms (Shopify, WooCommerce, Amazon, BigCommerce).
 
 ---
 
-## 🚀 Getting Started
+## 🔄 End-to-End Workflow
 
-### 1. Backend Setup & Run
+```mermaid
+graph LR
+    A[1. Upload Image] --> B[2. AI Vision Analysis]
+    B --> C[3. Generate Copy]
+    C --> D[4. Review & Edit]
+    D --> E[5. Approve Description]
+    E --> F[6. Results & Export]
+    E --> G[7. Ecommerce Preview]
+```
 
+1. **Upload**: Drag-and-drop single images or batch upload up to 20 images at once with real-time numeric progress indicators and automatic price estimation.
+2. **AI Vision Analysis**: Evaluates image clarity, blur, contrast, resolution, and detects observable visual attributes and category taxonomy.
+3. **Generate Copy**: Creates detailed, comprehensive product copy including bulleted highlights, short summaries, and high-impact marketplace descriptions.
+4. **Human Review & Edit**: Real-time editor with diff view, text-to-speech audio verification, language switcher, and conversion metrics.
+5. **Approve**: 1-Click editorial sign-off creating an immutable audit trail entry and syncing with backend persistence.
+6. **Results**: Catalogue management table with search/filtering, selection checkboxes, and formula-injection-safe CSV / JSON exports.
+7. **Ecommerce Preview**: Dedicated storefront listing card with approved content lock, verified image viewer, and configurable live store URL launcher.
+
+---
+
+## ✨ Key Features
+
+### 🛍️ Marketing & Ecommerce Storefront Preview
+- **Live Product Listing View**: Presents the product exactly as it will appear to shoppers on a modern storefront.
+- **Approved-Content Guard**: Strictly locks display to final approved descriptions—unapproved drafts are never displayed on the public preview.
+- **Configurable Store URL**: Enter destination URLs (Shopify, WooCommerce, Amazon, custom domains) with a 1-click **"View on Ecommerce Store ↗"** launcher.
+- **Factual Highlights**: Displays confirmed observable features and specifications without speculative AI claims.
+
+### ⚡ Batch & Multi-Image Ingestion
+- Upload up to **20 high-resolution images** in a single batch.
+- Live percentage progress bar, concurrent queue processing, and automatic deterministic price estimation based on category and image keywords.
+- Instant queue population: newly uploaded items are immediately accessible in the Review Studio.
+
+### ✍️ Review Studio & Editorial Engine
+- **Expanded Editorial Canvas**: Designed with comfortable line-height, live character/word counters, and conversion-readiness indicators.
+- **"✨ Make Detailed & High-Impact"**: Enhances sparse copy into rich, multi-paragraph, buyer-oriented editorial descriptions.
+- **Text-to-Speech Audio Preview**: Listen aloud to descriptions using native browser speech synthesis.
+- **Version Diffing**: Inspect differences between raw AI suggestions and human-edited revisions.
+- **Multi-Language Support**: High-visibility popover language switcher supporting English, Hindi, and Telugu descriptions.
+
+### 📊 Results & Export Studio
+- **Export Formats**: Standard CSV with UTF-8 BOM (`utf-8-sig`) for Excel/Sheets compatibility, plus structured JSON catalogues.
+- **Formula Injection Defense**: Automatically neutralizes formula injection vectors (`=`, `+`, `-`, `@`) upon export.
+- **Selective Batch Export**: Download specific items or export the entire reviewed catalogue with one click.
+
+---
+
+## 🛠️ Architecture & Tech Stack
+
+```
+Product-Image-Description-Review-Tool/
+├── backend/
+│   ├── app/
+│   │   ├── main.py            # FastAPI endpoints & CORS configuration
+│   │   ├── models.py          # Pydantic schemas & state models
+│   │   ├── database.py        # SQLite / review state persistence engine
+│   │   └── services/          # Vision analysis & rule validation services
+│   └── requirements.txt       # Python dependencies
+├── frontend/
+│   ├── src/
+│   │   ├── App.jsx            # Main workspace router & state coordinator
+│   │   ├── App.css            # VarnX design system styling
+│   │   ├── components/
+│   │   │   ├── preview/       # EcommercePreviewPage component
+│   │   │   ├── workspace/     # Review Studio, BatchView, Editor
+│   │   │   ├── landing/       # HomeLandingPage
+│   │   │   └── auth/          # Authentication & Onboarding modals
+│   │   └── main.tsx           # React entry point
+│   ├── public/
+│   │   └── varnx-logo.png     # Official VarnX branding asset
+│   └── package.json           # Frontend dependencies & build scripts
+└── README.md
+```
+
+| Layer | Technologies |
+|---|---|
+| **Frontend Framework** | React 19, Vite, TypeScript, JavaScript (ES2024) |
+| **Styling & UI** | CSS3 Design Tokens, Glassmorphism, Responsive Grid / Flexbox |
+| **Backend API** | Python 3.11+, FastAPI, Uvicorn, Pydantic v2 |
+| **Persistence** | SQLite with atomic review state fallback |
+| **Build & Quality** | Vitest, TypeScript compiler (`tsc -b`), ESLint |
+
+---
+
+## 🚀 Quickstart Guide
+
+### Prerequisites
+- **Node.js** 18.0 or higher
+- **Python** 3.10 or higher
+- **Git**
+
+### 1. Clone the Repository
+```bash
+git clone https://github.com/TumukuntaSrivalli/Product-Image-Description-Review-Tool.git
+cd Product-Image-Description-Review-Tool
+```
+
+### 2. Backend Setup
 ```bash
 cd backend
-python -m pip install -r requirements.txt
+python -m venv venv
+# Windows:
+.\venv\Scripts\activate
+# Linux/macOS:
+source venv/bin/activate
+
+pip install -r requirements.txt
 python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
-- API Base URL: `http://127.0.0.1:8000`
-- API Health Check: `http://127.0.0.1:8000/api/health`
-- Interactive Swagger Docs: `http://127.0.0.1:8000/docs`
+- API Base: `http://127.0.0.1:8000`
+- Interactive Swagger Documentation: `http://127.0.0.1:8000/docs`
 
-### 2. Frontend Setup & Run
-
+### 3. Frontend Setup
+In a new terminal window:
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
-- Frontend Dev Server: `http://localhost:5173` (proxies `/api` and `/assets` to `http://127.0.0.1:8000`).
+- Application URL: `http://localhost:5173`
+- The Vite dev server automatically proxies API requests to `http://127.0.0.1:8000`.
 
 ---
 
-## 🧪 Testing
+## ⌨️ Universal Keyboard Shortcuts
 
-### Backend Unit & Integration Tests (pytest)
-Runs 16 comprehensive tests covering business rules, edge cases, CSV round-trip, and state persistence:
-```bash
-cd backend
-python -m pytest
-```
+VarnX features high-velocity navigation shortcuts for review operators:
 
-### Frontend Tests & Accessibility Audit (vitest + vitest-axe)
-Runs unit tests for client-side validators, word diff engine, and automated WCAG accessibility audits:
-```bash
-cd frontend
-npm test
-```
-
-### Production Build Verification
-```bash
-cd frontend
-npm run build
-```
+| Key | Action |
+|:---:|---|
+| <kbd>J</kbd> / <kbd>K</kbd> | Navigate to Next / Previous Product in queue |
+| <kbd>A</kbd> | Approve Current Description |
+| <kbd>E</kbd> | Focus Description Textarea for Editing |
+| <kbd>F</kbd> | Flag Item as Inaccessible |
+| <kbd>D</kbd> | Toggle Decorative Image status (`alt=""`) |
+| <kbd>T</kbd> | Toggle Light ("Paper") / Midnight Theme |
+| <kbd>⌘</kbd> + <kbd>K</kbd> / <kbd>Ctrl</kbd> + <kbd>K</kbd> | Open Universal Command Palette |
+| <kbd>?</kbd> | Open Keyboard Shortcuts Cheatsheet |
 
 ---
 
-## ⌨️ Keyboard Shortcuts
+## 🔒 Editorial Standards & Compliance Notice
 
-| Shortcut | Action |
-|---|---|
-| `J` / `K` | Select Next / Previous Product |
-| `E` | Focus Image Description Textarea |
-| `A` | Approve & Publish Current Alt Text |
-| `F` | Open Flag Inaccessible Dialog |
-| `D` | Toggle Decorative Image (`alt=""`) |
-| `G` | Regenerate Draft Description |
-| `T` | Toggle Light ("Paper") / Dark ("Midnight") Theme |
-| `Ctrl + S` | Save Current Review |
-| `Ctrl + K` | Open Universal Command Palette |
-| `?` | Open Keyboard Shortcuts Help Modal |
+> [!NOTE]
+> **Human-in-the-Loop Requirement**: While VarnX leverages generative vision models to expedite drafting, human editorial verification remains mandatory. Alternative text alone addresses WCAG 2.2 Success Criterion 1.1.1 (Non-text Content); comprehensive digital accessibility requires full site auditing including keyboard navigation, color contrast, and screen reader testing.
 
 ---
 
-## 📋 Business Validation Rules
+## 📄 License
 
-1. **Unsupported Claims**: Blocks unverifiable claims for material (*cotton, leather, ceramic, steel, silicone*), certification (*ISO, BIS, CE, organic*), performance (*waterproof, durable, ergonomic*), and superlatives (*premium, best, ultimate*).
-2. **Length Rules**: Advisory warning above 125 characters; hard block above 250 characters; empty text blocked unless explicitly confirmed decorative.
-3. **No Intro Redundancy**: Blocks descriptions starting with `"image of"`, `"picture of"`, or `"photo of"`.
-4. **Colour Nuance**: Detects conflicts between metadata title and visible color, or ambiguous phrasing like `"appears blue"`, flagging them as `"colour uncertain"`.
-5. **Decorative Confirmation**: Empty description (`alt=""`) permitted only upon explicit confirmation.
-6. **Text Transcription**: If marked as containing text, the description must transcribe the visible copy.
-7. **Multiple Products**: If marked as depicting multiple products, requires describing the group or set.
-8. **Adjacent Context Overlap**: Warns if the description unnecessarily duplicates copy present in adjacent page context.
-9. **Mutation Re-Review**: Any edit to an already approved item resets its status to `"needs re-review"`.
-
----
-
-## ⚠️ Limitations & Honest Disclaimer
-
-- This is a bounded prototype operating on synthetic fixture dataset `C04`.
-- Market demand, willingness to pay, and production performance remain unproven.
-- Alternative text alone is only one component of web accessibility (WCAG 2.1 SC 1.1.1); full compliance requires comprehensive audits covering keyboard navigation, focus management, color contrast, and assistive device evaluation.
+This project is licensed under the [MIT License](LICENSE).
