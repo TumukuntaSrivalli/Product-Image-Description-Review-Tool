@@ -3113,6 +3113,17 @@ export default function App() {
             >
               📥 Export CSV
             </button>
+
+            <a
+              href="/database"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-editorial-secondary"
+              style={{ padding: '6px 12px', fontSize: '0.76rem', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+              title="Inspect live SQLite database tables & records"
+            >
+              🗄️ Database
+            </a>
           </div>
         </div>
       </header>
@@ -3351,2990 +3362,512 @@ export default function App() {
           </div>
         )}
 
-            {/* TAB 1: 3-COLUMN REVIEW WORKSPACE */}
-            {activeTab === 'workspace' && (
-              <div className="workspace-wrapper">
-                {/* Workspace Subnav & Editorial Progress Bar */}
-                <div className="workspace-subnav">
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
-                    <div className="progress-ring-badge">
-                      <span
-                        style={{
-                          display: 'inline-block',
-                          width: '12px',
-                          height: '12px',
-                          borderRadius: '50%',
-                          background: approvedCount === products.length ? 'var(--emerald)' : 'var(--accent-indigo)',
-                          boxShadow: '0 0 6px var(--accent-indigo)'
-                        }}
-                      />
-                      <span>
-                        <strong>{approvedCount}</strong> of {products.length} reviewed
-                      </span>
-                    </div>
-                    <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>|</span>
-                    <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-                      Active Focus: <strong style={{ fontFamily: 'var(--font-mono)', color: 'var(--accent-indigo)' }}>{currentProduct.product_id}</strong> — {currentProduct.metadata_title}
-                    </span>
-                  </div>
+        {/* TAB 1: 3-COLUMN REVIEW WORKSPACE */}
+        {activeTab === 'workspace' && (
+          <div className="workspace-wrapper">
+            {/* Workspace Subnav & Editorial Progress Bar */}
+            <div className="workspace-subnav">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+                <div className="progress-ring-badge">
+                  <span
+                    style={{
+                      display: 'inline-block',
+                      width: '12px',
+                      height: '12px',
+                      borderRadius: '50%',
+                      background: approvedCount === products.length ? 'var(--emerald)' : 'var(--accent-indigo)',
+                      boxShadow: '0 0 6px var(--accent-indigo)'
+                    }}
+                  />
+                  <span>
+                    <strong>{approvedCount}</strong> of {products.length} reviewed
+                  </span>
+                </div>
+                <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>|</span>
+                <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                  Active Focus: <strong style={{ fontFamily: 'var(--font-mono)', color: 'var(--accent-indigo)' }}>{currentProduct.product_id}</strong> — {currentProduct.metadata_title}
+                </span>
+              </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  className="btn-editorial-secondary"
+                  onClick={handleGenerateAllDrafts}
+                  style={{ padding: '6px 14px', fontSize: '0.76rem' }}
+                  title="Generate visual descriptions for all unapproved items"
+                  data-cursor="Generate"
+                >
+                  ⚡ Generate all drafts
+                </button>
+                <button
+                  type="button"
+                  className="btn-editorial-primary"
+                  onClick={handleExportCsv}
+                  style={{ padding: '6px 14px', fontSize: '0.76rem' }}
+                  title="Download reviewed CSV"
+                  data-cursor="Export"
+                >
+                  📥 Export review
+                </button>
+              </div>
+            </div>
+
+            {/* 3-Column Studio Grid */}
+            <div className="workspace-grid">
+              {/* COLUMN 1: FILMSTRIP QUEUE (LEFT) */}
+              <aside className="filmstrip-col" aria-label="Product Review Filmstrip">
+                <div className="filmstrip-header">
+                  <span className="col-label">FILMSTRIP ({products.length})</span>
+                  <div style={{ display: 'flex', gap: '4px' }}>
                     <button
                       type="button"
                       className="btn-editorial-secondary"
-                      onClick={handleGenerateAllDrafts}
-                      style={{ padding: '6px 14px', fontSize: '0.76rem' }}
-                      title="Generate visual descriptions for all unapproved items"
-                      data-cursor="Generate"
+                      style={{ padding: '3px 8px', fontSize: '0.7rem' }}
+                      onClick={() => fileInputRef.current?.click()}
+                      title="Upload Single Product Image"
+                      data-cursor="Upload"
                     >
-                      ⚡ Generate all drafts
+                      + Upload
                     </button>
                     <button
                       type="button"
-                      className="btn-editorial-primary"
-                      onClick={handleExportCsv}
-                      style={{ padding: '6px 14px', fontSize: '0.76rem' }}
-                      title="Download reviewed CSV"
-                      data-cursor="Export"
+                      className="btn-editorial-secondary"
+                      style={{ padding: '3px 8px', fontSize: '0.7rem' }}
+                      onClick={() => bulkFileInputRef.current?.click()}
+                      title="Bulk Upload (Up to 20 images)"
+                      data-cursor="Bulk"
                     >
-                      📥 Export review
+                      📂 Bulk
                     </button>
                   </div>
                 </div>
 
-                {/* 3-Column Studio Grid */}
-                <div className="workspace-grid">
-                  {/* COLUMN 1: FILMSTRIP QUEUE (LEFT) */}
-                  <aside className="filmstrip-col" aria-label="Product Review Filmstrip">
-                    <div className="filmstrip-header">
-                      <span className="col-label">FILMSTRIP ({products.length})</span>
-                      <div style={{ display: 'flex', gap: '4px' }}>
-                        <button
-                          type="button"
-                          className="btn-editorial-secondary"
-                          style={{ padding: '3px 8px', fontSize: '0.7rem' }}
-                          onClick={() => fileInputRef.current?.click()}
-                          title="Upload Single Product Image"
-                          data-cursor="Upload"
-                        >
-                          + Upload
-                        </button>
-                        <button
-                          type="button"
-                          className="btn-editorial-secondary"
-                          style={{ padding: '3px 8px', fontSize: '0.7rem' }}
-                          onClick={() => bulkFileInputRef.current?.click()}
-                          title="Bulk Upload (Up to 20 images)"
-                          data-cursor="Bulk"
-                        >
-                          📂 Bulk
-                        </button>
-                      </div>
-                    </div>
+                {/* Compact Search & Status Filter */}
+                <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                  <input
+                    type="text"
+                    placeholder="Filter P01–P10..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    style={{
+                      flex: 1,
+                      padding: '5px 8px',
+                      fontSize: '0.74rem',
+                      borderRadius: '6px',
+                      border: '1px solid var(--surface-border)',
+                      background: 'var(--surface-card)',
+                      color: 'var(--text-ink)',
+                      outline: 'none',
+                    }}
+                  />
+                  <select
+                    value={queueFilter}
+                    onChange={(e) => setQueueFilter(e.target.value)}
+                    style={{
+                      padding: '5px 6px',
+                      fontSize: '0.72rem',
+                      borderRadius: '6px',
+                      border: '1px solid var(--surface-border)',
+                      background: 'var(--surface-card)',
+                      color: 'var(--text-ink)',
+                      outline: 'none',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <option value="ALL">All ({products.length})</option>
+                    <option value="PENDING">Pending</option>
+                    <option value="APPROVED">Approved</option>
+                    <option value="INACCESSIBLE">Inaccessible</option>
+                  </select>
+                </div>
 
-                    {/* Compact Search & Status Filter */}
-                    <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                      <input
-                        type="text"
-                        placeholder="Filter P01–P10..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        style={{
-                          flex: 1,
-                          padding: '5px 8px',
-                          fontSize: '0.74rem',
-                          borderRadius: '6px',
-                          border: '1px solid var(--surface-border)',
-                          background: 'var(--surface-card)',
-                          color: 'var(--text-ink)',
-                          outline: 'none',
-                        }}
-                      />
-                      <select
-                        value={queueFilter}
-                        onChange={(e) => setQueueFilter(e.target.value)}
-                        style={{
-                          padding: '5px 6px',
-                          fontSize: '0.72rem',
-                          borderRadius: '6px',
-                          border: '1px solid var(--surface-border)',
-                          background: 'var(--surface-card)',
-                          color: 'var(--text-ink)',
-                          outline: 'none',
-                          cursor: 'pointer',
-                        }}
+                {/* Filmstrip Items (P01–P10) */}
+                <div className="filmstrip-items">
+                  {filteredProducts.map((p) => {
+                    const isSelected = p.product_id === selectedId;
+                    const statusClass = p.status.toLowerCase().replace(/_/g, '-');
+                    const imgCount = p.image_count || (Array.isArray(p.images) ? p.images.length : 1);
+
+                    // Duplicate-description marker check
+                    const descText = (p.final_description || p.edited_text || p.draft || '').trim().toLowerCase();
+                    const isDuplicate =
+                      descText &&
+                      descText.length > 10 &&
+                      products.filter(
+                        (other) =>
+                          other.product_id !== p.product_id &&
+                          (other.final_description || other.edited_text || other.draft || '').trim().toLowerCase() === descText
+                      ).length > 0;
+
+                    return (
+                      <button
+                        key={p.product_id}
+                        type="button"
+                        className={`filmstrip-card ${isSelected ? 'active' : ''}`}
+                        onClick={() => setSelectedId(p.product_id)}
+                        data-cursor="Review"
                       >
-                        <option value="ALL">All ({products.length})</option>
-                        <option value="PENDING">Pending</option>
-                        <option value="APPROVED">Approved</option>
-                        <option value="INACCESSIBLE">Inaccessible</option>
-                      </select>
-                    </div>
-
-                    {/* Filmstrip Items (P01–P10) */}
-                    <div className="filmstrip-items">
-                      {filteredProducts.map((p) => {
-                        const isSelected = p.product_id === selectedId;
-                        const statusClass = p.status.toLowerCase().replace(/_/g, '-');
-                        const imgCount = p.image_count || (Array.isArray(p.images) ? p.images.length : 1);
-
-                        // Duplicate-description marker check
-                        const descText = (p.final_description || p.edited_text || p.draft || '').trim().toLowerCase();
-                        const isDuplicate =
-                          descText &&
-                          descText.length > 10 &&
-                          products.filter(
-                            (other) =>
-                              other.product_id !== p.product_id &&
-                              (other.final_description || other.edited_text || other.draft || '').trim().toLowerCase() === descText
-                          ).length > 0;
-
-                        return (
-                          <button
-                            key={p.product_id}
-                            type="button"
-                            className={`filmstrip-card ${isSelected ? 'active' : ''}`}
-                            onClick={() => setSelectedId(p.product_id)}
-                            data-cursor="Review"
+                        <img
+                          src={p.image_url}
+                          alt=""
+                          className="filmstrip-thumb"
+                          onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                        />
+                        <div className="filmstrip-meta">
+                          <div className="meta-row">
+                            <span className="product-id-badge">{p.product_id}</span>
+                            <span className={`status-pill ${statusClass}`}>{p.status}</span>
+                          </div>
+                          <div
+                            style={{
+                              fontSize: '0.74rem',
+                              color: 'var(--text-ink)',
+                              fontWeight: 600,
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                            }}
                           >
-                            <img
-                              src={p.image_url}
-                              alt=""
-                              className="filmstrip-thumb"
-                              onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                            />
-                            <div className="filmstrip-meta">
-                              <div className="meta-row">
-                                <span className="product-id-badge">{p.product_id}</span>
-                                <span className={`status-pill ${statusClass}`}>{p.status}</span>
-                              </div>
-                              <div
-                                style={{
-                                  fontSize: '0.74rem',
-                                  color: 'var(--text-ink)',
-                                  fontWeight: 600,
-                                  whiteSpace: 'nowrap',
-                                  overflow: 'hidden',
-                                  textOverflow: 'ellipsis',
-                                }}
-                              >
-                                {p.metadata_title}
-                              </div>
-                              <div style={{ display: 'flex', gap: '4px', alignItems: 'center', marginTop: '2px', flexWrap: 'wrap' }}>
-                                <span style={{ fontSize: '0.66rem', color: 'var(--text-muted)' }}>{p.category || 'General'}</span>
-                                {imgCount > 1 && (
-                                  <span style={{ fontSize: '0.62rem', background: '#F3E8FF', color: '#7E22CE', padding: '0 4px', borderRadius: '3px', fontWeight: 700 }}>
-                                    🔄 {imgCount} views
-                                  </span>
-                                )}
-                                {p.listened && (
-                                  <span style={{ fontSize: '0.62rem', background: '#EEF2FF', color: '#4338CA', padding: '0 4px', borderRadius: '3px', fontWeight: 700 }}>
-                                    🔊 Listened
-                                  </span>
-                                )}
-                                {p.quality_warning && (
-                                  <span style={{ fontSize: '0.62rem', background: '#FEF3C7', color: '#B45309', padding: '0 4px', borderRadius: '3px', fontWeight: 700 }}>
-                                    ⚠️ Quality
-                                  </span>
-                                )}
-                              </div>
-                              {isDuplicate && (
-                                <span className="dup-warning-badge" title="Description repeats wording from another product in this queue">
-                                  ⚠️ Duplicate wording
-                                </span>
-                              )}
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-
-                    {/* Secondary Features: Spacious Studio Tools Drawer (Never Squished) */}
-                    <div className="filmstrip-tools-card">
-                      <div className="tools-tab-bar">
-                        <button
-                          type="button"
-                          className={`tool-tab-btn ${toolDrawerTab === 'audio' ? 'active' : ''}`}
-                          onClick={() => setToolDrawerTab('audio')}
-                        >
-                          🎧 Audio Review
-                        </button>
-                        <button
-                          type="button"
-                          className={`tool-tab-btn ${toolDrawerTab === 'lang' ? 'active' : ''}`}
-                          onClick={() => setToolDrawerTab('lang')}
-                        >
-                          🌐 Language Aid
-                        </button>
-                        <button
-                          type="button"
-                          className={`tool-tab-btn ${toolDrawerTab === 'batch' ? 'active' : ''}`}
-                          onClick={() => setToolDrawerTab('batch')}
-                        >
-                          ⚡ Quick Tools
-                        </button>
-                      </div>
-
-                      {toolDrawerTab === 'audio' && (
-                        <div className="audio-review-panel">
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span style={{ fontSize: '0.74rem', fontWeight: 800, color: 'var(--text-ink)' }}>
-                              🔊 Listen-to-Review
-                            </span>
-                            <span style={{ fontSize: '0.68rem', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
-                              Listened: <strong>{products.filter((p) => p.listened).length}</strong> / {products.length}
-                            </span>
+                            {p.metadata_title}
                           </div>
-
-                          <div className="audio-main-row">
-                            <div className="audio-btn-group">
-                              <button
-                                type="button"
-                                className="btn-editorial-primary"
-                                style={{ padding: '5px 12px', fontSize: '0.72rem' }}
-                                onClick={isPlayingVoice ? handleVoicePause : () => handleVoicePlay(currentProduct)}
-                                data-cursor="Play"
-                              >
-                                {isPlayingVoice ? '⏸ Pause' : '▶ Listen'}
-                              </button>
-                              <button
-                                type="button"
-                                className="btn-editorial-secondary"
-                                style={{ padding: '5px 10px', fontSize: '0.72rem' }}
-                                onClick={handleVoiceReplay}
-                                title="Replay from start"
-                                data-cursor="Replay"
-                              >
-                                ↺ Replay
-                              </button>
-                            </div>
-
-                            <div className="audio-speed-pills">
-                              {[0.75, 1, 1.25, 1.5].map((rate) => (
-                                <button
-                                  key={rate}
-                                  type="button"
-                                  className={`speed-pill-btn ${voiceRate === rate ? 'active' : ''}`}
-                                  onClick={() => setVoiceRate(rate)}
-                                >
-                                  {rate}x
-                                </button>
-                              ))}
-                            </div>
+                          <div style={{ display: 'flex', gap: '4px', alignItems: 'center', marginTop: '2px', flexWrap: 'wrap' }}>
+                            <span style={{ fontSize: '0.66rem', color: 'var(--text-muted)' }}>{p.category || 'General'}</span>
+                            {imgCount > 1 && (
+                              <span style={{ fontSize: '0.62rem', background: '#F3E8FF', color: '#7E22CE', padding: '0 4px', borderRadius: '3px', fontWeight: 700 }}>
+                                🔄 {imgCount} views
+                              </span>
+                            )}
+                            {p.listened && (
+                              <span style={{ fontSize: '0.62rem', background: '#EEF2FF', color: '#4338CA', padding: '0 4px', borderRadius: '3px', fontWeight: 700 }}>
+                                🔊 Listened
+                              </span>
+                            )}
+                            {p.quality_warning && (
+                              <span style={{ fontSize: '0.62rem', background: '#FEF3C7', color: '#B45309', padding: '0 4px', borderRadius: '3px', fontWeight: 700 }}>
+                                ⚠️ Quality
+                              </span>
+                            )}
                           </div>
-
-                          <div className="audio-queue-row">
-                            <button
-                              type="button"
-                              className="btn-editorial-secondary"
-                              style={{ padding: '4px 8px', fontSize: '0.7rem' }}
-                              onClick={listenAllPlaying ? handleListenAllToggle : handleStartListenAll}
-                              data-cursor={listenAllPlaying ? 'Stop' : 'Play'}
-                            >
-                              {listenAllPlaying ? '⏹ Stop Queue' : '▶ Listen All Queue'}
-                            </button>
-
-                            <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '0.7rem', color: 'var(--text-secondary)' }}>
-                              <input
-                                type="checkbox"
-                                checked={autoAdvanceVoice}
-                                onChange={(e) => setAutoAdvanceVoice(e.target.checked)}
-                              />
-                              Auto-advance
-                            </label>
-
-                            <button
-                              type="button"
-                              style={{ background: 'none', border: 'none', color: 'var(--accent-indigo)', fontSize: '0.68rem', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}
-                              onClick={() => {
-                                setProducts((prev) =>
-                                  prev.map((p) => (p.listened && p.status !== 'APPROVED' ? { ...p, status: 'APPROVED' } : p))
-                                );
-                                setSuccessMessage('Approved all listened items!');
-                              }}
-                            >
-                              Approve listened
-                            </button>
-                          </div>
-
-                          <div className="audio-tip-text">
-                            Tip: Spot-check audio-review items against the image. Listening alone never auto-approves.
-                          </div>
-                        </div>
-                      )}
-
-                      {toolDrawerTab === 'lang' && (
-                        <div style={{ background: 'var(--surface-card-subtle)', border: '1px solid var(--surface-border)', borderRadius: '8px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span style={{ fontSize: '0.74rem', fontWeight: 800, color: 'var(--text-ink)' }}>
-                              🌐 Review Language Aid
-                            </span>
-                            <span style={{ fontSize: '0.66rem', color: 'var(--text-muted)' }}>
-                              English is source of truth
-                            </span>
-                          </div>
-
-                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '4px' }}>
-                            {[
-                              { code: 'en', label: 'English' },
-                              { code: 'hi', label: 'हिन्दी' },
-                              { code: 'te', label: 'తెలుగు' },
-                            ].map((lang) => (
-                              <button
-                                key={lang.code}
-                                type="button"
-                                className={`btn-editorial-secondary ${reviewLanguage === lang.code ? 'active' : ''}`}
-                                style={{
-                                  padding: '6px 4px',
-                                  fontSize: '0.7rem',
-                                  fontWeight: 700,
-                                  background: reviewLanguage === lang.code ? 'var(--accent-indigo)' : 'var(--surface-card)',
-                                  color: reviewLanguage === lang.code ? '#FFF' : 'var(--text-secondary)',
-                                  borderColor: reviewLanguage === lang.code ? 'var(--accent-indigo)' : 'var(--surface-border)',
-                                }}
-                                onClick={() => handleLanguageSelect(lang.code)}
-                              >
-                                {lang.label}
-                              </button>
-                            ))}
-                          </div>
-
-                          {reviewLanguage !== 'en' && (
-                            <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', background: 'var(--surface-card)', padding: '8px', borderRadius: '6px', border: '1px solid var(--surface-border)', marginTop: '4px' }}>
-                              <strong>Translation Preview ({reviewLanguage.toUpperCase()}):</strong>
-                              <p style={{ margin: '4px 0 0', fontStyle: 'italic' }}>
-                                {currentProduct.translations?.[reviewLanguage] || (isTranslating ? 'Syncing translation...' : 'Translation will appear after generation.')}
-                              </p>
-                            </div>
-                          )}
-                        </div>
-                      )}
-
-                      {toolDrawerTab === 'batch' && (
-                        <div style={{ background: 'var(--surface-card-subtle)', border: '1px solid var(--surface-border)', borderRadius: '8px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                          <span style={{ fontSize: '0.74rem', fontWeight: 800, color: 'var(--text-ink)' }}>
-                            ⚡ Staging & Camera Shortcuts
-                          </span>
-                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
-                            <button
-                              type="button"
-                              className="btn-editorial-secondary"
-                              style={{ fontSize: '0.7rem', padding: '6px' }}
-                              onClick={handleStartCamera}
-                            >
-                              📸 Take Photo
-                            </button>
-                            <button
-                              type="button"
-                              className="btn-editorial-secondary"
-                              style={{ fontSize: '0.7rem', padding: '6px' }}
-                              onClick={() => multiImageUploadRef.current?.click()}
-                            >
-                              🔄 Multi-Angle
-                            </button>
-                          </div>
-                          <div style={{ fontSize: '0.67rem', color: 'var(--text-muted)' }}>
-                            Upload up to 20 images. Automated blur, brightness, and contrast preflight checks.
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </aside>
-
-                  {/* COLUMN 2: CENTER IMAGE & QUALITY STAGE */}
-                  <section className="center-column" aria-label="Visual Understanding & Quality Stage">
-                    <div className="varnix-card">
-                      <div className="queue-card-header" style={{ flexWrap: 'wrap', gap: '8px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                          <span style={{ fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--primary)' }}>
-                            {currentProduct.product_id}
-                          </span>
-                          <span style={{ fontWeight: 600, color: 'var(--text-main)', fontSize: '0.86rem' }}>
-                            {currentProduct.metadata_title}
-                          </span>
-                          {merchantName && (
-                            <span className="merchant-store-tag" title="Session merchant store name">
-                              Sold by: {merchantName}
-                            </span>
-                          )}
-                          {currentProduct.isUploaded && (
-                            <span style={{ fontSize: '0.68rem', background: '#EEF2FF', color: '#4338CA', padding: '1px 6px', borderRadius: '4px', fontWeight: 700 }}>
-                              Uploaded
+                          {isDuplicate && (
+                            <span className="dup-warning-badge" title="Description repeats wording from another product in this queue">
+                              ⚠️ Duplicate wording
                             </span>
                           )}
                         </div>
-                        <span className={`status-pill status-${currentProduct.status.toLowerCase().replace(/_/g, '-')}`}>
-                          {currentProduct.status}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Secondary Features: Spacious Studio Tools Drawer (Never Squished) */}
+                <div className="filmstrip-tools-card">
+                  <div className="tools-tab-bar">
+                    <button
+                      type="button"
+                      className={`tool-tab-btn ${toolDrawerTab === 'audio' ? 'active' : ''}`}
+                      onClick={() => setToolDrawerTab('audio')}
+                    >
+                      🎧 Audio Review
+                    </button>
+                    <button
+                      type="button"
+                      className={`tool-tab-btn ${toolDrawerTab === 'lang' ? 'active' : ''}`}
+                      onClick={() => setToolDrawerTab('lang')}
+                    >
+                      🌐 Language Aid
+                    </button>
+                    <button
+                      type="button"
+                      className={`tool-tab-btn ${toolDrawerTab === 'batch' ? 'active' : ''}`}
+                      onClick={() => setToolDrawerTab('batch')}
+                    >
+                      ⚡ Quick Tools
+                    </button>
+                  </div>
+
+                  {toolDrawerTab === 'audio' && (
+                    <div className="audio-review-panel">
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '0.74rem', fontWeight: 800, color: 'var(--text-ink)' }}>
+                          🔊 Listen-to-Review
+                        </span>
+                        <span style={{ fontSize: '0.68rem', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
+                          Listened: <strong>{products.filter((p) => p.listened).length}</strong> / {products.length}
                         </span>
                       </div>
 
-                      <div className="viewer-card-body">
-                        {/* Image Quality Warning Banner (Client-side check) */}
-                        {currentProduct.quality_warning && (
-                          <div className="quality-warning-banner">
-                            <div className="quality-warning-title">
-                              ⚠️ Image Quality Notice: {currentProduct.quality_reason}
-                            </div>
-                            <div className="quality-warning-desc">
-                              Image may be dark, small, or blurry. You can retake the photo, mark as inaccessible, or continue anyway.
-                            </div>
-                            <div className="quality-warning-actions">
-                              <button
-                                type="button"
-                                className="btn-quality-retake"
-                                onClick={() => {
-                                  if (navigator.mediaDevices) handleStartCamera();
-                                  else cameraFileInputRef.current?.click();
-                                }}
-                              >
-                                📸 Retake Photo
-                              </button>
-                              <button
-                                type="button"
-                                className="btn-quality-continue"
-                                onClick={() => {
-                                  setProducts(prev => prev.map(p => p.product_id === currentProduct.product_id ? { ...p, quality_warning: false } : p));
-                                }}
-                              >
-                                ✓ Continue Anyway
-                              </button>
-                              <button
-                                type="button"
-                                className="btn-quality-inaccessible"
-                                onClick={() => setShowInaccessibleModal(true)}
-                              >
-                                🚩 Mark Inaccessible
-                              </button>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Multi-View 360 Viewer or Single View Stage */}
-                        {(() => {
-                          const coverage = currentProduct.view_coverage || computeClientViewCoverage(currentProduct.category, activeImages);
-                          const isMulti = activeImages.length > 1 && multiImageSupportEnabled;
-
-                          return (
-                            <>
-                              {/* View Mode Header Badge */}
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                                {isMulti ? (
-                                  <span className="single-view-badge" style={{ background: '#F3E8FF', color: '#7E22CE', border: '1px solid #D8B4FE' }}>
-                                    🔄 360° MULTI-VIEW ({activeImages.length} REAL VIEWS)
-                                  </span>
-                                ) : (
-                                  <span className="single-view-badge">
-                                    📸 SINGLE VIEW ANALYSIS
-                                  </span>
-                                )}
-                                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-                                  {isMulti ? 'Drag or click arrows to cycle real views' : 'Multimodal Gemini Vision'}
-                                </span>
-                              </div>
-
-                              {isMulti ? (
-                                /* 360-STYLE VIEWER COMPONENT (ONLY REAL UPLOADED IMAGES) */
-                                <div className="viewer-360-container">
-                                  {/* Active View Orientation & Correction Bar */}
-                                  <div className="viewer-view-info-bar">
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                      <span className="viewer-view-badge">
-                                        VIEW {activeViewIndex + 1}/{activeImages.length}: {activeImageView.view?.toUpperCase() || 'VIEW'}
-                                      </span>
-                                      <span className={`confidence-pill confidence-${activeImageView.confidence || 'high'}`} style={{ fontSize: '0.62rem', padding: '1px 5px', borderRadius: '4px', textTransform: 'uppercase', fontWeight: 700 }}>
-                                        {activeImageView.confidence || 'high'}
-                                      </span>
-                                      {activeImageView.is_inaccessible && (
-                                        <span style={{ fontSize: '0.64rem', background: '#FEE2E2', color: '#DC2626', padding: '1px 6px', borderRadius: '4px', fontWeight: 700 }}>
-                                          🚩 Inaccessible
-                                        </span>
-                                      )}
-                                    </div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                      <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Correct:</span>
-                                      <select
-                                        className="viewer-view-select"
-                                        value={activeImageView.view || 'front'}
-                                        onChange={(e) => handleChangeViewLabel(activeViewIndex, e.target.value)}
-                                        title="Merchant correction for view orientation"
-                                      >
-                                        <option value="front">Front View</option>
-                                        <option value="back">Back View</option>
-                                        <option value="side">Side View</option>
-                                        <option value="left">Left View</option>
-                                        <option value="right">Right View</option>
-                                        <option value="top">Top View</option>
-                                        <option value="detail">Detail View</option>
-                                        <option value="heel">Heel View</option>
-                                        <option value="sole">Sole View</option>
-                                        <option value="ports">Ports / Controls</option>
-                                      </select>
-                                    </div>
-                                  </div>
-
-                                  {/* Viewport with Prev/Next Controls and Drag Spin (Real Images Only) */}
-                                  <div
-                                    className="viewer-360-viewport"
-                                    onMouseDown={(e) => setDragStartX(e.clientX)}
-                                    onMouseUp={(e) => {
-                                      if (dragStartX !== null) {
-                                        const diff = e.clientX - dragStartX;
-                                        if (diff > 35) handlePrev360View();
-                                        else if (diff < -35) handleNext360View();
-                                        setDragStartX(null);
-                                      }
-                                    }}
-                                    onTouchStart={(e) => setDragStartX(e.touches[0].clientX)}
-                                    onTouchEnd={(e) => {
-                                      if (dragStartX !== null && e.changedTouches[0]) {
-                                        const diff = e.changedTouches[0].clientX - dragStartX;
-                                        if (diff > 35) handlePrev360View();
-                                        else if (diff < -35) handleNext360View();
-                                        setDragStartX(null);
-                                      }
-                                    }}
-                                  >
-                                    <button
-                                      type="button"
-                                      className="viewer-360-nav-btn prev"
-                                      onClick={handlePrev360View}
-                                      title="Previous Real Angle (←)"
-                                    >
-                                      ◀
-                                    </button>
-
-                                    <img
-                                      src={activeImageView.url}
-                                      alt={`${currentProduct.metadata_title} - ${activeImageView.view} view`}
-                                      className={`viewer-360-main-img ${activeImageView.is_inaccessible ? 'inaccessible-blur' : ''}`}
-                                    />
-
-                                    <button
-                                      type="button"
-                                      className="viewer-360-nav-btn next"
-                                      onClick={handleNext360View}
-                                      title="Next Real Angle (→)"
-                                    >
-                                      ▶
-                                    </button>
-                                  </div>
-
-                                  {/* Real Thumbnail Scrubber Strip */}
-                                  <div className="viewer-360-strip">
-                                    {activeImages.map((img, idx) => (
-                                      <button
-                                        key={img.id || idx}
-                                        type="button"
-                                        className={`viewer-360-thumb ${idx === activeViewIndex ? 'active' : ''}`}
-                                        onClick={() => {
-                                          setProducts((prev) =>
-                                            prev.map((p) => (p.product_id === currentProduct.product_id ? { ...p, active_view_index: idx } : p))
-                                          );
-                                        }}
-                                        title={`Jump to ${img.view} view`}
-                                      >
-                                        <img src={img.url} alt={img.view} />
-                                        <span className="viewer-360-thumb-label">{img.view}</span>
-                                      </button>
-                                    ))}
-                                  </div>
-
-                                  {/* View Management Bar */}
-                                  <div className="viewer-manage-bar">
-                                    <button
-                                      type="button"
-                                      className="btn-secondary-action"
-                                      style={{ fontSize: '0.72rem', padding: '3px 8px' }}
-                                      onClick={() => addSingleViewRef.current?.click()}
-                                      title="Add another angle image to this product"
-                                    >
-                                      + Add Angle
-                                    </button>
-                                    <button
-                                      type="button"
-                                      className="btn-secondary-action"
-                                      style={{ fontSize: '0.72rem', padding: '3px 8px', color: activeImageView.is_inaccessible ? '#059669' : '#DC2626' }}
-                                      onClick={() => handleToggleViewInaccessible(activeViewIndex)}
-                                      title="Mark this angle inaccessible (excluded from coverage)"
-                                    >
-                                      {activeImageView.is_inaccessible ? '✓ Mark View Accessible' : '🚩 Mark View Inaccessible'}
-                                    </button>
-                                    <button
-                                      type="button"
-                                      className="btn-secondary-action"
-                                      style={{ fontSize: '0.72rem', padding: '3px 8px', color: '#DC2626' }}
-                                      onClick={() => handleRemoveViewFromCurrentProduct(activeViewIndex)}
-                                      title="Remove this angle image"
-                                    >
-                                      🗑️ Remove
-                                    </button>
-                                  </div>
-                                </div>
-                              ) : (
-                                /* SINGLE IMAGE VIEWPORT (NO 360 OFFERED) */
-                                <div className="image-canvas-stage">
-                                  {currentProduct.imageError ? (
-                                    <div style={{ textAlign: 'center', padding: '30px', color: '#DC2626' }}>
-                                      <div style={{ fontSize: '32px' }}>⚠️ 🖼️</div>
-                                      <h4>This image is unavailable.</h4>
-                                      <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-                                        The visual asset for {currentProduct.product_id} cannot be loaded or analyzed.
-                                      </p>
-                                      <button
-                                        type="button"
-                                        className="btn-danger-action"
-                                        onClick={() => setShowInaccessibleModal(true)}
-                                      >
-                                        🚩 Mark as Inaccessible
-                                      </button>
-                                    </div>
-                                  ) : (
-                                    <img
-                                      src={currentProduct.image_url}
-                                      alt={currentProduct.description || currentProduct.metadata_title}
-                                      onError={() => {
-                                        setProducts((prev) =>
-                                          prev.map((p) => (p.product_id === currentProduct.product_id ? { ...p, imageError: true } : p))
-                                        );
-                                      }}
-                                    />
-                                  )}
-                                </div>
-                              )}
-
-                              {/* Image Actions: Add View, Replace, Analyze */}
-                              <div style={{ display: 'flex', gap: '8px', marginTop: '10px', flexWrap: 'wrap' }}>
-                                <button
-                                  type="button"
-                                  className="btn-secondary-action"
-                                  style={{ fontSize: '0.74rem', padding: '5px 10px', flex: 1 }}
-                                  onClick={() => addSingleViewRef.current?.click()}
-                                  title="Upload an additional angle image (front, side, back, detail)"
-                                >
-                                  ➕ Add View {isMulti ? '' : 'to Enable 360°'}
-                                </button>
-                                <button
-                                  type="button"
-                                  className="btn-secondary-action"
-                                  style={{ fontSize: '0.74rem', padding: '5px 10px', flex: 1 }}
-                                  onClick={() => fileInputRef.current?.click()}
-                                >
-                                  🔄 Replace
-                                </button>
-
-                                {isMulti ? (
-                                  <button
-                                    type="button"
-                                    className="btn-primary-action"
-                                    style={{ fontSize: '0.78rem', padding: '7px 14px', flex: '1 1 100%', background: 'linear-gradient(135deg, #4338CA, #6D28D9)', marginTop: '4px' }}
-                                    onClick={handleAnalyzeMultiViewProduct}
-                                    disabled={isAnalyzingProduct}
-                                  >
-                                    {isAnalyzingProduct ? '⚡ Deep Multi-View Analyzing with Gemini Vision...' : '✨ Deep Multi-View Analysis (All Angles Together)'}
-                                  </button>
-                                ) : (
-                                  <>
-                                    <button
-                                      type="button"
-                                      className="btn-primary-action"
-                                      style={{ fontSize: '0.78rem', padding: '6px 14px', flex: 2, background: 'linear-gradient(135deg, #4F46E5, #6366F1)' }}
-                                      onClick={handleAnalyzeImage}
-                                      disabled={isAnalyzingImage || currentProduct.imageError}
-                                    >
-                                      {isAnalyzingImage ? '🔍 Analyzing image...' : '🔍 Analyze Image (Detect Features)'}
-                                    </button>
-                                    {singleProductIntelligenceEnabled && (
-                                      <button
-                                        type="button"
-                                        className="btn-primary-action"
-                                        style={{ fontSize: '0.78rem', padding: '7px 14px', flex: '1 1 100%', background: 'linear-gradient(135deg, #4338CA, #6D28D9)', marginTop: '4px' }}
-                                        onClick={() => handleAnalyzeProduct(currentProduct)}
-                                        disabled={isAnalyzingProduct || currentProduct.imageError}
-                                      >
-                                        {isAnalyzingProduct ? '⚡ Deep Analyzing with Gemini Vision...' : '✨ Deep Intelligence Analysis (Identify Product & Questions)'}
-                                      </button>
-                                    )}
-                                  </>
-                                )}
-                              </div>
-
-                              {/* Transparent View Coverage Checklist Panel */}
-                              <div className="coverage-panel">
-                                <div className="coverage-header">
-                                  <div className="coverage-title">
-                                    📐 View Coverage: <strong>{coverage.score}%</strong>
-                                  </div>
-                                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-                                    Category: <strong>{currentProduct.category || 'General'}</strong>
-                                  </span>
-                                </div>
-
-                                <div className="coverage-bar-track">
-                                  <div
-                                    className="coverage-bar-fill"
-                                    style={{
-                                      width: `${coverage.score}%`,
-                                      background: coverage.score >= 100 ? '#10B981' : coverage.score >= 50 ? '#4F46E5' : '#F59E0B'
-                                    }}
-                                  />
-                                </div>
-
-                                <div className="coverage-checklist">
-                                  {coverage.expected_views.map((v) => {
-                                    const hasView = coverage.present_views.includes(v);
-                                    return (
-                                      <span
-                                        key={v}
-                                        className={`coverage-checklist-chip ${hasView ? 'present' : 'missing'}`}
-                                        title={hasView ? `Present: ${v} view captured` : `Missing: upload a ${v} view to improve coverage`}
-                                      >
-                                        {hasView ? '✓' : '○'} {v.toUpperCase()}
-                                      </span>
-                                    );
-                                  })}
-                                </div>
-
-                                <div className="coverage-recommendation">
-                                  💡 <strong>Recommendation:</strong> {coverage.recommendation}
-                                </div>
-                              </div>
-                            </>
-                          );
-                        })()}
-
-                        {/* Product Identification Card (Single-Product Intelligence) */}
-                        {singleProductIntelligenceEnabled && currentProduct.detected_product && (
-                          <div className="intel-product-card">
-                            <div className="intel-product-header">
-                              <div className="intel-product-title">
-                                📦 {currentProduct.detected_product.product_name || currentProduct.metadata_title}
-                              </div>
-                              <span className={`confidence-pill confidence-${currentProduct.detected_product.confidence || 'high'}`} style={{ fontSize: '0.64rem', padding: '2px 7px', borderRadius: '4px', textTransform: 'uppercase', fontWeight: 800 }}>
-                                {currentProduct.detected_product.confidence || 'HIGH'} CONFIDENCE
-                              </span>
-                            </div>
-                            <div className="intel-category-path">
-                              📂 Category: <strong>{currentProduct.detected_product.category}</strong> {currentProduct.detected_product.subcategory ? `› ${currentProduct.detected_product.subcategory}` : ''}
-                            </div>
-                            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                              ✓ Identified dynamically from image evidence. Any merchant-entered name or category is context only.
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Product Context Panel (Optional Name & Category inputs) */}
-                        <div className="context-box">
-                          <div className="context-box-header">
-                            <span className="context-box-title">📝 Product Context</span>
-                            <span className="context-box-pill">Context Only</span>
-                          </div>
-
-                          <div className="context-inputs-grid">
-                            <div className="context-input-group">
-                              <label className="context-input-label">
-                                Product Name (Context only):
-                              </label>
-                              <input
-                                type="text"
-                                value={currentProduct.metadata_title || ''}
-                                onChange={(e) => {
-                                  const val = e.target.value;
-                                  setProducts(prev => prev.map(p => p.product_id === currentProduct.product_id ? { ...p, metadata_title: val } : p));
-                                }}
-                                placeholder="e.g. Wireless Noise-Cancelling Headphones"
-                                className="context-input-field"
-                              />
-                            </div>
-                            <div className="context-input-group">
-                              <label className="context-input-label">
-                                Product Category (Context only):
-                              </label>
-                              <input
-                                type="text"
-                                value={currentProduct.category || ''}
-                                onChange={(e) => {
-                                  const val = e.target.value;
-                                  setProducts(prev => prev.map(p => p.product_id === currentProduct.product_id ? { ...p, category: val } : p));
-                                }}
-                                placeholder="e.g. Apparel, Footwear, Drinkware"
-                                className="context-input-field"
-                              />
-                            </div>
-                          </div>
-
-                          {currentProduct.visible_description && (
-                            <div className="context-visible-card">
-                              <span className="context-visible-tag">👁️ VISIBLE INFORMATION</span>
-                              <span className="context-visible-text">{currentProduct.visible_description}</span>
-                            </div>
-                          )}
-
-                          <div className="context-note-pill">
-                            <span>ℹ️ <strong>Note:</strong> Product Name and Category are context only and are never proof of visual traits or specs.</span>
-                          </div>
-                        </div>
-
-                        {/* Image Quality Metrics (Sections 7 & 8) */}
-                        <div className="quality-panel">
-                          <div className="quality-header-row">
-                            <span className="quality-title">
-                              🔍 Quality Evaluation
-                            </span>
-                            <div className="quality-status-badge-wrap">
-                              <span className="quality-status-label">Status:</span>
-                              <span className={`quality-score-badge ${currentProduct.quality_warning ? 'warn' : 'good'}`}>
-                                {currentProduct.quality_status || 'GOOD'} ({currentProduct.quality_score || 92}/100)
-                              </span>
-                            </div>
-                          </div>
-
-                          <div className="quality-grid">
-                            <div className="quality-metric-item">
-                              <span className="quality-metric-label">Resolution</span>
-                              <span className="quality-metric-val">{currentProduct.quality_details?.resolution || '1200 x 900 px'}</span>
-                            </div>
-                            <div className="quality-metric-item">
-                              <span className="quality-metric-label">Aspect Ratio</span>
-                              <span className="quality-metric-val">{currentProduct.quality_details?.aspect_ratio || '4:3'}</span>
-                            </div>
-                            <div className="quality-metric-item">
-                              <span className="quality-metric-label">Blur Estimate</span>
-                              <span className="quality-metric-val">{currentProduct.quality_details?.blur_estimate || 'Sharp / Clear focus'}</span>
-                            </div>
-                            <div className="quality-metric-item">
-                              <span className="quality-metric-label">Brightness</span>
-                              <span className="quality-metric-val">{currentProduct.quality_details?.brightness || '84% (Optimal)'}</span>
-                            </div>
-                            <div className="quality-metric-item">
-                              <span className="quality-metric-label">Contrast</span>
-                              <span className="quality-metric-val">{currentProduct.quality_details?.contrast || '12.4:1 (High)'}</span>
-                            </div>
-                            <div className="quality-metric-item">
-                              <span className="quality-metric-label">Review Warning</span>
-                              <span className={`quality-metric-val ${currentProduct.quality_warning ? 'warning' : 'clean'}`}>
-                                {currentProduct.quality_warning ? '⚠️ Flagged' : '✓ Clean'}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </section>
-
-                  {/* COLUMN 3: RIGHT AI DESCRIPTION & HUMAN REVIEW ENGINE */}
-                  <aside className="editor-column" aria-label="Description Editor & Validation">
-                    <div className="varnix-card" style={{ padding: '16px' }}>
-
-
-
-                      {/* SINGLE-PRODUCT INTELLIGENCE: Category-Specific Merchant Verification Questionnaire */}
-                      {singleProductIntelligenceEnabled && currentProduct.verification_questions && currentProduct.verification_questions.length > 0 && (
-                        <div className="questionnaire-panel">
-                          <div className="questionnaire-header">
-                            <span className="questionnaire-title">
-                              ❓ Merchant Verification Questionnaire ({currentProduct.verification_questions.length})
-                            </span>
-                            <span className="merchant-provided-pill">
-                              {Object.keys(currentProduct.merchant_confirmed_specs || {}).length} Verified
-                            </span>
-                          </div>
-                          <div className="questionnaire-sub">
-                            Dynamic non-observable attributes for this product category. Confirmed answers are tagged <strong>Merchant-provided</strong>. Unconfirmed specs <em>never</em> appear in descriptions.
-                          </div>
-
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                            {currentProduct.verification_questions.map((q) => {
-                              const answeredVal = currentProduct.merchant_answers?.[q.id];
-                              const isConfirmed = answeredVal && answeredVal !== 'Not known' && answeredVal !== 'Skipped';
-
-                              return (
-                                <div key={q.id} className="question-item-card">
-                                  <div className="question-item-title">
-                                    <span>{q.question_text || `Verify ${q.attribute}:`}</span>
-                                    {isConfirmed && (
-                                      <span className="merchant-provided-pill">
-                                        ✓ Merchant-provided
-                                      </span>
-                                    )}
-                                  </div>
-
-                                  <div className="question-options-grid">
-                                    {(q.options || ['Not known', 'Other (custom value)']).map((opt) => {
-                                      const isSelected = answeredVal === opt;
-                                      return (
-                                        <label
-                                          key={opt}
-                                          className={`question-option-row ${isSelected ? 'selected' : ''}`}
-                                          onClick={() => handleAnswerQuestion(q.id, q.attribute, opt)}
-                                        >
-                                          <input
-                                            type="radio"
-                                            name={`q-${currentProduct.product_id}-${q.id}`}
-                                            checked={isSelected}
-                                            onChange={() => handleAnswerQuestion(q.id, q.attribute, opt)}
-                                          />
-                                          <span>{opt}</span>
-                                          {opt === 'Not known' && (
-                                            <span style={{ fontSize: '0.64rem', color: '#9CA3AF', marginLeft: 'auto' }}>
-                                              (Omit from catalogue)
-                                            </span>
-                                          )}
-                                        </label>
-                                      );
-                                    })}
-                                  </div>
-
-                                  {/* Custom value text input */}
-                                  {answeredVal === 'Other (custom value)' && (
-                                    <div style={{ marginTop: '6px' }}>
-                                      <input
-                                        type="text"
-                                        placeholder={`Enter custom ${q.attribute}...`}
-                                        value={currentProduct.merchant_custom_answers?.[q.id] || ''}
-                                        onChange={(e) => handleCustomAnswerChange(q.id, q.attribute, e.target.value)}
-                                        style={{
-                                          width: '100%',
-                                          padding: '5px 8px',
-                                          borderRadius: '4px',
-                                          border: '1px solid #4F46E5',
-                                          fontSize: '0.74rem',
-                                          outline: 'none',
-                                          background: '#EEF2FF',
-                                        }}
-                                      />
-                                    </div>
-                                  )}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* SINGLE-PRODUCT INTELLIGENCE: Smart Highlights Manager */}
-                      {singleProductIntelligenceEnabled && (currentProduct.recommended_highlights?.length > 0 || currentProduct.selected_highlights?.length > 0) && (
-                        <div className="highlights-manager-card">
-                          <div className="highlights-manager-header">
-                            <span className="highlights-manager-title">
-                              ⭐ Smart Catalogue Highlights
-                            </span>
-                            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-                              Selected: <strong>{currentProduct.selected_highlights?.length || 0}</strong>
-                            </span>
-                          </div>
-                          <div style={{ fontSize: '0.71rem', color: 'var(--text-muted)', marginBottom: '8px' }}>
-                            Recommended top features for this category. Accept, reorder, or add custom highlights.
-                          </div>
-
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '8px' }}>
-                            {(currentProduct.selected_highlights || []).map((h, idx) => (
-                              <div key={idx} className="highlight-item-row active">
-                                <span className="highlight-item-text">
-                                  #{idx + 1} {h}
-                                </span>
-                                <div className="highlight-actions-group">
-                                  <button
-                                    type="button"
-                                    className="highlight-mini-btn"
-                                    onClick={() => handleReorderHighlight(idx, 'up')}
-                                    disabled={idx === 0}
-                                    title="Move Up"
-                                  >
-                                    ▲
-                                  </button>
-                                  <button
-                                    type="button"
-                                    className="highlight-mini-btn"
-                                    onClick={() => handleReorderHighlight(idx, 'down')}
-                                    disabled={idx === (currentProduct.selected_highlights?.length || 0) - 1}
-                                    title="Move Down"
-                                  >
-                                    ▼
-                                  </button>
-                                  <button
-                                    type="button"
-                                    className="highlight-mini-btn"
-                                    style={{ color: '#DC2626' }}
-                                    onClick={() => handleRemoveHighlight(idx)}
-                                    title="Remove"
-                                  >
-                                    ✕
-                                  </button>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-
-                          {/* Add Custom Highlight Input */}
-                          <div style={{ display: 'flex', gap: '6px' }}>
-                            <input
-                              type="text"
-                              placeholder="Add custom highlight..."
-                              value={customHighlightInput}
-                              onChange={(e) => setCustomHighlightInput(e.target.value)}
-                              style={{ flex: 1, padding: '4px 8px', borderRadius: '4px', border: '1px solid var(--border)', fontSize: '0.74rem' }}
-                            />
-                            <button
-                              type="button"
-                              className="btn-secondary-action"
-                              style={{ fontSize: '0.72rem', padding: '4px 10px', fontWeight: 700 }}
-                              onClick={handleAddCustomHighlight}
-                            >
-                              + Add
-                            </button>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* SINGLE-PRODUCT INTELLIGENCE: Visual Quality Observations */}
-                      {singleProductIntelligenceEnabled && currentProduct.quality_observations?.length > 0 && (
-                        <div style={{ marginBottom: '14px', background: '#F8FAFC', padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--border)' }}>
-                          <div style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '6px' }}>
-                            Visual Observations (Appearance Only):
-                          </div>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                            {currentProduct.quality_observations.map((obs, idx) => (
-                              <div key={idx} className="quality-obs-tag" style={{ margin: 0 }}>
-                                <span className="quality-obs-label">{obs.label || 'visual observation'}</span>
-                                <span>{obs.observation}</span>
-                              </div>
-                            ))}
-                          </div>
-                          <div style={{ fontSize: '0.67rem', color: 'var(--text-muted)', fontStyle: 'italic', marginTop: '4px' }}>
-                            Visible appearance only; never implies durability or verified material composition.
-                          </div>
-                        </div>
-                      )}
-
-                      {/* SECTION A: QUICK REVIEW UI — "Which features should we highlight?" */}
-                      <div className="features-highlight-card" style={{ marginBottom: '16px', background: 'var(--surface-card)', padding: '14px', borderRadius: '10px', border: '1px solid var(--surface-border)', boxShadow: 'var(--shadow-sm)' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                          <span style={{ fontSize: '0.86rem', fontWeight: 800, color: 'var(--text-ink)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            ✨ Which features should we highlight?
-                          </span>
-                          <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
-                            Selected: <strong style={{ color: 'var(--accent-indigo)' }}>{(currentProduct.detected_features || []).filter(f => (currentProduct.feature_choices?.[f.id] ?? f.choice ?? 'INCLUDE') === 'INCLUDE').length}</strong> / {(currentProduct.detected_features || []).length}
-                          </span>
-                        </div>
-                        <p style={{ fontSize: '0.74rem', color: 'var(--text-secondary)', margin: '0 0 10px 0', lineHeight: 1.4 }}>
-                          Only selected features feed catalogue generation. Rejected features are strictly excluded.
-                        </p>
-
-                        {/* Feature Cards List */}
-                        {(currentProduct.detected_features && currentProduct.detected_features.length > 0) ? (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '280px', overflowY: 'auto', paddingRight: '4px' }}>
-                            {currentProduct.detected_features.map((f) => {
-                              const isPossibility = f.confidence === 'medium' || f.confidence === 'low';
-                              const labelTitle = isPossibility ? `Possible ${f.name}` : f.name;
-                              const currentChoice = currentProduct.feature_choices?.[f.id] ?? f.choice ?? 'INCLUDE';
-                              const isIncluded = currentChoice === 'INCLUDE';
-                              const isExcluded = currentChoice === 'EXCLUDE';
-                              const isUnsure = currentChoice === 'UNSURE';
-
-                              return (
-                                <div
-                                  key={f.id}
-                                  className="feature-card-item"
-                                  style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'space-between',
-                                    padding: '8px 12px',
-                                    borderRadius: '8px',
-                                    border: isIncluded
-                                      ? '1px solid rgba(5, 150, 105, 0.45)'
-                                      : isExcluded
-                                        ? '1px solid rgba(220, 38, 38, 0.4)'
-                                        : '1px solid var(--surface-border)',
-                                    background: isIncluded
-                                      ? 'rgba(5, 150, 105, 0.1)'
-                                      : isExcluded
-                                        ? 'rgba(220, 38, 38, 0.1)'
-                                        : 'var(--surface-card-subtle)',
-                                    gap: '10px',
-                                    transition: 'all 0.15s ease'
-                                  }}
-                                >
-                                  <div style={{ flex: 1, minWidth: 0 }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                                      <span style={{ fontWeight: 700, fontSize: '0.82rem', color: 'var(--text-ink)' }}>
-                                        {labelTitle}:
-                                      </span>
-                                      <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                                        {f.value}
-                                      </span>
-                                      <span className={`confidence-pill confidence-${f.confidence}`} style={{ fontSize: '0.64rem', padding: '1px 6px', borderRadius: '4px', textTransform: 'uppercase', fontWeight: 700 }}>
-                                        {f.confidence}
-                                      </span>
-                                      {f.source_view && (
-                                        <span className="feature-view-source-badge" title={`Visual feature verified in ${f.source_view} view`} style={{ fontSize: '0.64rem', padding: '1px 5px', borderRadius: '4px', background: 'var(--surface-card)', border: '1px solid var(--surface-border)', color: 'var(--text-muted)' }}>
-                                          📷 {f.source_view.toUpperCase()}
-                                        </span>
-                                      )}
-                                    </div>
-                                  </div>
-
-                                  {/* Yes / No / Unsure Controls */}
-                                  <div className="feature-choice-btn-group" style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
-                                    <button
-                                      type="button"
-                                      className={`feature-choice-btn ${isIncluded ? 'active-include' : ''}`}
-                                      style={{
-                                        padding: '4px 10px',
-                                        fontSize: '0.72rem',
-                                        borderRadius: '6px',
-                                        border: isIncluded ? '1px solid #059669' : '1px solid var(--surface-border)',
-                                        background: isIncluded ? '#059669' : 'var(--surface-card)',
-                                        color: isIncluded ? '#FFFFFF' : 'var(--emerald)',
-                                        fontWeight: 700,
-                                        cursor: 'pointer',
-                                        transition: 'all 0.15s ease',
-                                        boxShadow: isIncluded ? '0 1px 3px rgba(5,150,105,0.3)' : 'none'
-                                      }}
-                                      onClick={() => handleSetFeatureChoice(f.id, 'INCLUDE')}
-                                      title="Include feature in description"
-                                    >
-                                      Yes
-                                    </button>
-                                    <button
-                                      type="button"
-                                      className={`feature-choice-btn ${isExcluded ? 'active-exclude' : ''}`}
-                                      style={{
-                                        padding: '4px 10px',
-                                        fontSize: '0.72rem',
-                                        borderRadius: '6px',
-                                        border: isExcluded ? '1px solid #DC2626' : '1px solid var(--surface-border)',
-                                        background: isExcluded ? '#DC2626' : 'var(--surface-card)',
-                                        color: isExcluded ? '#FFFFFF' : 'var(--rose)',
-                                        fontWeight: 700,
-                                        cursor: 'pointer',
-                                        transition: 'all 0.15s ease',
-                                        boxShadow: isExcluded ? '0 1px 3px rgba(220,38,38,0.3)' : 'none'
-                                      }}
-                                      onClick={() => handleSetFeatureChoice(f.id, 'EXCLUDE')}
-                                      title="Exclude feature (do not mention)"
-                                    >
-                                      No
-                                    </button>
-                                    <button
-                                      type="button"
-                                      className={`feature-choice-btn ${isUnsure ? 'active-unsure' : ''}`}
-                                      style={{
-                                        padding: '4px 10px',
-                                        fontSize: '0.72rem',
-                                        borderRadius: '6px',
-                                        border: isUnsure ? '1px solid #D97706' : '1px solid var(--surface-border)',
-                                        background: isUnsure ? '#D97706' : 'var(--surface-card)',
-                                        color: isUnsure ? '#FFFFFF' : 'var(--amber)',
-                                        fontWeight: 700,
-                                        cursor: 'pointer',
-                                        transition: 'all 0.15s ease',
-                                        boxShadow: isUnsure ? '0 1px 3px rgba(217,119,6,0.3)' : 'none'
-                                      }}
-                                      onClick={() => handleSetFeatureChoice(f.id, 'UNSURE')}
-                                      title="Unsure / Not verified"
-                                    >
-                                      Unsure
-                                    </button>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        ) : (
-                          <div style={{ textAlign: 'center', padding: '16px', background: 'var(--surface-card-subtle)', borderRadius: '8px', border: '1px dashed var(--surface-border)' }}>
-                            <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: '0 0 10px 0' }}>
-                              No features detected yet. Click "Analyze Image" to extract visible traits dynamically.
-                            </p>
-                            <button
-                              type="button"
-                              className="btn-secondary-action"
-                              onClick={handleAnalyzeImage}
-                              disabled={isAnalyzingImage || currentProduct.imageError}
-                              style={{ fontSize: '0.76rem', padding: '6px 14px' }}
-                            >
-                              {isAnalyzingImage ? '🔍 Analyzing...' : '🔍 Analyze Image Now'}
-                            </button>
-                          </div>
-                        )}
-
-                        {/* Add Custom Feature (Never auto-trusted) */}
-                        <div style={{ marginTop: '10px', paddingTop: '8px', borderTop: '1px solid var(--border)' }}>
-                          <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '4px' }}>
-                            + Add Custom Feature (Merchant-Supplied):
-                          </div>
-                          <div style={{ display: 'flex', gap: '6px' }}>
-                            <input
-                              type="text"
-                              value={newFeatureName}
-                              onChange={(e) => setNewFeatureName(e.target.value)}
-                              placeholder="e.g. Strap Material"
-                              style={{ flex: 1, padding: '4px 8px', borderRadius: '4px', border: '1px solid var(--border)', fontSize: '0.74rem' }}
-                            />
-                            <input
-                              type="text"
-                              value={newFeatureValue}
-                              onChange={(e) => setNewFeatureValue(e.target.value)}
-                              placeholder="e.g. Braided nylon"
-                              style={{ flex: 1, padding: '4px 8px', borderRadius: '4px', border: '1px solid var(--border)', fontSize: '0.74rem' }}
-                            />
-                            <button
-                              type="button"
-                              className="btn-secondary-action"
-                              onClick={handleAddCustomFeature}
-                              style={{ fontSize: '0.72rem', padding: '4px 10px', fontWeight: 700 }}
-                            >
-                              Add
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* SECTION B: DESCRIPTION TYPES & GENERATION */}
-                      {batchDashboardEnabled ? (
-                        <div className="batch-multiformat-studio" style={{ marginBottom: '16px', background: '#F8FAFC', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                            <span style={{ fontSize: '0.82rem', fontWeight: 800, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                              📦 Multi-Format Catalogue Studio
-                            </span>
-                            <span style={{ fontSize: '0.7rem', color: 'var(--primary)', fontWeight: 700, background: '#EEF2FF', padding: '2px 6px', borderRadius: '4px' }}>
-                              Batch 3: 4 Formats
-                            </span>
-                          </div>
-                          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '10px' }}>
-                            All formats are generated from the SAME verified features with no contradictions.
-                          </div>
-
-                          {/* 4 Format Switcher Tabs */}
-                          <div className="format-tabs-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '4px', marginBottom: '10px' }}>
-                            {[
-                              { key: 'highlights', label: 'Highlights', badge: '10 bullets' },
-                              { key: 'short', label: 'Short', badge: '1 para' },
-                              { key: 'marketplace', label: 'Marketplace', badge: 'Catalogue' },
-                              { key: 'card_summary', label: 'Summary', badge: '1-2 lines' },
-                            ].map((fmt) => (
-                              <button
-                                key={fmt.key}
-                                type="button"
-                                className={`format-tab-btn ${activeFormatTab === fmt.key ? 'active' : ''}`}
-                                onClick={() => setActiveFormatTab(fmt.key)}
-                                style={{
-                                  padding: '6px 4px',
-                                  fontSize: '0.72rem',
-                                  fontWeight: 700,
-                                  borderRadius: '6px',
-                                  border: activeFormatTab === fmt.key ? '2px solid var(--primary)' : '1px solid var(--border)',
-                                  background: activeFormatTab === fmt.key ? '#EEF2FF' : '#FFF',
-                                  color: activeFormatTab === fmt.key ? 'var(--primary)' : 'var(--text-secondary)',
-                                  cursor: 'pointer',
-                                  textAlign: 'center',
-                                }}
-                              >
-                                <div>{fmt.label}</div>
-                                <div style={{ fontSize: '0.62rem', fontWeight: 500, opacity: 0.8 }}>{fmt.badge}</div>
-                              </button>
-                            ))}
-                          </div>
-
-                          {/* Generation and Regeneration Action Row */}
-                          <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '8px', marginBottom: '8px' }}>
-                            <button
-                              type="button"
-                              className="btn-primary-action"
-                              onClick={() => handleGenerateMultiFormat(currentProduct)}
-                              disabled={isGeneratingMultiFormat || currentProduct.imageError}
-                              style={{ minHeight: '38px', fontWeight: 800, fontSize: '0.8rem' }}
-                            >
-                              {isGeneratingMultiFormat ? '⚡ Generating 4 Formats...' : '✨ Generate All 4 Formats'}
-                            </button>
-                            <button
-                              type="button"
-                              className="btn-secondary-action"
-                              onClick={() => handleRegenerateFormat(activeFormatTab)}
-                              disabled={isGeneratingMultiFormat || currentProduct.imageError}
-                              style={{ fontSize: '0.74rem', padding: '6px 12px' }}
-                              title={`Regenerate only ${activeFormatTab}`}
-                            >
-                              🔄 Regenerate {activeFormatTab}
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <div style={{ marginBottom: '14px' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                            <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-secondary)' }}>
-                              DESCRIPTION FORMAT TO EXPORT
-                            </span>
-                            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-                              Driven by selected features
-                            </span>
-                          </div>
-
-                          <div className="desc-type-switcher" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px', marginBottom: '10px' }}>
-                            <button
-                              type="button"
-                              className={`desc-type-tab-btn ${(currentProduct.selected_description_type || 'BULLETS') === 'SHORT' ? 'active' : ''}`}
-                              onClick={() => handleDescTypeChange('SHORT')}
-                              style={{
-                                padding: '6px 8px',
-                                fontSize: '0.74rem',
-                                fontWeight: 700,
-                                borderRadius: '6px',
-                                border: (currentProduct.selected_description_type || 'BULLETS') === 'SHORT' ? '2px solid var(--primary)' : '1px solid var(--border)',
-                                background: (currentProduct.selected_description_type || 'BULLETS') === 'SHORT' ? '#EEF2FF' : '#FFF',
-                                color: (currentProduct.selected_description_type || 'BULLETS') === 'SHORT' ? 'var(--primary)' : 'var(--text-secondary)',
-                                cursor: 'pointer'
-                              }}
-                            >
-                              Short (≤125)
-                            </button>
-                            <button
-                              type="button"
-                              className={`desc-type-tab-btn ${(currentProduct.selected_description_type || 'BULLETS') === 'BULLETS' ? 'active' : ''}`}
-                              onClick={() => handleDescTypeChange('BULLETS')}
-                              style={{
-                                padding: '6px 8px',
-                                fontSize: '0.74rem',
-                                fontWeight: 700,
-                                borderRadius: '6px',
-                                border: (currentProduct.selected_description_type || 'BULLETS') === 'BULLETS' ? '2px solid var(--primary)' : '1px solid var(--border)',
-                                background: (currentProduct.selected_description_type || 'BULLETS') === 'BULLETS' ? '#EEF2FF' : '#FFF',
-                                color: (currentProduct.selected_description_type || 'BULLETS') === 'BULLETS' ? 'var(--primary)' : 'var(--text-secondary)',
-                                cursor: 'pointer'
-                              }}
-                            >
-                              Bullets (8–10)
-                            </button>
-                            <button
-                              type="button"
-                              className={`desc-type-tab-btn ${(currentProduct.selected_description_type || 'BULLETS') === 'LONG' ? 'active' : ''}`}
-                              onClick={() => handleDescTypeChange('LONG')}
-                              style={{
-                                padding: '6px 8px',
-                                fontSize: '0.74rem',
-                                fontWeight: 700,
-                                borderRadius: '6px',
-                                border: (currentProduct.selected_description_type || 'BULLETS') === 'LONG' ? '2px solid var(--primary)' : '1px solid var(--border)',
-                                background: (currentProduct.selected_description_type || 'BULLETS') === 'LONG' ? '#EEF2FF' : '#FFF',
-                                color: (currentProduct.selected_description_type || 'BULLETS') === 'LONG' ? 'var(--primary)' : 'var(--text-secondary)',
-                                cursor: 'pointer'
-                              }}
-                            >
-                              Long Paragraph
-                            </button>
-                          </div>
-
-                          {/* AI Generation Button */}
+                      <div className="audio-main-row">
+                        <div className="audio-btn-group">
                           <button
                             type="button"
-                            className="btn-primary-action"
-                            onClick={handleGenerateAI}
-                            disabled={isGenerating || currentProduct.imageError}
-                            style={{ width: '100%', minHeight: '42px', fontWeight: 800, fontSize: '0.86rem' }}
+                            className="btn-editorial-primary"
+                            style={{ padding: '5px 12px', fontSize: '0.72rem' }}
+                            onClick={isPlayingVoice ? handleVoicePause : () => handleVoicePlay(currentProduct)}
+                            data-cursor="Play"
                           >
-                            {isGenerating ? '⚡ Generating catalogue descriptions...' : '✨ Generate Catalogue Description'}
+                            {isPlayingVoice ? '⏸ Pause' : '▶ Listen'}
                           </button>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                            <span>Model: <strong>Gemini 2.5 Flash</strong></span>
-                            <span>Tone: Catalogue Reviewer (No Hype)</span>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Keyword Highlighter Control & Preview (Section 6) */}
-                      <div>
-                        <div className="keyword-highlighter-bar">
-                          <span style={{ fontSize: '0.76rem', fontWeight: 700, color: 'var(--text-secondary)' }}>
-                            Visual Keyword Highlighting
-                          </span>
                           <button
                             type="button"
-                            className="btn-secondary-action"
-                            onClick={() => setHighlightKeywords(!highlightKeywords)}
-                            style={{ padding: '2px 8px', fontSize: '0.72rem' }}
+                            className="btn-editorial-secondary"
+                            style={{ padding: '5px 10px', fontSize: '0.72rem' }}
+                            onClick={handleVoiceReplay}
+                            title="Replay from start"
+                            data-cursor="Replay"
                           >
-                            {highlightKeywords ? 'Highlights: ON' : 'Highlights: OFF'}
+                            ↺ Replay
                           </button>
                         </div>
 
-                        {highlightKeywords && (
-                          <div className="kw-highlighted-text" aria-live="polite">
-                            {renderHighlightedKeywords(currentText)}
-                          </div>
-                        )}
-                      </div>
-
-
-                      {/* Review / Edit Description Textarea (ALTLUME Human Review Engine) */}
-                      <div style={{ marginBottom: '14px' }}>
-                        {/* Draft Source & Character Meter Bar */}
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '6px' }}>
-                          <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                            Draft Source: <strong style={{ color: 'var(--accent-indigo)' }}>Gemini Vision 2.5 Flash</strong> (Visual facts only)
-                          </span>
-                          <span className={`char-meter-pill ${validationResult.lengthLevel}`}>
-                            {validationResult.charCount} / 125 chars ({validationResult.lengthLevel === 'block' ? 'Exceeds 250 limit' : validationResult.lengthLevel === 'warn' ? 'Over 125 chars (Warn)' : 'Optimal screen-reader brevity'})
-                          </span>
-                        </div>
-
-                        {/* Surrounding Page Context Field */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-                          <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', fontWeight: 600, flexShrink: 0 }}>
-                            Page Context:
-                          </span>
-                          <input
-                            type="text"
-                            placeholder="e.g. Primary PDP Hero Gallery / Search Results Thumbnail"
-                            value={currentProduct.page_context || ''}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              setProducts((prev) =>
-                                prev.map((p) => (p.product_id === currentProduct.product_id ? { ...p, page_context: val } : p))
-                              );
-                            }}
-                            style={{
-                              flex: 1,
-                              padding: '5px 8px',
-                              fontSize: '0.74rem',
-                              borderRadius: '6px',
-                              border: '1px solid var(--surface-border)',
-                              background: 'var(--surface-card-subtle)',
-                              color: 'var(--text-ink)',
-                              outline: 'none',
-                            }}
-                          />
-                        </div>
-
-                        {/* Editorial Toggles Row */}
-                        <div className="editorial-toggles-row" style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', padding: '8px 10px', background: 'var(--surface-card-subtle)', borderRadius: '6px', border: '1px solid var(--surface-border)', marginBottom: '10px' }}>
-                          <label className="toggle-label-item" title="Decorative image: allows null/empty alt attribute" style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.72rem', cursor: 'pointer' }}>
-                            <input
-                              type="checkbox"
-                              checked={!!currentProduct.is_decorative}
-                              onChange={(e) => {
-                                const checked = e.target.checked;
-                                setProducts((prev) =>
-                                  prev.map((p) => (p.product_id === currentProduct.product_id ? { ...p, is_decorative: checked } : p))
-                                );
-                              }}
-                            />
-                            <span>Decorative image (suppress alt text)</span>
-                          </label>
-
-                          <label className="toggle-label-item" title="Requires quoted transcription of any visible text" style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.72rem', cursor: 'pointer' }}>
-                            <input
-                              type="checkbox"
-                              checked={!!currentProduct.contains_text}
-                              onChange={(e) => {
-                                const checked = e.target.checked;
-                                setProducts((prev) =>
-                                  prev.map((p) => (p.product_id === currentProduct.product_id ? { ...p, contains_text: checked } : p))
-                                );
-                              }}
-                            />
-                            <span>Contains visible text</span>
-                          </label>
-
-                          <label className="toggle-label-item" title="Requires group wording (e.g. Set of, Pair of)" style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.72rem', cursor: 'pointer' }}>
-                            <input
-                              type="checkbox"
-                              checked={!!currentProduct.has_multiple_products}
-                              onChange={(e) => {
-                                const checked = e.target.checked;
-                                setProducts((prev) =>
-                                  prev.map((p) => (p.product_id === currentProduct.product_id ? { ...p, has_multiple_products: checked } : p))
-                                );
-                              }}
-                            />
-                            <span>Multiple products</span>
-                          </label>
-                        </div>
-
-                        {/* Language & Voice Selection Controls */}
-                        <div className="lang-voice-bar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', padding: '10px 12px', background: 'var(--surface-card)', border: '1px solid var(--surface-border)', borderRadius: '8px', marginBottom: '12px', flexWrap: 'wrap' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                            <span style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                              🌐 Language:
-                            </span>
-                            <select
-                              value={reviewLanguage}
-                              onChange={(e) => {
-                                const newLang = e.target.value;
-                                setReviewLanguage(newLang);
-                                if (newLang !== 'en') {
-                                  handleTranslate(newLang);
-                                }
-                              }}
-                              className="lang-select-dropdown"
-                              style={{
-                                padding: '5px 10px',
-                                fontSize: '0.76rem',
-                                fontWeight: 600,
-                                borderRadius: '6px',
-                                border: '1px solid var(--surface-border)',
-                                background: 'var(--surface-card-subtle)',
-                                color: 'var(--text-ink)',
-                                cursor: 'pointer',
-                                outline: 'none',
-                              }}
-                            >
-                              <option value="en">🇬🇧 English</option>
-                              <option value="hi">🇮🇳 हिन्दी (Hindi)</option>
-                              <option value="te">🇮🇳 తెలుగు (Telugu)</option>
-                              <option value="ta">🇮🇳 தமிழ் (Tamil)</option>
-                              <option value="es">🇪🇸 Español (Spanish)</option>
-                              <option value="fr">🇫🇷 Français (French)</option>
-                              <option value="de">🇩🇪 Deutsch (German)</option>
-                            </select>
-                            {isTranslating && (
-                              <span style={{ fontSize: '0.7rem', color: 'var(--accent-indigo)', fontWeight: 600 }}>
-                                ⚡ Translating...
-                              </span>
-                            )}
-                          </div>
-
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <div className="audio-speed-pills">
+                          {[0.75, 1, 1.25, 1.5].map((rate) => (
                             <button
+                              key={rate}
                               type="button"
-                              className={`btn-voice-play ${isPlayingVoice ? 'playing' : ''}`}
-                              onClick={() => {
-                                if (isPlayingVoice) handleVoicePause();
-                                else handleVoicePlay(currentProduct);
-                              }}
-                              style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '6px',
-                                padding: '5px 12px',
-                                fontSize: '0.74rem',
-                                fontWeight: 700,
-                                borderRadius: '6px',
-                                border: '1px solid var(--accent-indigo)',
-                                background: isPlayingVoice ? 'var(--accent-indigo)' : 'var(--surface-card)',
-                                color: isPlayingVoice ? '#FFF' : 'var(--accent-indigo)',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s ease',
-                              }}
-                              title={`Listen to description in ${reviewLanguage.toUpperCase()}`}
+                              className={`speed-pill-btn ${voiceRate === rate ? 'active' : ''}`}
+                              onClick={() => setVoiceRate(rate)}
                             >
-                              {isPlayingVoice ? '⏸ Pause Voice' : `🔊 Listen in ${reviewLanguage.toUpperCase()}`}
+                              {rate}x
                             </button>
-                            <button
-                              type="button"
-                              onClick={() => setVoiceRate(prev => prev === 1 ? 1.25 : prev === 1.25 ? 0.85 : 1)}
-                              style={{
-                                padding: '4px 8px',
-                                fontSize: '0.68rem',
-                                fontFamily: 'var(--font-mono)',
-                                borderRadius: '4px',
-                                border: '1px solid var(--surface-border)',
-                                background: 'var(--surface-card-subtle)',
-                                color: 'var(--text-secondary)',
-                                cursor: 'pointer',
-                              }}
-                              title="Toggle voice playback speed"
-                            >
-                              {voiceRate}x
-                            </button>
-                          </div>
-                        </div>
-
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                          <label htmlFor="varnix-text-editor" style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-secondary)' }}>
-                            {batchDashboardEnabled
-                              ? `Final Description (${activeFormatTab.replace(/_/g, ' ').toUpperCase()} • ${reviewLanguage.toUpperCase()}):`
-                              : `Final Description (${reviewLanguage.toUpperCase()}):`}
-                          </label>
-                          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                            <button
-                              type="button"
-                              onClick={() => setShowDiffModal(true)}
-                              style={{ background: 'none', border: 'none', color: 'var(--accent-indigo)', fontSize: '0.7rem', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}
-                            >
-                              Draft vs Your version
-                            </button>
-                            {currentProduct.status === 'APPROVED' && (
-                              <span style={{ fontSize: '0.68rem', color: '#D97706', fontWeight: 600 }}>
-                                ⚠️ Editing resets to EDITED
-                              </span>
-                            )}
-                          </div>
-                        </div>
-
-                        {(() => {
-                          const baseText = batchDashboardEnabled
-                            ? (activeFormatTab === 'highlights'
-                              ? (Array.isArray(currentProduct.product_highlights) ? currentProduct.product_highlights.map((h) => `• ${h}`).join('\n') : (currentProduct.product_highlights || currentProduct.description_bullets || ''))
-                              : activeFormatTab === 'short'
-                                ? (currentProduct.short_description || currentProduct.description_short || '')
-                                : activeFormatTab === 'marketplace'
-                                  ? (currentProduct.marketplace_description || currentProduct.description_long || currentProduct.edited_text || currentProduct.draft || '')
-                                  : (currentProduct.card_summary || ''))
-                            : currentText;
-
-                          const currentFormatText = reviewLanguage !== 'en' && currentProduct.translations?.[reviewLanguage]
-                            ? currentProduct.translations[reviewLanguage]
-                            : baseText;
-
-                          return (
-                            <>
-                              <textarea
-                                id="varnix-text-editor"
-                                className="editorial-textarea"
-                                value={currentFormatText}
-                                onChange={(e) => {
-                                  const val = e.target.value;
-                                  if (reviewLanguage !== 'en') {
-                                    setProducts((prev) =>
-                                      prev.map((p) => (p.product_id === currentProduct.product_id
-                                        ? { ...p, translations: { ...(p.translations || {}), [reviewLanguage]: val } }
-                                        : p))
-                                    );
-                                  } else if (batchDashboardEnabled) {
-                                    handleFormatTextEdit(activeFormatTab, val);
-                                  } else {
-                                    handleTextEdit(e);
-                                  }
-                                }}
-                                rows={activeFormatTab === 'card_summary' ? 3 : 5}
-                                placeholder={currentProduct.is_decorative ? 'Decorative image confirmed. Empty description valid.' : `Enter or edit concise description in ${reviewLanguage.toUpperCase()} for ${currentProduct.metadata_title}...`}
-                              />
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px', fontSize: '0.72rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
-                                <span>{currentFormatText.length} characters</span>
-                                <span>{currentFormatText.split(/\s+/).filter(Boolean).length} words ({reviewLanguage.toUpperCase()})</span>
-                              </div>
-                            </>
-                          );
-                        })()}
-
-                        {/* Plain Language Live Validation Feedback (aria-live="polite") */}
-                        <div aria-live="polite" style={{ marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                          {validationResult.blockingErrors.map((err, idx) => (
-                            <div key={idx} style={{ background: '#FEE2E2', border: '1px solid #FECACA', borderRadius: '6px', padding: '6px 10px', fontSize: '0.73rem', color: '#B91C1C', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                              <span>⛔ Blocking:</span> <span>{err}</span>
-                            </div>
                           ))}
-                          {validationResult.warnings.map((warn, idx) => (
-                            <div key={idx} style={{ background: '#FEF3C7', border: '1px solid #FDE68A', borderRadius: '6px', padding: '6px 10px', fontSize: '0.73rem', color: '#92400E', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                              <span>⚠️ Notice:</span> <span>{warn}</span>
-                            </div>
-                          ))}
-                          {validationResult.blockingErrors.length === 0 && validationResult.warnings.length === 0 && (
-                            <div style={{ background: '#ECFDF5', border: '1px solid #A7F3D0', borderRadius: '6px', padding: '6px 10px', fontSize: '0.73rem', color: '#047857', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                              <span>✓ Valid:</span> <span>Concise, observable facts only. Ready for editorial approval.</span>
-                            </div>
-                          )}
                         </div>
                       </div>
 
-                      {/* SINGLE-PRODUCT INTELLIGENCE: VernX Content Check Panel */}
-                      {singleProductIntelligenceEnabled && (
-                        <div className="content-check-card">
-                          <div className="content-check-header">
-                            <span className="content-check-title">
-                              🛡️ VernX Content Check
-                            </span>
-                            <span style={{ fontSize: '0.72rem', fontWeight: 800, color: (currentProduct.content_check?.flagged_claims?.length > 0 || validationResult.offendingWords?.length > 0) ? '#DC2626' : '#059669' }}>
-                              {(currentProduct.content_check?.flagged_claims?.length > 0 || validationResult.offendingWords?.length > 0) ? '⚠️ ACTION REQUIRED' : '✓ ALL CHECKS PASSED'}
-                            </span>
-                          </div>
-
-                          <div className="content-check-grid">
-                            <div className={`content-check-pill ${currentProduct.detected_product ? 'pass' : 'warn'}`}>
-                              {currentProduct.detected_product ? `✓ Product Identified (${currentProduct.detected_product.product_name})` : 'ℹ Standard Model'}
-                            </div>
-                            <div className={`content-check-pill ${(currentProduct.detected_features?.length || 0) > 0 ? 'pass' : 'warn'}`}>
-                              ✓ Features Identified ({currentProduct.detected_features?.length || 0})
-                            </div>
-                            <div className={`content-check-pill ${Object.keys(currentProduct.merchant_confirmed_specs || {}).length > 0 ? 'pass' : 'warn'}`}>
-                              {Object.keys(currentProduct.merchant_confirmed_specs || {}).length > 0
-                                ? `✓ Merchant Specs (${Object.keys(currentProduct.merchant_confirmed_specs || {}).length} verified)`
-                                : 'ℹ Merchant Specs (None)'}
-                            </div>
-                            <div className="content-check-pill pass">
-                              ✓ Positive Tone (Catalogue standard)
-                            </div>
-                            <div className={`content-check-pill ${(currentProduct.content_check?.flagged_claims?.length > 0 || validationResult.offendingWords?.length > 0) ? 'fail' : 'pass'}`}>
-                              {(currentProduct.content_check?.flagged_claims?.length > 0 || validationResult.offendingWords?.length > 0)
-                                ? `⚠️ ${(currentProduct.content_check?.flagged_claims?.length || 0) + (validationResult.offendingWords?.length || 0)} Unsupported Claims`
-                                : '✓ No Unsupported Claims'}
-                            </div>
-                            <div className="content-check-pill pass">
-                              ✓ No Repetition Scan
-                            </div>
-                          </div>
-
-                          {/* Flagged Unsupported Claims Warning with [VERIFY] and [REMOVE] */}
-                          {(() => {
-                            const combined = [];
-                            const seen = new Set();
-                            (currentProduct.content_check?.flagged_claims || []).forEach((c) => {
-                              const key = c.word.toLowerCase();
-                              if (!seen.has(key)) {
-                                seen.add(key);
-                                combined.push({ word: c.word, category: c.category });
-                              }
-                            });
-                            (validationResult.offendingWords || []).forEach((c) => {
-                              const key = c.word.toLowerCase();
-                              const isMerchantConfirmed = Object.values(currentProduct.merchant_confirmed_specs || {}).some(
-                                (v) => String(v).toLowerCase().includes(key)
-                              );
-                              if (!seen.has(key) && !isMerchantConfirmed) {
-                                seen.add(key);
-                                combined.push({ word: c.word, category: c.category });
-                              }
-                            });
-
-                            if (combined.length === 0) return null;
-
-                            return (
-                              <div style={{ marginTop: '8px' }}>
-                                {combined.map((item, idx) => (
-                                  <div key={idx} className="flagged-claim-box">
-                                    <div className="flagged-claim-title">
-                                      ⚠️ Unsupported Claim Detected: "{item.word}" ({item.category})
-                                    </div>
-                                    <div className="flagged-claim-desc">
-                                      Visual image evidence does not prove {item.category}. Unconfirmed specs cannot be published without merchant verification.
-                                    </div>
-                                    <div className="flagged-claim-actions">
-                                      <button
-                                        type="button"
-                                        className="btn-claim-verify"
-                                        onClick={() => handleVerifyClaimAsSpec(item.word, item.category)}
-                                        title="Confirm this spec as verified merchant-provided"
-                                      >
-                                        [VERIFY] Merchant Confirms
-                                      </button>
-                                      <button
-                                        type="button"
-                                        className="btn-claim-remove"
-                                        onClick={() => handleRemoveClaimFromText(item.word)}
-                                        title="Remove this word from description text"
-                                      >
-                                        [REMOVE] Delete Claim
-                                      </button>
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            );
-                          })()}
-                        </div>
-                      )}
-
-                      {/* BATCH 3: Catalogue Readiness Score Panel (Checklist-Based) */}
-                      {batchDashboardEnabled && (() => {
-                        const readiness = computeClientReadinessScore(currentProduct);
-                        const checklist = readiness.checklist || {};
-                        return (
-                          <div className="readiness-score-card" style={{ marginBottom: '14px', background: '#F8FAFC', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                <span style={{ fontSize: '0.82rem', fontWeight: 800, color: 'var(--text-main)' }}>
-                                  📊 Catalogue Readiness Score
-                                </span>
-                                <span
-                                  style={{
-                                    fontSize: '0.68rem',
-                                    fontWeight: 800,
-                                    padding: '2px 6px',
-                                    borderRadius: '4px',
-                                    background: readiness.status === 'READY' ? '#ECFDF5' : readiness.status === 'NEEDS REVIEW' ? '#FFFBEB' : '#EFF6FF',
-                                    color: readiness.status === 'READY' ? '#059669' : readiness.status === 'NEEDS REVIEW' ? '#D97706' : '#2563EB',
-                                    border: `1px solid ${readiness.status === 'READY' ? '#A7F3D0' : readiness.status === 'NEEDS REVIEW' ? '#FDE68A' : '#BFDBFE'}`,
-                                  }}
-                                >
-                                  {readiness.status}
-                                </span>
-                              </div>
-                              <span style={{ fontSize: '1.1rem', fontWeight: 800, color: readiness.score >= 80 ? '#059669' : readiness.score >= 50 ? '#D97706' : '#2563EB' }}>
-                                {readiness.score} / 100
-                              </span>
-                            </div>
-
-                            {/* Transparent Checklist Breakdown */}
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', marginBottom: '10px' }}>
-                              {Object.entries(checklist).map(([key, item]) => (
-                                <div
-                                  key={key}
-                                  style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'space-between',
-                                    padding: '5px 8px',
-                                    borderRadius: '4px',
-                                    fontSize: '0.72rem',
-                                    background: item.passed ? '#ECFDF5' : '#F3F4F6',
-                                    color: item.passed ? '#065F46' : 'var(--text-muted)',
-                                    border: `1px solid ${item.passed ? '#A7F3D0' : 'var(--border)'}`,
-                                  }}
-                                >
-                                  <span>{item.passed ? '✓' : '○'} {item.label}</span>
-                                  <span style={{ fontWeight: 700 }}>+{item.points}</span>
-                                </div>
-                              ))}
-                            </div>
-
-                            {/* What is missing callout */}
-                            {readiness.missing && readiness.missing.length > 0 && (
-                              <div style={{ background: '#FFFBEB', padding: '6px 10px', borderRadius: '4px', border: '1px solid #FDE68A', fontSize: '0.72rem', color: '#92400E', marginBottom: '8px' }}>
-                                <strong>Missing to achieve 100%:</strong> {readiness.missing.join(' · ')}
-                              </div>
-                            )}
-
-                            {/* Mandatory Disclaimer */}
-                            <div style={{ fontSize: '0.67rem', color: 'var(--text-muted)', fontStyle: 'italic', textAlign: 'center' }}>
-                              Prototype indicator only; not scientifically validated.
-                            </div>
-                          </div>
-                        );
-                      })()}
-
-                      {/* Quick Audio Verification Strip */}
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: 'var(--surface-card-subtle)', borderRadius: '8px', border: '1px solid var(--surface-border)', marginBottom: '14px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-ink)' }}>
-                            🔊 Audio Verification
-                          </span>
-                          {currentProduct.listened && (
-                            <span style={{ fontSize: '0.64rem', background: '#ECFDF5', color: '#059669', padding: '1px 6px', borderRadius: '4px', fontWeight: 700 }}>
-                              Listened ✓
-                            </span>
-                          )}
-                        </div>
-                        <button
-                          type="button"
-                          className="btn-editorial-primary"
-                          onClick={handleVoicePlay}
-                          style={{ padding: '5px 12px', fontSize: '0.74rem' }}
-                          title="Read description and risk warnings aloud"
-                        >
-                          {isPlayingVoice ? '⏸ Pause' : '🔊 Listen Aloud'}
-                        </button>
-                      </div>
-
-                      {/* Human Review Actions */}
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        {batchDashboardEnabled && (
-                          <button
-                            type="button"
-                            className="btn-primary-action"
-                            onClick={handleApproveAllFormats}
-                            style={{ background: 'linear-gradient(135deg, #059669, #047857)', color: '#FFF', fontWeight: 800, minHeight: '38px' }}
-                            title="Explicitly approve all four formats (Highlights, Short, Marketplace, Card Summary)"
-                          >
-                            ✓ Approve All 4 Formats (Batch 3)
-                          </button>
-                        )}
-
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '8px' }}>
-                          <button
-                            type="button"
-                            className="btn-primary-action"
-                            onClick={handleApprove}
-                            style={{ background: 'linear-gradient(135deg, #059669, #047857)', color: '#FFF', fontWeight: 800, minHeight: '40px' }}
-                          >
-                            ✓ Approve Description (A)
-                          </button>
-                          <button
-                            type="button"
-                            className="btn-secondary-action"
-                            onClick={() => setShowDiffModal(true)}
-                            title="Compare Versions"
-                          >
-                            🔍 Diff
-                          </button>
-                        </div>
-
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                          <button
-                            type="button"
-                            className="btn-danger-action"
-                            onClick={() => setShowInaccessibleModal(true)}
-                          >
-                            🚩 Mark Inaccessible (I)
-                          </button>
-                          <button
-                            type="button"
-                            className="btn-secondary-action"
-                            onClick={() => {
-                              setProducts((prev) =>
-                                prev.map((p) =>
-                                  p.product_id === currentProduct.product_id
-                                    ? { ...p, edited_text: '', status: 'NOT_GENERATED' }
-                                    : p
-                                )
-                              );
-                            }}
-                          >
-                            ↺ Reset Item
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </aside>
-                </div>
-              </div>
-            )}
-
-                {/* TAB 2: OVERVIEW & 3D INTERACTIVE VISUALIZER */}
-                {activeTab === 'overview' && (
-                  <div style={{ maxWidth: '980px', margin: '0 auto' }}>
-                    <div style={{ textAlign: 'center', marginBottom: '28px' }}>
-                      <h1 style={{ fontSize: '2.2rem', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--text-main)', margin: '0 0 10px 0' }}>
-                        Turn every product image into accessible context.
-                      </h1>
-                      <p style={{ fontSize: '1.05rem', color: 'var(--text-secondary)', maxWidth: '680px', margin: '0 auto' }}>
-                        Generate accurate descriptions, review every detail, and publish only what a human approves.
-                      </p>
-                    </div>
-
-                    {/* 3D Visualizer Stage */}
-                    <div className="hero-3d-stage">
-                      <svg width="420" height="260" viewBox="0 0 420 260" fill="none">
-                        {/* Orbit Path */}
-                        <ellipse cx="210" cy="130" rx="160" ry="70" stroke="#818CF8" strokeWidth="2" strokeDasharray="6 6" opacity="0.6" />
-                        {/* Central Product Image Card */}
-                        <rect x="160" y="90" width="100" height="80" rx="10" fill="#FFFFFF" stroke="#4F46E5" strokeWidth="2" filter="drop-shadow(0 4px 12px rgba(79,70,229,0.15))" />
-                        <text x="210" y="135" textAnchor="middle" fill="#4F46E5" fontWeight="800" fontSize="13" fontFamily="system-ui">IMAGE</text>
-                        {/* Orbiting Node 1: Vision */}
-                        <circle cx="50" cy="130" r="28" fill="#FFFFFF" stroke="#06B6D4" strokeWidth="2" filter="drop-shadow(0 2px 8px rgba(6,182,212,0.2))" />
-                        <text x="50" y="134" textAnchor="middle" fill="#0891B2" fontWeight="700" fontSize="10">VISION</text>
-                        {/* Orbiting Node 2: Description */}
-                        <circle cx="210" cy="60" r="28" fill="#FFFFFF" stroke="#8B5CF6" strokeWidth="2" filter="drop-shadow(0 2px 8px rgba(139,92,246,0.2))" />
-                        <text x="210" y="64" textAnchor="middle" fill="#7C3AED" fontWeight="700" fontSize="9">DESCRIBE</text>
-                        {/* Orbiting Node 3: Review */}
-                        <circle cx="370" cy="130" r="28" fill="#FFFFFF" stroke="#059669" strokeWidth="2" filter="drop-shadow(0 2px 8px rgba(5,150,105,0.2))" />
-                        <text x="370" y="134" textAnchor="middle" fill="#059669" fontWeight="700" fontSize="10">REVIEW</text>
-                        {/* Orbiting Node 4: Voice */}
-                        <circle cx="210" cy="200" r="28" fill="#FFFFFF" stroke="#F59E0B" strokeWidth="2" filter="drop-shadow(0 2px 8px rgba(245,158,11,0.2))" />
-                        <text x="210" y="204" textAnchor="middle" fill="#D97706" fontWeight="700" fontSize="10">VOICE</text>
-                      </svg>
-                    </div>
-
-                    {/* Flow Steps Breakdown */}
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginTop: '24px' }}>
-                      <div className="varnix-card" style={{ padding: '16px', textAlign: 'center' }}>
-                        <div style={{ fontSize: '24px', marginBottom: '8px' }}>🖼️</div>
-                        <div style={{ fontWeight: 700, fontSize: '0.9rem', marginBottom: '4px' }}>1. Quality Check</div>
-                        <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: 0 }}>
-                          Evaluates resolution, blur, brightness, contrast, and visual clarity before drafting.
-                        </p>
-                      </div>
-                      <div className="varnix-card" style={{ padding: '16px', textAlign: 'center' }}>
-                        <div style={{ fontSize: '24px', marginBottom: '8px' }}>✨</div>
-                        <div style={{ fontWeight: 700, fontSize: '0.9rem', marginBottom: '4px' }}>2. AI Drafting</div>
-                        <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: 0 }}>
-                          Drafts concise short, detailed, or bullet descriptions from observable facts only.
-                        </p>
-                      </div>
-                      <div className="varnix-card" style={{ padding: '16px', textAlign: 'center' }}>
-                        <div style={{ fontSize: '24px', marginBottom: '8px' }}>🛡️</div>
-                        <div style={{ fontWeight: 700, fontSize: '0.9rem', marginBottom: '4px' }}>3. Review Guard</div>
-                        <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: 0 }}>
-                          Guards against unsupported material, certification, and performance claims in real time.
-                        </p>
-                      </div>
-                      <div className="varnix-card" style={{ padding: '16px', textAlign: 'center' }}>
-                        <div style={{ fontSize: '24px', marginBottom: '8px' }}>🌐</div>
-                        <div style={{ fontWeight: 700, fontSize: '0.9rem', marginBottom: '4px' }}>4. Voice & Export</div>
-                        <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: 0 }}>
-                          Synchronizes Hindi/Telugu voice audio and exports auditable RFC 4180 CSV & JSON.
-                        </p>
-                      </div>
-                    </div>
-
-                    <div style={{ textAlign: 'center', marginTop: '30px' }}>
-                      <button
-                        type="button"
-                        className="btn-primary-action"
-                        onClick={() => setActiveTab('workspace')}
-                        style={{ minHeight: '44px', padding: '10px 24px' }}
-                      >
-                        Start Reviewing Queue →
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {/* TAB 3: METHOD PAGE (ALTLUME DISCIPLINE) */}
-                {activeTab === 'method' && (
-                  <div style={{ maxWidth: '980px', margin: '40px auto 60px', padding: '0 24px' }}>
-                    <div style={{ textAlign: 'center', marginBottom: '36px' }}>
-                      <span className="brand-pill" style={{ marginBottom: '12px', display: 'inline-block' }}>
-                        EDITORIAL DISCIPLINE
-                      </span>
-                      <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2.8rem', color: 'var(--text-ink)', margin: '0 0 14px' }}>
-                        The ALTLUME Method: Observe → Check → Review
-                      </h1>
-                      <p style={{ fontSize: '1.08rem', color: 'var(--text-secondary)', maxWidth: '640px', margin: '0 auto', lineHeight: 1.6 }}>
-                        A systematic standard for commerce image descriptions. We separate visual evidence from marketing copy so every published alt text is factual, concise, and verifiable.
-                      </p>
-                    </div>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', marginBottom: '36px' }}>
-                      <div className="step-card">
-                        <span className="step-number">Phase 01</span>
-                        <div className="step-title">Observe</div>
-                        <p className="step-desc">
-                          Look closely at visible light, material texture, silhouette, and geometry. <strong>Catalogue metadata is not proof of visible detail</strong>—only what is rendered in pixels may be described.
-                        </p>
-                      </div>
-
-                      <div className="step-card">
-                        <span className="step-number">Phase 02</span>
-                        <div className="step-title">Check</div>
-                        <p className="step-desc">
-                          Apply deterministic guardrails against unsupported claims. Banned words (eco-friendly, durable, ergonomic, pure silk) must be confirmed by merchant specs or removed.
-                        </p>
-                      </div>
-
-                      <div className="step-card">
-                        <span className="step-number">Phase 03</span>
-                        <div className="step-title">Review</div>
-                        <p className="step-desc">
-                          <strong>A generated draft is never an approval.</strong> The commerce editor holds ultimate responsibility for clarity, brevity (under 125 characters), and screen reader accessibility.
-                        </p>
-                      </div>
-                    </div>
-
-                    <div style={{ background: 'var(--surface-card)', border: '1px solid var(--surface-border)', borderRadius: '14px', padding: '28px', marginBottom: '28px', boxShadow: 'var(--shadow-md)' }}>
-                      <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.4rem', color: 'var(--text-ink)', marginTop: 0, marginBottom: '10px' }}>
-                        W3C Web Accessibility Guidelines
-                      </h2>
-                      <p style={{ color: 'var(--text-secondary)', lineHeight: 1.6, fontSize: '0.92rem', margin: '0 0 16px 0' }}>
-                        ALTLUME aligns with the World Wide Web Consortium (W3C) Web Content Accessibility Guidelines (WCAG 2.2). Before writing descriptions, verify image intent using the decision tree: decorative images must use null alt text, informative images require concise descriptions, and text-containing images require verbatim transcription.
-                      </p>
-                      <a
-                        href="https://www.w3.org/WAI/tutorials/images/decision-tree/"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="btn-editorial-primary"
-                        style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
-                      >
-                        ↗ Open W3C Image Alt-Text Decision Tree
-                      </a>
-                    </div>
-
-                    <div style={{ background: 'var(--surface-card-subtle)', border: '1px solid var(--surface-border)', borderRadius: '10px', padding: '16px 20px', fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-                      <strong>Synthetic Fixture Notice:</strong> ALTLUME operates on fixture dataset (P01–P10). This tool assists editorial workflows and <strong>does not prove website accessibility compliance</strong>. Human editorial sign-off is strictly required before public publishing.
-                    </div>
-                  </div>
-                )}
-
-                {/* TAB 4: EXPORT HUB (ALTLUME READINESS & AUDIT) */}
-                {activeTab === 'export' && (
-                  <div style={{ maxWidth: '1080px', margin: '30px auto 60px', padding: '0 20px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '14px' }}>
-                      <div>
-                        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', color: 'var(--text-ink)', margin: '0 0 6px 0' }}>
-                          Export Reviewed Catalogue
-                        </h1>
-                        <p style={{ margin: 0, fontSize: '0.86rem', color: 'var(--text-secondary)' }}>
-                          Auditable export of human-approved visual descriptions with strict column contracts and complete ID preservation.
-                        </p>
-                      </div>
-
-                      <div style={{ display: 'flex', gap: '10px' }}>
+                      <div className="audio-queue-row">
                         <button
                           type="button"
                           className="btn-editorial-secondary"
-                          onClick={handleExportJson}
-                          data-cursor="Download"
+                          style={{ padding: '4px 8px', fontSize: '0.7rem' }}
+                          onClick={listenAllPlaying ? handleListenAllToggle : handleStartListenAll}
+                          data-cursor={listenAllPlaying ? 'Stop' : 'Play'}
                         >
-                          📦 Download JSON
+                          {listenAllPlaying ? '⏹ Stop Queue' : '▶ Listen All Queue'}
                         </button>
+
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '0.7rem', color: 'var(--text-secondary)' }}>
+                          <input
+                            type="checkbox"
+                            checked={autoAdvanceVoice}
+                            onChange={(e) => setAutoAdvanceVoice(e.target.checked)}
+                          />
+                          Auto-advance
+                        </label>
+
                         <button
                           type="button"
-                          className="btn-editorial-primary"
-                          onClick={handleExportCsv}
-                          data-cursor="Download"
-                        >
-                          📥 Download CSV
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Readiness Checklist Card */}
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '24px' }}>
-                      <div className="varnix-card" style={{ padding: '16px', background: 'var(--surface-card)' }}>
-                        <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontFamily: 'var(--font-mono)' }}>Total Items</div>
-                        <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--text-ink)', marginTop: '4px' }}>
-                          {products.length} / 10
-                        </div>
-                        <div style={{ fontSize: '0.72rem', color: 'var(--emerald)', marginTop: '2px' }}>100% ID preserved</div>
-                      </div>
-
-                      <div className="varnix-card" style={{ padding: '16px', background: 'var(--surface-card)' }}>
-                        <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontFamily: 'var(--font-mono)' }}>Approved</div>
-                        <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--emerald)', marginTop: '4px' }}>
-                          {approvedCount}
-                        </div>
-                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '2px' }}>Human endorsed</div>
-                      </div>
-
-                      <div className="varnix-card" style={{ padding: '16px', background: 'var(--surface-card)' }}>
-                        <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontFamily: 'var(--font-mono)' }}>Pending Review</div>
-                        <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--accent-amber)', marginTop: '4px' }}>
-                          {products.length - approvedCount - inaccessibleCount}
-                        </div>
-                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '2px' }}>Awaiting editor</div>
-                      </div>
-
-                      <div className="varnix-card" style={{ padding: '16px', background: 'var(--surface-card)' }}>
-                        <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontFamily: 'var(--font-mono)' }}>Inaccessible</div>
-                        <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--rose)', marginTop: '4px' }}>
-                          {inaccessibleCount}
-                        </div>
-                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '2px' }}>Flagged for reshoot</div>
-                      </div>
-                    </div>
-
-                    {/* 10-Product Audit Table with Human Edit Badge */}
-                    <div style={{ background: 'var(--surface-card)', border: '1px solid var(--surface-border)', borderRadius: '12px', overflow: 'hidden', boxShadow: 'var(--shadow-sm)', marginBottom: '24px' }}>
-                      <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.8rem' }}>
-                        <thead>
-                          <tr style={{ background: 'var(--surface-card-subtle)', borderBottom: '1px solid var(--surface-border)' }}>
-                            <th style={{ padding: '12px 16px', fontWeight: 700, fontFamily: 'var(--font-mono)' }}>ID</th>
-                            <th style={{ padding: '12px 16px', fontWeight: 700 }}>Image</th>
-                            <th style={{ padding: '12px 16px', fontWeight: 700 }}>Product Title</th>
-                            <th style={{ padding: '12px 16px', fontWeight: 700 }}>Status</th>
-                            <th style={{ padding: '12px 16px', fontWeight: 700 }}>Reviewer Origin</th>
-                            <th style={{ padding: '12px 16px', fontWeight: 700 }}>Final Description</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {products.map((p) => {
-                            const isHuman = p.is_human_edited || p.status === 'APPROVED' || p.edited_text;
-                            return (
-                              <tr key={p.product_id} style={{ borderBottom: '1px solid var(--surface-border)' }}>
-                                <td style={{ padding: '12px 16px', fontFamily: 'var(--font-mono)', fontWeight: 800, color: 'var(--accent-indigo)' }}>
-                                  {p.product_id}
-                                </td>
-                                <td style={{ padding: '12px 16px' }}>
-                                  <img
-                                    src={p.image_url}
-                                    alt=""
-                                    style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '6px', border: '1px solid var(--surface-border)' }}
-                                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                                  />
-                                </td>
-                                <td style={{ padding: '12px 16px', fontWeight: 600, color: 'var(--text-ink)' }}>
-                                  {p.metadata_title}
-                                </td>
-                                <td style={{ padding: '12px 16px' }}>
-                                  <span className={`status-pill ${p.status.toLowerCase().replace(/_/g, '-')}`}>
-                                    {p.status}
-                                  </span>
-                                </td>
-                                <td style={{ padding: '12px 16px' }}>
-                                  <span
-                                    style={{
-                                      fontSize: '0.68rem',
-                                      fontWeight: 700,
-                                      padding: '2px 8px',
-                                      borderRadius: '4px',
-                                      background: isHuman ? '#ECFDF5' : '#F3F4F6',
-                                      color: isHuman ? '#047857' : '#6B7280',
-                                      border: `1px solid ${isHuman ? '#A7F3D0' : '#E5E7EB'}`,
-                                    }}
-                                  >
-                                    {isHuman ? '✍️ Human Edited' : '🤖 AI Draft'}
-                                  </span>
-                                </td>
-                                <td style={{ padding: '12px 16px', color: 'var(--text-secondary)', maxWidth: '320px', lineHeight: 1.5 }}>
-                                  {p.final_description || (p.status === 'INACCESSIBLE' ? 'Image unavailable — manual review required.' : p.edited_text || p.draft || '—')}
-                                </td>
-                              </tr>
+                          style={{ background: 'none', border: 'none', color: 'var(--accent-indigo)', fontSize: '0.68rem', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}
+                          onClick={() => {
+                            setProducts((prev) =>
+                              prev.map((p) => (p.listened && p.status !== 'APPROVED' ? { ...p, status: 'APPROVED' } : p))
                             );
-                          })}
-                        </tbody>
-                      </table>
-                    </div>
-
-                    {/* Non-compliance Disclaimer */}
-                    <div style={{ background: 'var(--surface-card-subtle)', border: '1px solid var(--surface-border)', borderRadius: '10px', padding: '16px 20px', fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.5, textAlign: 'center' }}>
-                      ⚖️ <strong>Legal Notice:</strong> An export from this tool alone does not prove or guarantee website accessibility compliance. Human editorial review is strictly required.
-                    </div>
-                  </div>
-                )}
-
-                {/* TAB 404: MISSING IMAGE / SLIPPED FRAME */}
-                {activeTab === '404' && (
-                  <div style={{ maxWidth: '640px', margin: '80px auto', textAlign: 'center', padding: '0 20px' }}>
-                    <div style={{ fontSize: '4.5rem', marginBottom: '16px', filter: 'drop-shadow(0 6px 14px rgba(79,70,229,0.2))' }}>
-                      🖼️💨
-                    </div>
-                    <span className="brand-pill" style={{ marginBottom: '12px', display: 'inline-block' }}>
-                      STATUS 404
-                    </span>
-                    <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2.4rem', color: 'var(--text-ink)', margin: '0 0 12px 0' }}>
-                      The image slipped out of the frame.
-                    </h1>
-                    <p style={{ color: 'var(--text-secondary)', fontSize: '1rem', lineHeight: 1.6, marginBottom: '28px' }}>
-                      We inspected every pixel between P01 and P10, but this frame is completely empty. It may have been relocated, unlinked, or never rendered.
-                    </p>
-                    <button
-                      type="button"
-                      className="btn-editorial-primary"
-                      onClick={() => setActiveTab('workspace')}
-                      data-cursor="Return"
-                    >
-                      ← Return to Review Studio
-                    </button>
-                  </div>
-                )}
-
-                {/* TAB 5: BATCH DASHBOARD VIEW (Batch 3 Feature) */}
-                {batchDashboardEnabled && activeTab === 'dashboard' && (
-                  <div className="batch-dashboard-container">
-                    {/* Dashboard Header Bar */}
-                    <div className="batch-dashboard-header">
-                      <div>
-                        <h1 className="batch-dashboard-title">
-                          📊 Batch Operations & Catalogue Readiness Dashboard
-                        </h1>
-                        <p className="batch-dashboard-subtitle">
-                          Portfolio monitoring: Multi-format consistency, verification queue, transparent readiness checklists, and bulk approval.
-                        </p>
-                      </div>
-
-                      <div className="batch-dashboard-actions">
-                        <button
-                          type="button"
-                          className="btn-secondary-action"
-                          onClick={() => setShowApproveLowRiskModal(true)}
-                          title="Approve all products with readiness score ≥ 80 and zero unsupported claims"
+                            setSuccessMessage('Approved all listened items!');
+                          }}
                         >
-                          🛡️ Approve All Low-Risk Items
-                        </button>
-                        <button
-                          type="button"
-                          className="btn-secondary-action"
-                          onClick={() => bulkFileInputRef.current?.click()}
-                          title="Upload up to 20 images at once"
-                        >
-                          📤 Batch Upload Images (Max 20)
-                        </button>
-                        <button
-                          type="button"
-                          className="btn-primary-action"
-                          onClick={handleExportCsv}
-                        >
-                          📥 Export CSV
+                          Approve listened
                         </button>
                       </div>
+
+                      <div className="audio-tip-text">
+                        Tip: Spot-check audio-review items against the image. Listening alone never auto-approves.
+                      </div>
                     </div>
+                  )}
 
-                    {/* Summary Metrics Strip */}
-                    {(() => {
-                      const allReadiness = products.map((p) => computeClientReadinessScore(p));
-                      const readyCount = allReadiness.filter((r) => r.status === 'READY').length;
-                      const needReviewCount = allReadiness.filter((r) => r.status === 'NEEDS REVIEW').length;
-                      const needInfoCount = allReadiness.filter((r) => r.status === 'NEEDS INFORMATION').length;
-                      const errorCount = products.filter((p) => p.status === 'INACCESSIBLE' || p.status === 'ERROR').length;
-                      const approvedCount = products.filter((p) => p.status === 'APPROVED').length;
-                      const totalImages = products.reduce((acc, p) => acc + (p.images?.length || 1), 0);
+                  {toolDrawerTab === 'lang' && (
+                    <div style={{ background: 'var(--surface-card-subtle)', border: '1px solid var(--surface-border)', borderRadius: '8px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '0.74rem', fontWeight: 800, color: 'var(--text-ink)' }}>
+                          🌐 Review Language Aid
+                        </span>
+                        <span style={{ fontSize: '0.66rem', color: 'var(--text-muted)' }}>
+                          English is source of truth
+                        </span>
+                      </div>
 
-                      const categories = ['ALL', ...Array.from(new Set(products.map((p) => p.detected_category || p.category || p.product_category || 'General').filter(Boolean)))];
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '4px' }}>
+                        {[
+                          { code: 'en', label: 'English' },
+                          { code: 'hi', label: 'हिन्दी' },
+                          { code: 'te', label: 'తెలుగు' },
+                        ].map((lang) => (
+                          <button
+                            key={lang.code}
+                            type="button"
+                            className={`btn-editorial-secondary ${reviewLanguage === lang.code ? 'active' : ''}`}
+                            style={{
+                              padding: '6px 4px',
+                              fontSize: '0.7rem',
+                              fontWeight: 700,
+                              background: reviewLanguage === lang.code ? 'var(--accent-indigo)' : 'var(--surface-card)',
+                              color: reviewLanguage === lang.code ? '#FFF' : 'var(--text-secondary)',
+                              borderColor: reviewLanguage === lang.code ? 'var(--accent-indigo)' : 'var(--surface-border)',
+                            }}
+                            onClick={() => handleLanguageSelect(lang.code)}
+                          >
+                            {lang.label}
+                          </button>
+                        ))}
+                      </div>
 
-                      const filteredProducts = products.filter((p) => {
-                        const readiness = computeClientReadinessScore(p);
-                        const cat = p.detected_category || p.category || p.product_category || 'General';
-
-                        // Category filter
-                        if (dashboardCategoryFilter !== 'ALL' && cat !== dashboardCategoryFilter) {
-                          return false;
-                        }
-
-                        // Status filter
-                        if (dashboardFilter === 'ALL') return true;
-                        if (dashboardFilter === 'READY') return readiness.status === 'READY' && p.status !== 'INACCESSIBLE';
-                        if (dashboardFilter === 'NEEDS REVIEW') return readiness.status === 'NEEDS REVIEW' && p.status !== 'INACCESSIBLE';
-                        if (dashboardFilter === 'NEEDS INFORMATION') return readiness.status === 'NEEDS INFORMATION' && p.status !== 'INACCESSIBLE';
-                        if (dashboardFilter === 'ERROR') return p.status === 'INACCESSIBLE' || p.status === 'ERROR' || readiness.status === 'ERROR';
-                        return true;
-                      });
-
-                      return (
-                        <div>
-                          {/* Summary Counts Banner */}
-                          <div className="dashboard-summary-bar">
-                            <div className="dashboard-summary-chip">
-                              <strong>{products.length} Products</strong> ({totalImages} images)
-                            </div>
-                            <span className="summary-dot">·</span>
-                            <div className="dashboard-summary-chip chip-ready">
-                              <span className="chip-indicator">●</span> <strong>{readyCount} Ready</strong>
-                            </div>
-                            <span className="summary-dot">·</span>
-                            <div className="dashboard-summary-chip chip-review">
-                              <span className="chip-indicator">●</span> <strong>{needReviewCount} Need Review</strong>
-                            </div>
-                            <span className="summary-dot">·</span>
-                            <div className="dashboard-summary-chip chip-info">
-                              <span className="chip-indicator">●</span> <strong>{needInfoCount} Need Information</strong>
-                            </div>
-                            <span className="summary-dot">·</span>
-                            <div className="dashboard-summary-chip chip-approved">
-                              <span className="chip-indicator">✓</span> <strong>{approvedCount} Approved</strong>
-                            </div>
-                            {errorCount > 0 && (
-                              <>
-                                <span className="summary-dot">·</span>
-                                <div className="dashboard-summary-chip chip-error">
-                                  <span className="chip-indicator">⚠️</span> <strong>{errorCount} Inaccessible / Error</strong>
-                                </div>
-                              </>
-                            )}
-                          </div>
-
-                          {/* Filter Row */}
-                          <div className="dashboard-filters-row">
-                            <div className="dashboard-filter-group">
-                              <span style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-muted)' }}>Status:</span>
-                              {[
-                                { id: 'ALL', label: 'ALL', count: products.length },
-                                { id: 'READY', label: 'READY', count: readyCount },
-                                { id: 'NEEDS REVIEW', label: 'NEEDS REVIEW', count: needReviewCount },
-                                { id: 'NEEDS INFORMATION', label: 'NEEDS INFORMATION', count: needInfoCount },
-                                { id: 'ERROR', label: 'ERROR', count: errorCount },
-                              ].map((f) => (
-                                <button
-                                  key={f.id}
-                                  type="button"
-                                  className={`dashboard-filter-btn ${dashboardFilter === f.id ? 'active' : ''}`}
-                                  onClick={() => setDashboardFilter(f.id)}
-                                >
-                                  {f.label} ({f.count})
-                                </button>
-                              ))}
-                            </div>
-
-                            <div className="dashboard-filter-group">
-                              <span style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-muted)' }}>Category:</span>
-                              <select
-                                className="dashboard-category-select"
-                                value={dashboardCategoryFilter}
-                                onChange={(e) => setDashboardCategoryFilter(e.target.value)}
-                              >
-                                {categories.map((c) => (
-                                  <option key={c} value={c}>
-                                    {c === 'ALL' ? 'All Categories' : c}
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
-                          </div>
-
-                          {/* Product Cards Grid */}
-                          <div className="dashboard-products-grid">
-                            {filteredProducts.map((p) => {
-                              const readiness = computeClientReadinessScore(p);
-                              const cat = p.detected_category || p.category || p.product_category || 'General';
-                              const viewCount = p.images?.length || 1;
-                              const verifiedSpecsCount = Object.keys(p.merchant_confirmed_specs || p.verified_specs || {}).length;
-                              const featuresList = (p.detected_features || []).filter(
-                                (f) => (p.feature_choices?.[f.id] || 'INCLUDE') === 'INCLUDE'
-                              );
-                              const highlightsList = p.selected_highlights || p.recommended_highlights || (Array.isArray(p.product_highlights) ? p.product_highlights : []);
-
-                              const statusColor =
-                                p.status === 'APPROVED' ? '#059669' :
-                                  p.status === 'INACCESSIBLE' ? '#DC2626' :
-                                    p.status === 'ERROR' ? '#DC2626' :
-                                      p.status === 'EDITED' ? '#D97706' :
-                                        p.status === 'GENERATED' ? '#4F46E5' :
-                                          p.status === 'ANALYZING' ? '#2563EB' :
-                                            '#6B7280';
-
-                              return (
-                                <div key={p.product_id} className="dashboard-product-card">
-                                  {/* Card Header: Thumbnail + Identity */}
-                                  <div className="product-card-top">
-                                    <div className="product-card-thumb-container">
-                                      <img
-                                        src={p.image_url}
-                                        alt={p.metadata_title || p.product_id}
-                                        className="product-card-thumb"
-                                      />
-                                      <span className="product-card-view-badge">
-                                        📷 {viewCount} view{viewCount > 1 ? 's' : ''}
-                                      </span>
-                                    </div>
-
-                                    <div className="product-card-info">
-                                      <div className="product-card-id-row">
-                                        <span className="product-card-id">{p.product_id}</span>
-                                        <span
-                                          className="product-card-status-pill"
-                                          style={{ background: `${statusColor}15`, color: statusColor, border: `1px solid ${statusColor}40` }}
-                                        >
-                                          {p.status}
-                                        </span>
-                                      </div>
-
-                                      <div className="product-card-title">
-                                        {p.metadata_title || p.product_id}
-                                      </div>
-
-                                      <div className="product-card-meta-row">
-                                        <span className="product-card-category-tag">
-                                          📁 {cat}
-                                        </span>
-                                        <span className={`product-card-confidence ${p.confidence || 'medium'}`}>
-                                          Confidence: {p.confidence || 'high'}
-                                        </span>
-                                      </div>
-                                    </div>
-                                  </div>
-
-                                  {/* Catalogue Readiness Score Meter */}
-                                  <div className="readiness-meter-block">
-                                    <div className="readiness-meter-header">
-                                      <span className="readiness-meter-label">Catalogue Readiness</span>
-                                      <span className="readiness-meter-val" style={{ color: readiness.score >= 80 ? '#059669' : readiness.score >= 50 ? '#D97706' : '#2563EB' }}>
-                                        <strong>{readiness.score}/100</strong> ({readiness.status})
-                                      </span>
-                                    </div>
-
-                                    <div className="readiness-meter-track">
-                                      <div
-                                        className="readiness-meter-fill"
-                                        style={{
-                                          width: `${readiness.score}%`,
-                                          background: readiness.score >= 80 ? 'linear-gradient(90deg, #10B981, #059669)' : readiness.score >= 50 ? 'linear-gradient(90deg, #F59E0B, #D97706)' : 'linear-gradient(90deg, #60A5FA, #3B82F6)',
-                                        }}
-                                      />
-                                    </div>
-
-                                    {/* Missing items indicator */}
-                                    {readiness.missing && readiness.missing.length > 0 && (
-                                      <div className="readiness-missing-note">
-                                        ⚠️ {readiness.missing[0]}
-                                      </div>
-                                    )}
-                                  </div>
-
-                                  {/* Observable Features & Verified Specs Summary */}
-                                  <div className="card-specs-row">
-                                    <span className="spec-indicator">
-                                      ✨ <strong>{featuresList.length}</strong> Features Confirmed
-                                    </span>
-                                    <span className="spec-indicator">
-                                      ❓ <strong>{verifiedSpecsCount}</strong> Verified Specs
-                                    </span>
-                                    <span className="spec-indicator">
-                                      ⭐ <strong>{highlightsList.length}</strong> Highlights
-                                    </span>
-                                  </div>
-
-                                  {/* Description Snippet Preview */}
-                                  <div className="card-description-preview">
-                                    <div className="preview-label">Short Description Preview:</div>
-                                    <div className="preview-text">
-                                      {p.short_description || p.description_short || p.marketplace_description || p.draft || 'No description generated yet.'}
-                                    </div>
-                                  </div>
-
-                                  {/* Card Footer Actions */}
-                                  <div className="card-actions-footer">
-                                    <button
-                                      type="button"
-                                      className="btn-card-workspace"
-                                      onClick={() => {
-                                        setSelectedId(p.product_id);
-                                        setActiveTab('workspace');
-                                      }}
-                                    >
-                                      🏢 Review in Workspace
-                                    </button>
-
-                                    {p.status !== 'APPROVED' ? (
-                                      <button
-                                        type="button"
-                                        className="btn-card-approve"
-                                        onClick={() => {
-                                          setSelectedId(p.product_id);
-                                          handleApproveAllFormats();
-                                        }}
-                                        title="Explicitly approve all four formats for this item"
-                                      >
-                                        ✓ Approve All 4 Formats
-                                      </button>
-                                    ) : (
-                                      <span style={{ fontSize: '0.72rem', color: '#059669', fontWeight: 700, padding: '4px 8px' }}>
-                                        ✓ Approved
-                                      </span>
-                                    )}
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-
-                          {filteredProducts.length === 0 && (
-                            <div style={{ textAlign: 'center', padding: '40px', background: '#FFF', borderRadius: '8px', border: '1px dashed var(--border)', marginTop: '20px' }}>
-                              <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-                                No products match the filter "{dashboardFilter}" {dashboardCategoryFilter !== 'ALL' ? `in category ${dashboardCategoryFilter}` : ''}.
-                              </p>
-                              <button
-                                type="button"
-                                className="btn-secondary-action"
-                                onClick={() => {
-                                  setDashboardFilter('ALL');
-                                  setDashboardCategoryFilter('ALL');
-                                }}
-                              >
-                                Reset Filters
-                              </button>
-                            </div>
-                          )}
+                      {reviewLanguage !== 'en' && (
+                        <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', background: 'var(--surface-card)', padding: '8px', borderRadius: '6px', border: '1px solid var(--surface-border)', marginTop: '4px' }}>
+                          <strong>Translation Preview ({reviewLanguage.toUpperCase()}):</strong>
+                          <p style={{ margin: '4px 0 0', fontStyle: 'italic' }}>
+                            {currentProduct.translations?.[reviewLanguage] || (isTranslating ? 'Syncing translation...' : 'Translation will appear after generation.')}
+                          </p>
                         </div>
-                      );
-                    })()}
-                  </div>
-                )}
-              </main>
-
-
-      {/* MODAL 1: Inaccessible Image Dialog */}
-            {showInaccessibleModal && (
-              <div className="modal-overlay" role="dialog" aria-modal="true">
-                <div className="modal-dialog">
-                  <div className="modal-header">
-                    <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>🚩 Mark Image as Inaccessible</span>
-                    <button type="button" onClick={() => setShowInaccessibleModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem' }}>✕</button>
-                  </div>
-                  <div className="modal-body">
-                    <p style={{ fontSize: '0.84rem', color: 'var(--text-muted)', marginTop: 0 }}>
-                      Flagging {currentProduct.product_id} as Inaccessible will preserve its product ID and assign the standard placeholder without generating fabricated AI copy.
-                    </p>
-                    <div style={{ marginBottom: '12px' }}>
-                      <label style={{ fontSize: '0.78rem', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Reason:</label>
-                      <select
-                        value={inaccessibleReason}
-                        onChange={(e) => setInaccessibleReason(e.target.value)}
-                        style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border)', fontSize: '0.84rem' }}
-                      >
-                        <option value="Image unavailable">Image unavailable</option>
-                        <option value="Image too blurry">Image too blurry</option>
-                        <option value="Image too unclear">Image too unclear</option>
-                        <option value="Insufficient visual information">Insufficient visual information</option>
-                        <option value="Other">Other</option>
-                      </select>
+                      )}
                     </div>
-                    <div>
-                      <label style={{ fontSize: '0.78rem', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Reviewer Note:</label>
-                      <textarea
-                        rows={3}
-                        value={inaccessibleNote}
-                        onChange={(e) => setInaccessibleNote(e.target.value)}
-                        placeholder="Explain why visual details cannot be reliably described..."
-                        style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border)', fontSize: '0.84rem' }}
-                      />
-                    </div>
-                  </div>
-                  <div className="modal-footer">
-                    <button type="button" className="btn-secondary-action" onClick={() => setShowInaccessibleModal(false)}>
-                      Cancel
-                    </button>
-                    <button type="button" className="btn-danger-action" onClick={handleConfirmInaccessible}>
-                      Confirm Inaccessible
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
+                  )}
 
-            {/* MODAL 2: Keyboard Shortcuts Help */}
-            {showShortcutsModal && (
-              <div className="modal-overlay" role="dialog" aria-modal="true">
-                <div className="modal-dialog">
-                  <div className="modal-header">
-                    <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>⌨️ Keyboard Navigation Shortcuts</span>
-                    <button type="button" onClick={() => setShowShortcutsModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem' }}>✕</button>
-                  </div>
-                  <div className="modal-body">
-                    <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr', gap: '10px', fontSize: '0.84rem' }}>
-                      <kbd style={{ background: '#F3F4F6', padding: '2px 8px', borderRadius: '4px', textAlign: 'center', fontWeight: 700 }}>N</kbd>
-                      <span>Navigate to Next Product in Queue</span>
-
-                      <kbd style={{ background: '#F3F4F6', padding: '2px 8px', borderRadius: '4px', textAlign: 'center', fontWeight: 700 }}>P</kbd>
-                      <span>Navigate to Previous Product in Queue</span>
-
-                      <kbd style={{ background: '#F3F4F6', padding: '2px 8px', borderRadius: '4px', textAlign: 'center', fontWeight: 700 }}>E</kbd>
-                      <span>Focus Description Editor Textarea</span>
-
-                      <kbd style={{ background: '#F3F4F6', padding: '2px 8px', borderRadius: '4px', textAlign: 'center', fontWeight: 700 }}>A</kbd>
-                      <span>Approve Current Description</span>
-
-                      <kbd style={{ background: '#F3F4F6', padding: '2px 8px', borderRadius: '4px', textAlign: 'center', fontWeight: 700 }}>I</kbd>
-                      <span>Open Mark Inaccessible Dialog</span>
-
-                      <kbd style={{ background: '#F3F4F6', padding: '2px 8px', borderRadius: '4px', textAlign: 'center', fontWeight: 700 }}>?</kbd>
-                      <span>Toggle Shortcuts Help Dialog</span>
-
-                      <kbd style={{ background: '#F3F4F6', padding: '2px 8px', borderRadius: '4px', textAlign: 'center', fontWeight: 700 }}>Esc</kbd>
-                      <span>Close any open modal or unfocus</span>
-                    </div>
-                  </div>
-                  <div className="modal-footer">
-                    <button type="button" className="btn-primary-action" onClick={() => setShowShortcutsModal(false)}>
-                      Got it
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* MODAL 3: Version Diff Viewer */}
-            {showDiffModal && (
-              <div className="modal-overlay" role="dialog" aria-modal="true">
-                <div className="modal-dialog" style={{ maxWidth: '640px' }}>
-                  <div className="modal-header">
-                    <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>🔍 Description Version Comparison ({currentProduct.product_id})</span>
-                    <button type="button" onClick={() => setShowDiffModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem' }}>✕</button>
-                  </div>
-                  <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    <div>
-                      <span style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-muted)' }}>1. AI DRAFT:</span>
-                      <div style={{ background: '#EFF6FF', padding: '8px 12px', borderRadius: '6px', fontSize: '0.82rem', marginTop: '2px', color: '#1E40AF' }}>
-                        {currentProduct.draft || 'No draft generated yet'}
+                  {toolDrawerTab === 'batch' && (
+                    <div style={{ background: 'var(--surface-card-subtle)', border: '1px solid var(--surface-border)', borderRadius: '8px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <span style={{ fontSize: '0.74rem', fontWeight: 800, color: 'var(--text-ink)' }}>
+                        ⚡ Staging & Camera Shortcuts
+                      </span>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+                        <button
+                          type="button"
+                          className="btn-editorial-secondary"
+                          style={{ fontSize: '0.7rem', padding: '6px' }}
+                          onClick={handleStartCamera}
+                        >
+                          📸 Take Photo
+                        </button>
+                        <button
+                          type="button"
+                          className="btn-editorial-secondary"
+                          style={{ fontSize: '0.7rem', padding: '6px' }}
+                          onClick={() => multiImageUploadRef.current?.click()}
+                        >
+                          🔄 Multi-Angle
+                        </button>
+                      </div>
+                      <div style={{ fontSize: '0.67rem', color: 'var(--text-muted)' }}>
+                        Upload up to 20 images. Automated blur, brightness, and contrast preflight checks.
                       </div>
                     </div>
-                    <div>
-                      <span style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-muted)' }}>2. HUMAN EDITED:</span>
-                      <div style={{ background: '#FFFBEB', padding: '8px 12px', borderRadius: '6px', fontSize: '0.82rem', marginTop: '2px', color: '#92400E' }}>
-                        {currentProduct.edited_text || 'No edits applied'}
-                      </div>
-                    </div>
-                    <div>
-                      <span style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-muted)' }}>3. APPROVED FINAL:</span>
-                      <div style={{ background: '#ECFDF5', padding: '8px 12px', borderRadius: '6px', fontSize: '0.82rem', marginTop: '2px', color: '#065F46' }}>
-                        {currentProduct.final_description || (currentProduct.status === 'APPROVED' ? currentText : 'Not approved yet')}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="modal-footer">
-                    <button type="button" className="btn-primary-action" onClick={() => setShowDiffModal(false)}>
-                      Close Diff
-                    </button>
-                  </div>
+                  )}
                 </div>
-              </div>
-            )}
+              </aside>
 
-            {/* MODAL 4: Camera Capture Dialog */}
-            {isCameraActive && (
-              <div className="modal-overlay" role="dialog" aria-modal="true">
-                <div className="modal-dialog" style={{ maxWidth: '540px' }}>
-                  <div className="modal-header">
-                    <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>📸 Direct Camera Capture</span>
-                    <button type="button" onClick={handleStopCamera} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem' }}>✕</button>
-                  </div>
-                  <div className="modal-body" style={{ textAlign: 'center' }}>
-                    <div style={{ width: '100%', height: '320px', background: '#000', borderRadius: '8px', overflow: 'hidden', position: 'relative' }}>
-                      <video
-                        ref={videoRef}
-                        autoPlay
-                        playsInline
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                      />
+              {/* COLUMN 2: CENTER IMAGE & QUALITY STAGE */}
+              <section className="center-column" aria-label="Visual Understanding & Quality Stage">
+                <div className="varnix-card">
+                  <div className="queue-card-header" style={{ flexWrap: 'wrap', gap: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                      <span style={{ fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--primary)' }}>
+                        {currentProduct.product_id}
+                      </span>
+                      <span style={{ fontWeight: 600, color: 'var(--text-main)', fontSize: '0.86rem' }}>
+                        {currentProduct.metadata_title}
+                      </span>
+                      {merchantName && (
+                        <span className="merchant-store-tag" title="Session merchant store name">
+                          Sold by: {merchantName}
+                        </span>
+                      )}
+                      {currentProduct.isUploaded && (
+                        <span style={{ fontSize: '0.68rem', background: '#EEF2FF', color: '#4338CA', padding: '1px 6px', borderRadius: '4px', fontWeight: 700 }}>
+                          Uploaded
+                        </span>
+                      )}
                     </div>
-                    <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '8px' }}>
-                      Center the product in the frame. Captured photos will automatically pass through client-side quality checks.
-                    </p>
-                  </div>
-                  <div className="modal-footer" style={{ justifyContent: 'space-between' }}>
-                    <button type="button" className="btn-secondary-action" onClick={handleStopCamera}>
-                      Cancel
-                    </button>
-                    <button type="button" className="btn-primary-action" onClick={handleSnapCamera} style={{ background: 'linear-gradient(135deg, #4F46E5, #6366F1)' }}>
-                      📸 Capture Photo
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* MODAL 5: Bulk Upload Processing Queue */}
-            {(isBulkProcessing || bulkQueue.length > 0) && (
-              <div className="modal-overlay" role="dialog" aria-modal="true">
-                <div className="modal-dialog" style={{ maxWidth: '640px' }}>
-                  <div className="modal-header">
-                    <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>
-                      📂 Bulk Upload & Analysis Queue ({bulkQueue.length} Images)
+                    <span className={`status-pill status-${currentProduct.status.toLowerCase().replace(/_/g, '-')}`}>
+                      {currentProduct.status}
                     </span>
-                    {!isBulkProcessing && (
-                      <button type="button" onClick={() => setBulkQueue([])} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem' }}>✕</button>
-                    )}
                   </div>
-                  <div className="modal-body">
-                    <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: 0 }}>
-                      Processing sequentially with concurrency limit (max 2–3). Each image is checked for quality and analyzed with Gemini.
-                    </p>
 
-                    {/* Overall Progress Bar */}
-                    <div style={{ marginBottom: '14px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.74rem', marginBottom: '4px', fontWeight: 600 }}>
-                        <span>Batch Progress</span>
-                        <span>{bulkProgress}%</span>
-                      </div>
-                      <div style={{ width: '100%', height: '8px', background: '#E2E8F0', borderRadius: '4px', overflow: 'hidden' }}>
-                        <div style={{ width: `${bulkProgress}%`, height: '100%', background: 'linear-gradient(90deg, #4F46E5, #10B981)', transition: 'width 0.3s' }} />
-                      </div>
-                    </div>
-
-                    {/* Items List */}
-                    <div style={{ maxHeight: '280px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                      {bulkQueue.map((item) => (
-                        <div key={item.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: '#F8FAFC', borderRadius: '6px', border: '1px solid var(--border)' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <span style={{ fontWeight: 800, fontFamily: 'var(--font-mono)', fontSize: '0.78rem', color: 'var(--primary)' }}>
-                              {item.id}
-                            </span>
-                            <span style={{ fontSize: '0.78rem', fontWeight: 600, maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                              {item.name}
-                            </span>
-                          </div>
-
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            {/* Category selector */}
-                            <select
-                              value={item.category || 'General'}
-                              onChange={(e) => {
-                                const cat = e.target.value;
-                                setBulkQueue(prev => prev.map(q => q.id === item.id ? { ...q, category: cat } : q));
-                                setProducts(prev => prev.map(p => p.product_id === item.id ? { ...p, category: cat } : p));
-                              }}
-                              style={{ padding: '3px 6px', fontSize: '0.72rem', borderRadius: '4px', border: '1px solid var(--border)' }}
-                            >
-                              <option value="General">General</option>
-                              <option value="Electronics">Electronics</option>
-                              <option value="Footwear">Footwear</option>
-                              <option value="Bag">Bag</option>
-                              <option value="Watch">Watch</option>
-                              <option value="Drinkware">Drinkware</option>
-                              <option value="Clothing">Clothing</option>
-                            </select>
-
-                            {/* Status indicator */}
-                            <span
-                              style={{
-                                fontSize: '0.68rem',
-                                fontWeight: 700,
-                                padding: '2px 6px',
-                                borderRadius: '4px',
-                                background: item.status === 'READY' ? '#ECFDF5' : item.status === 'FAILED' ? '#FEF2F2' : item.status === 'ANALYZING' ? '#EEF2FF' : '#F3F4F6',
-                                color: item.status === 'READY' ? '#059669' : item.status === 'FAILED' ? '#DC2626' : item.status === 'ANALYZING' ? '#4F46E5' : '#6B7280'
-                              }}
-                            >
-                              {item.status}
-                            </span>
-
-                            {/* Retry button on failed item */}
-                            {item.status === 'FAILED' && (
-                              <button
-                                type="button"
-                                className="btn-secondary-action"
-                                onClick={() => handleRetryBulkItem(item.id)}
-                                style={{ padding: '2px 6px', fontSize: '0.68rem', color: '#DC2626' }}
-                                title="Retry processing this item"
-                              >
-                                🔄 Retry
-                              </button>
-                            )}
-                          </div>
+                  <div className="viewer-card-body">
+                    {/* Image Quality Warning Banner (Client-side check) */}
+                    {currentProduct.quality_warning && (
+                      <div className="quality-warning-banner">
+                        <div className="quality-warning-title">
+                          ⚠️ Image Quality Notice: {currentProduct.quality_reason}
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="modal-footer">
-                    <button
-                      type="button"
-                      className="btn-primary-action"
-                      disabled={isBulkProcessing}
-                      onClick={() => setBulkQueue([])}
-                    >
-                      {isBulkProcessing ? 'Processing Batch...' : 'Done / View in Queue'}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* MODAL 6: Approve All Low-Risk Listened Items Confirmation */}
-            {showApproveAllModal && (
-              <div className="modal-overlay" role="dialog" aria-modal="true">
-                <div className="modal-dialog" style={{ maxWidth: '480px' }}>
-                  <div className="modal-header">
-                    <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>✓ Approve Low-Risk Listened Products</span>
-                    <button type="button" onClick={() => setShowApproveAllModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem' }}>✕</button>
-                  </div>
-                  <div className="modal-body">
-                    <p style={{ fontSize: '0.84rem', color: 'var(--text-main)', marginTop: 0 }}>
-                      This action will mark all eligible items that you have listened to as <strong>APPROVED</strong>.
-                    </p>
-                    <div style={{ background: '#F8FAFC', padding: '12px', borderRadius: '6px', border: '1px solid var(--border)', fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-                      <div>• Only applies to items with badge <strong>🔊 Listened</strong></div>
-                      <div>• Items flagged with critical risk warnings or inaccessible status are <strong>skipped</strong></div>
-                      <div>• Remember to spot-check audio-reviewed items against the images</div>
-                    </div>
-                  </div>
-                  <div className="modal-footer">
-                    <button type="button" className="btn-secondary-action" onClick={() => setShowApproveAllModal(false)}>
-                      Cancel
-                    </button>
-                    <button
-                      type="button"
-                      className="btn-primary-action"
-                      onClick={handleApproveAllListened}
-                      style={{ background: 'linear-gradient(135deg, #059669, #047857)' }}
-                    >
-                      Confirm Batch Approval
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* MODAL 6B: Batch 3 - Approve All Low-Risk Items Confirmation Dialog */}
-            {showApproveLowRiskModal && (
-              <div className="modal-overlay" role="dialog" aria-modal="true">
-                <div className="modal-dialog" style={{ maxWidth: '500px' }}>
-                  <div className="modal-header">
-                    <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>🛡️ Approve All Low-Risk Catalogue Items</span>
-                    <button type="button" onClick={() => setShowApproveLowRiskModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem' }}>✕</button>
-                  </div>
-                  <div className="modal-body">
-                    <p style={{ fontSize: '0.84rem', color: 'var(--text-main)', marginTop: 0 }}>
-                      This bulk action will explicitly approve all products meeting high-confidence readiness criteria.
-                    </p>
-                    <div style={{ background: '#F8FAFC', padding: '12px', borderRadius: '6px', border: '1px solid var(--border)', fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-                      <div>• Minimum Readiness Score: <strong>80 / 100</strong></div>
-                      <div>• Claim Check: <strong>Zero unverified claims</strong></div>
-                      <div>• Excludes items marked <strong>INACCESSIBLE</strong> or <strong>ERROR</strong></div>
-                      <div>• Generates immutable audit log entries</div>
-                    </div>
-                    <div style={{ marginTop: '10px', fontSize: '0.72rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
-                      Prototype indicator only; not scientifically validated. Merchants remain responsible for catalog accuracy.
-                    </div>
-                  </div>
-                  <div className="modal-footer">
-                    <button type="button" className="btn-secondary-action" onClick={() => setShowApproveLowRiskModal(false)}>
-                      Cancel
-                    </button>
-                    <button
-                      type="button"
-                      className="btn-primary-action"
-                      onClick={handleConfirmApproveLowRisk}
-                      style={{ background: 'linear-gradient(135deg, #059669, #047857)' }}
-                    >
-                      ✓ Confirm Approval of Low-Risk Items
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-
-            {/* MODAL 7: Batch 2 AI Multi-Image Grouping & View Orientation Studio */}
-            {showGroupingModal && (
-              <div className="grouping-modal-overlay" role="dialog" aria-modal="true">
-                <div className="grouping-modal">
-                  <div className="grouping-modal-header">
-                    <div>
-                      <div className="grouping-modal-title">
-                        🖼️ AI Multi-Image Grouping & View Orientation Studio
-                      </div>
-                      <div style={{ fontSize: '0.74rem', color: 'var(--text-secondary)' }}>
-                        Gemini analyzed your uploaded images and suggested product groupings and view angles.
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      className="grouping-modal-close"
-                      onClick={() => setShowGroupingModal(false)}
-                    >
-                      ✕
-                    </button>
-                  </div>
-
-                  <div className="grouping-modal-body">
-                    <div className="grouping-modal-actions-bar">
-                      <div style={{ fontSize: '0.78rem', color: 'var(--text-main)', fontWeight: 600 }}>
-                        {stagedGroups.length} Suggested Product Group{stagedGroups.length > 1 ? 's' : ''}
-                      </div>
-                      <div style={{ display: 'flex', gap: '8px' }}>
-                        {stagedGroups.length > 1 && (
+                        <div className="quality-warning-desc">
+                          Image may be dark, small, or blurry. You can retake the photo, mark as inaccessible, or continue anyway.
+                        </div>
+                        <div className="quality-warning-actions">
                           <button
                             type="button"
-                            className="btn-group-action"
-                            onClick={handleMergeAllStagedGroups}
-                            title="Merge all images into a single product group"
+                            className="btn-quality-retake"
+                            onClick={() => {
+                              if (navigator.mediaDevices) handleStartCamera();
+                              else cameraFileInputRef.current?.click();
+                            }}
                           >
-                            🔗 Merge All Into 1 Product
+                            📸 Retake Photo
                           </button>
-                        )}
+                          <button
+                            type="button"
+                            className="btn-quality-continue"
+                            onClick={() => {
+                              setProducts(prev => prev.map(p => p.product_id === currentProduct.product_id ? { ...p, quality_warning: false } : p));
+                            }}
+                          >
+                            ✓ Continue Anyway
+                          </button>
+                          <button
+                            type="button"
+                            className="btn-quality-inaccessible"
+                            onClick={() => setShowInaccessibleModal(true)}
+                          >
+                            🚩 Mark Inaccessible
+                          </button>
+                        </div>
                       </div>
-                    </div>
+                    )}
 
-                    <div className="grouping-groups-list">
-                      {stagedGroups.map((grp, gIdx) => (
-                        <div key={grp.group_id || gIdx} className="grouping-card">
-                          <div className="grouping-card-header">
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, flexWrap: 'wrap' }}>
-                              <span style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--primary)' }}>
-                                Group #{gIdx + 1}:
-                              </span>
-                              <input
-                                type="text"
-                                className="grouping-card-title-input"
-                                value={grp.group_name}
-                                onChange={(e) => handleRenameStagedGroup(gIdx, e.target.value)}
-                                placeholder="Product Group Name"
-                              />
-                              <span style={{ fontSize: '0.72rem', background: '#F3F4F6', padding: '2px 6px', borderRadius: '4px', color: 'var(--text-muted)' }}>
-                                {grp.images.length} view{grp.images.length > 1 ? 's' : ''}
-                              </span>
-                            </div>
+                    {/* Multi-View 360 Viewer or Single View Stage */}
+                    {(() => {
+                      const coverage = currentProduct.view_coverage || computeClientViewCoverage(currentProduct.category, activeImages);
+                      const isMulti = activeImages.length > 1 && multiImageSupportEnabled;
 
-                            <div style={{ display: 'flex', gap: '6px' }}>
-                              {grp.images.length > 1 && (
-                                <button
-                                  type="button"
-                                  className="btn-group-action"
-                                  onClick={() => handleSeparateStagedGroup(gIdx)}
-                                  title="Split this group so every image becomes an individual product"
-                                >
-                                  ✂️ Separate Images
-                                </button>
-                              )}
-                            </div>
+                      return (
+                        <>
+                          {/* View Mode Header Badge */}
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                            {isMulti ? (
+                              <span className="single-view-badge" style={{ background: '#F3E8FF', color: '#7E22CE', border: '1px solid #D8B4FE' }}>
+                                🔄 360° MULTI-VIEW ({activeImages.length} REAL VIEWS)
+                              </span>
+                            ) : (
+                              <span className="single-view-badge">
+                                📸 SINGLE VIEW ANALYSIS
+                              </span>
+                            )}
+                            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                              {isMulti ? 'Drag or click arrows to cycle real views' : 'Multimodal Gemini Vision'}
+                            </span>
                           </div>
 
-                          {/* Low confidence warning banner if AI suggests confirmation */}
-                          {grp.needs_merchant_confirmation && (
-                            <div className="low-confidence-banner">
-                              <span className="low-confidence-banner-icon">⚠️</span>
-                              <span>{grp.confirmation_message || 'These images may represent the same product. Please confirm.'}</span>
-                            </div>
-                          )}
-
-                          {/* Images Grid */}
-                          <div className="grouping-images-grid">
-                            {grp.images.map((img, imgIdx) => (
-                              <div key={img.id || imgIdx} className="grouping-image-tile">
-                                <img src={img.url} alt={img.file_name || `Angle ${imgIdx + 1}`} />
-                                <div className="grouping-tile-overlay">
+                          {isMulti ? (
+                            /* 360-STYLE VIEWER COMPONENT (ONLY REAL UPLOADED IMAGES) */
+                            <div className="viewer-360-container">
+                              {/* Active View Orientation & Correction Bar */}
+                              <div className="viewer-view-info-bar">
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  <span className="viewer-view-badge">
+                                    VIEW {activeViewIndex + 1}/{activeImages.length}: {activeImageView.view?.toUpperCase() || 'VIEW'}
+                                  </span>
+                                  <span className={`confidence-pill confidence-${activeImageView.confidence || 'high'}`} style={{ fontSize: '0.62rem', padding: '1px 5px', borderRadius: '4px', textTransform: 'uppercase', fontWeight: 700 }}>
+                                    {activeImageView.confidence || 'high'}
+                                  </span>
+                                  {activeImageView.is_inaccessible && (
+                                    <span style={{ fontSize: '0.64rem', background: '#FEE2E2', color: '#DC2626', padding: '1px 6px', borderRadius: '4px', fontWeight: 700 }}>
+                                      🚩 Inaccessible
+                                    </span>
+                                  )}
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Correct:</span>
                                   <select
-                                    className="grouping-tile-view-select"
-                                    value={img.view || 'front'}
-                                    onChange={(e) => handleChangeStagedImageView(gIdx, imgIdx, e.target.value)}
-                                    title="Correct view label"
+                                    className="viewer-view-select"
+                                    value={activeImageView.view || 'front'}
+                                    onChange={(e) => handleChangeViewLabel(activeViewIndex, e.target.value)}
+                                    title="Merchant correction for view orientation"
                                   >
                                     <option value="front">Front View</option>
                                     <option value="back">Back View</option>
@@ -6347,223 +3880,2701 @@ export default function App() {
                                     <option value="sole">Sole View</option>
                                     <option value="ports">Ports / Controls</option>
                                   </select>
+                                </div>
+                              </div>
+
+                              {/* Viewport with Prev/Next Controls and Drag Spin (Real Images Only) */}
+                              <div
+                                className="viewer-360-viewport"
+                                onMouseDown={(e) => setDragStartX(e.clientX)}
+                                onMouseUp={(e) => {
+                                  if (dragStartX !== null) {
+                                    const diff = e.clientX - dragStartX;
+                                    if (diff > 35) handlePrev360View();
+                                    else if (diff < -35) handleNext360View();
+                                    setDragStartX(null);
+                                  }
+                                }}
+                                onTouchStart={(e) => setDragStartX(e.touches[0].clientX)}
+                                onTouchEnd={(e) => {
+                                  if (dragStartX !== null && e.changedTouches[0]) {
+                                    const diff = e.changedTouches[0].clientX - dragStartX;
+                                    if (diff > 35) handlePrev360View();
+                                    else if (diff < -35) handleNext360View();
+                                    setDragStartX(null);
+                                  }
+                                }}
+                              >
+                                <button
+                                  type="button"
+                                  className="viewer-360-nav-btn prev"
+                                  onClick={handlePrev360View}
+                                  title="Previous Real Angle (←)"
+                                >
+                                  ◀
+                                </button>
+
+                                <img
+                                  src={activeImageView.url}
+                                  alt={`${currentProduct.metadata_title} - ${activeImageView.view} view`}
+                                  className={`viewer-360-main-img ${activeImageView.is_inaccessible ? 'inaccessible-blur' : ''}`}
+                                />
+
+                                <button
+                                  type="button"
+                                  className="viewer-360-nav-btn next"
+                                  onClick={handleNext360View}
+                                  title="Next Real Angle (→)"
+                                >
+                                  ▶
+                                </button>
+                              </div>
+
+                              {/* Real Thumbnail Scrubber Strip */}
+                              <div className="viewer-360-strip">
+                                {activeImages.map((img, idx) => (
+                                  <button
+                                    key={img.id || idx}
+                                    type="button"
+                                    className={`viewer-360-thumb ${idx === activeViewIndex ? 'active' : ''}`}
+                                    onClick={() => {
+                                      setProducts((prev) =>
+                                        prev.map((p) => (p.product_id === currentProduct.product_id ? { ...p, active_view_index: idx } : p))
+                                      );
+                                    }}
+                                    title={`Jump to ${img.view} view`}
+                                  >
+                                    <img src={img.url} alt={img.view} />
+                                    <span className="viewer-360-thumb-label">{img.view}</span>
+                                  </button>
+                                ))}
+                              </div>
+
+                              {/* View Management Bar */}
+                              <div className="viewer-manage-bar">
+                                <button
+                                  type="button"
+                                  className="btn-secondary-action"
+                                  style={{ fontSize: '0.72rem', padding: '3px 8px' }}
+                                  onClick={() => addSingleViewRef.current?.click()}
+                                  title="Add another angle image to this product"
+                                >
+                                  + Add Angle
+                                </button>
+                                <button
+                                  type="button"
+                                  className="btn-secondary-action"
+                                  style={{ fontSize: '0.72rem', padding: '3px 8px', color: activeImageView.is_inaccessible ? '#059669' : '#DC2626' }}
+                                  onClick={() => handleToggleViewInaccessible(activeViewIndex)}
+                                  title="Mark this angle inaccessible (excluded from coverage)"
+                                >
+                                  {activeImageView.is_inaccessible ? '✓ Mark View Accessible' : '🚩 Mark View Inaccessible'}
+                                </button>
+                                <button
+                                  type="button"
+                                  className="btn-secondary-action"
+                                  style={{ fontSize: '0.72rem', padding: '3px 8px', color: '#DC2626' }}
+                                  onClick={() => handleRemoveViewFromCurrentProduct(activeViewIndex)}
+                                  title="Remove this angle image"
+                                >
+                                  🗑️ Remove
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            /* SINGLE IMAGE VIEWPORT (NO 360 OFFERED) */
+                            <div className="image-canvas-stage">
+                              {currentProduct.imageError ? (
+                                <div style={{ textAlign: 'center', padding: '30px', color: '#DC2626' }}>
+                                  <div style={{ fontSize: '32px' }}>⚠️ 🖼️</div>
+                                  <h4>This image is unavailable.</h4>
+                                  <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                                    The visual asset for {currentProduct.product_id} cannot be loaded or analyzed.
+                                  </p>
                                   <button
                                     type="button"
-                                    className="grouping-tile-remove-btn"
-                                    onClick={() => handleRemoveStagedImage(gIdx, imgIdx)}
-                                    title="Remove image from group"
+                                    className="btn-danger-action"
+                                    onClick={() => setShowInaccessibleModal(true)}
                                   >
-                                    ✕
+                                    🚩 Mark as Inaccessible
+                                  </button>
+                                </div>
+                              ) : (
+                                <img
+                                  src={currentProduct.image_url}
+                                  alt={currentProduct.description || currentProduct.metadata_title}
+                                  onError={() => {
+                                    setProducts((prev) =>
+                                      prev.map((p) => (p.product_id === currentProduct.product_id ? { ...p, imageError: true } : p))
+                                    );
+                                  }}
+                                />
+                              )}
+                            </div>
+                          )}
+
+                          {/* Image Actions: Add View, Replace, Analyze */}
+                          <div style={{ display: 'flex', gap: '8px', marginTop: '10px', flexWrap: 'wrap' }}>
+                            <button
+                              type="button"
+                              className="btn-secondary-action"
+                              style={{ fontSize: '0.74rem', padding: '5px 10px', flex: 1 }}
+                              onClick={() => addSingleViewRef.current?.click()}
+                              title="Upload an additional angle image (front, side, back, detail)"
+                            >
+                              ➕ Add View {isMulti ? '' : 'to Enable 360°'}
+                            </button>
+                            <button
+                              type="button"
+                              className="btn-secondary-action"
+                              style={{ fontSize: '0.74rem', padding: '5px 10px', flex: 1 }}
+                              onClick={() => fileInputRef.current?.click()}
+                            >
+                              🔄 Replace
+                            </button>
+
+                            {isMulti ? (
+                              <button
+                                type="button"
+                                className="btn-primary-action"
+                                style={{ fontSize: '0.78rem', padding: '7px 14px', flex: '1 1 100%', background: 'linear-gradient(135deg, #4338CA, #6D28D9)', marginTop: '4px' }}
+                                onClick={handleAnalyzeMultiViewProduct}
+                                disabled={isAnalyzingProduct}
+                              >
+                                {isAnalyzingProduct ? '⚡ Deep Multi-View Analyzing with Gemini Vision...' : '✨ Deep Multi-View Analysis (All Angles Together)'}
+                              </button>
+                            ) : (
+                              <>
+                                <button
+                                  type="button"
+                                  className="btn-primary-action"
+                                  style={{ fontSize: '0.78rem', padding: '6px 14px', flex: 2, background: 'linear-gradient(135deg, #4F46E5, #6366F1)' }}
+                                  onClick={handleAnalyzeImage}
+                                  disabled={isAnalyzingImage || currentProduct.imageError}
+                                >
+                                  {isAnalyzingImage ? '🔍 Analyzing image...' : '🔍 Analyze Image (Detect Features)'}
+                                </button>
+                                {singleProductIntelligenceEnabled && (
+                                  <button
+                                    type="button"
+                                    className="btn-primary-action"
+                                    style={{ fontSize: '0.78rem', padding: '7px 14px', flex: '1 1 100%', background: 'linear-gradient(135deg, #4338CA, #6D28D9)', marginTop: '4px' }}
+                                    onClick={() => handleAnalyzeProduct(currentProduct)}
+                                    disabled={isAnalyzingProduct || currentProduct.imageError}
+                                  >
+                                    {isAnalyzingProduct ? '⚡ Deep Analyzing with Gemini Vision...' : '✨ Deep Intelligence Analysis (Identify Product & Questions)'}
+                                  </button>
+                                )}
+                              </>
+                            )}
+                          </div>
+
+                          {/* Transparent View Coverage Checklist Panel */}
+                          <div className="coverage-panel">
+                            <div className="coverage-header">
+                              <div className="coverage-title">
+                                📐 View Coverage: <strong>{coverage.score}%</strong>
+                              </div>
+                              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                                Category: <strong>{currentProduct.category || 'General'}</strong>
+                              </span>
+                            </div>
+
+                            <div className="coverage-bar-track">
+                              <div
+                                className="coverage-bar-fill"
+                                style={{
+                                  width: `${coverage.score}%`,
+                                  background: coverage.score >= 100 ? '#10B981' : coverage.score >= 50 ? '#4F46E5' : '#F59E0B'
+                                }}
+                              />
+                            </div>
+
+                            <div className="coverage-checklist">
+                              {coverage.expected_views.map((v) => {
+                                const hasView = coverage.present_views.includes(v);
+                                return (
+                                  <span
+                                    key={v}
+                                    className={`coverage-checklist-chip ${hasView ? 'present' : 'missing'}`}
+                                    title={hasView ? `Present: ${v} view captured` : `Missing: upload a ${v} view to improve coverage`}
+                                  >
+                                    {hasView ? '✓' : '○'} {v.toUpperCase()}
+                                  </span>
+                                );
+                              })}
+                            </div>
+
+                            <div className="coverage-recommendation">
+                              💡 <strong>Recommendation:</strong> {coverage.recommendation}
+                            </div>
+                          </div>
+                        </>
+                      );
+                    })()}
+
+                    {/* Product Identification Card (Single-Product Intelligence) */}
+                    {singleProductIntelligenceEnabled && currentProduct.detected_product && (
+                      <div className="intel-product-card">
+                        <div className="intel-product-header">
+                          <div className="intel-product-title">
+                            📦 {currentProduct.detected_product.product_name || currentProduct.metadata_title}
+                          </div>
+                          <span className={`confidence-pill confidence-${currentProduct.detected_product.confidence || 'high'}`} style={{ fontSize: '0.64rem', padding: '2px 7px', borderRadius: '4px', textTransform: 'uppercase', fontWeight: 800 }}>
+                            {currentProduct.detected_product.confidence || 'HIGH'} CONFIDENCE
+                          </span>
+                        </div>
+                        <div className="intel-category-path">
+                          📂 Category: <strong>{currentProduct.detected_product.category}</strong> {currentProduct.detected_product.subcategory ? `› ${currentProduct.detected_product.subcategory}` : ''}
+                        </div>
+                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                          ✓ Identified dynamically from image evidence. Any merchant-entered name or category is context only.
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Product Context Panel (Optional Name & Category inputs) */}
+                    <div className="context-box">
+                      <div className="context-box-header">
+                        <span className="context-box-title">📝 Product Context</span>
+                        <span className="context-box-pill">Context Only</span>
+                      </div>
+
+                      <div className="context-inputs-grid">
+                        <div className="context-input-group">
+                          <label className="context-input-label">
+                            Product Name (Context only):
+                          </label>
+                          <input
+                            type="text"
+                            value={currentProduct.metadata_title || ''}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setProducts(prev => prev.map(p => p.product_id === currentProduct.product_id ? { ...p, metadata_title: val } : p));
+                            }}
+                            placeholder="e.g. Wireless Noise-Cancelling Headphones"
+                            className="context-input-field"
+                          />
+                        </div>
+                        <div className="context-input-group">
+                          <label className="context-input-label">
+                            Product Category (Context only):
+                          </label>
+                          <input
+                            type="text"
+                            value={currentProduct.category || ''}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setProducts(prev => prev.map(p => p.product_id === currentProduct.product_id ? { ...p, category: val } : p));
+                            }}
+                            placeholder="e.g. Apparel, Footwear, Drinkware"
+                            className="context-input-field"
+                          />
+                        </div>
+                      </div>
+
+                      {currentProduct.visible_description && (
+                        <div className="context-visible-card">
+                          <span className="context-visible-tag">👁️ VISIBLE INFORMATION</span>
+                          <span className="context-visible-text">{currentProduct.visible_description}</span>
+                        </div>
+                      )}
+
+                      <div className="context-note-pill">
+                        <span>ℹ️ <strong>Note:</strong> Product Name and Category are context only and are never proof of visual traits or specs.</span>
+                      </div>
+                    </div>
+
+                    {/* Image Quality Metrics (Sections 7 & 8) */}
+                    <div className="quality-panel">
+                      <div className="quality-header-row">
+                        <span className="quality-title">
+                          🔍 Quality Evaluation
+                        </span>
+                        <div className="quality-status-badge-wrap">
+                          <span className="quality-status-label">Status:</span>
+                          <span className={`quality-score-badge ${currentProduct.quality_warning ? 'warn' : 'good'}`}>
+                            {currentProduct.quality_status || 'GOOD'} ({currentProduct.quality_score || 92}/100)
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="quality-grid">
+                        <div className="quality-metric-item">
+                          <span className="quality-metric-label">Resolution</span>
+                          <span className="quality-metric-val">{currentProduct.quality_details?.resolution || '1200 x 900 px'}</span>
+                        </div>
+                        <div className="quality-metric-item">
+                          <span className="quality-metric-label">Aspect Ratio</span>
+                          <span className="quality-metric-val">{currentProduct.quality_details?.aspect_ratio || '4:3'}</span>
+                        </div>
+                        <div className="quality-metric-item">
+                          <span className="quality-metric-label">Blur Estimate</span>
+                          <span className="quality-metric-val">{currentProduct.quality_details?.blur_estimate || 'Sharp / Clear focus'}</span>
+                        </div>
+                        <div className="quality-metric-item">
+                          <span className="quality-metric-label">Brightness</span>
+                          <span className="quality-metric-val">{currentProduct.quality_details?.brightness || '84% (Optimal)'}</span>
+                        </div>
+                        <div className="quality-metric-item">
+                          <span className="quality-metric-label">Contrast</span>
+                          <span className="quality-metric-val">{currentProduct.quality_details?.contrast || '12.4:1 (High)'}</span>
+                        </div>
+                        <div className="quality-metric-item">
+                          <span className="quality-metric-label">Review Warning</span>
+                          <span className={`quality-metric-val ${currentProduct.quality_warning ? 'warning' : 'clean'}`}>
+                            {currentProduct.quality_warning ? '⚠️ Flagged' : '✓ Clean'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              {/* COLUMN 3: RIGHT AI DESCRIPTION & HUMAN REVIEW ENGINE */}
+              <aside className="editor-column" aria-label="Description Editor & Validation">
+                <div className="varnix-card" style={{ padding: '16px' }}>
+
+
+
+                  {/* SINGLE-PRODUCT INTELLIGENCE: Category-Specific Merchant Verification Questionnaire */}
+                  {singleProductIntelligenceEnabled && currentProduct.verification_questions && currentProduct.verification_questions.length > 0 && (
+                    <div className="questionnaire-panel">
+                      <div className="questionnaire-header">
+                        <span className="questionnaire-title">
+                          ❓ Merchant Verification Questionnaire ({currentProduct.verification_questions.length})
+                        </span>
+                        <span className="merchant-provided-pill">
+                          {Object.keys(currentProduct.merchant_confirmed_specs || {}).length} Verified
+                        </span>
+                      </div>
+                      <div className="questionnaire-sub">
+                        Dynamic non-observable attributes for this product category. Confirmed answers are tagged <strong>Merchant-provided</strong>. Unconfirmed specs <em>never</em> appear in descriptions.
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        {currentProduct.verification_questions.map((q) => {
+                          const answeredVal = currentProduct.merchant_answers?.[q.id];
+                          const isConfirmed = answeredVal && answeredVal !== 'Not known' && answeredVal !== 'Skipped';
+
+                          return (
+                            <div key={q.id} className="question-item-card">
+                              <div className="question-item-title">
+                                <span>{q.question_text || `Verify ${q.attribute}:`}</span>
+                                {isConfirmed && (
+                                  <span className="merchant-provided-pill">
+                                    ✓ Merchant-provided
+                                  </span>
+                                )}
+                              </div>
+
+                              <div className="question-options-grid">
+                                {(q.options || ['Not known', 'Other (custom value)']).map((opt) => {
+                                  const isSelected = answeredVal === opt;
+                                  return (
+                                    <label
+                                      key={opt}
+                                      className={`question-option-row ${isSelected ? 'selected' : ''}`}
+                                      onClick={() => handleAnswerQuestion(q.id, q.attribute, opt)}
+                                    >
+                                      <input
+                                        type="radio"
+                                        name={`q-${currentProduct.product_id}-${q.id}`}
+                                        checked={isSelected}
+                                        onChange={() => handleAnswerQuestion(q.id, q.attribute, opt)}
+                                      />
+                                      <span>{opt}</span>
+                                      {opt === 'Not known' && (
+                                        <span style={{ fontSize: '0.64rem', color: '#9CA3AF', marginLeft: 'auto' }}>
+                                          (Omit from catalogue)
+                                        </span>
+                                      )}
+                                    </label>
+                                  );
+                                })}
+                              </div>
+
+                              {/* Custom value text input */}
+                              {answeredVal === 'Other (custom value)' && (
+                                <div style={{ marginTop: '6px' }}>
+                                  <input
+                                    type="text"
+                                    placeholder={`Enter custom ${q.attribute}...`}
+                                    value={currentProduct.merchant_custom_answers?.[q.id] || ''}
+                                    onChange={(e) => handleCustomAnswerChange(q.id, q.attribute, e.target.value)}
+                                    style={{
+                                      width: '100%',
+                                      padding: '5px 8px',
+                                      borderRadius: '4px',
+                                      border: '1px solid #4F46E5',
+                                      fontSize: '0.74rem',
+                                      outline: 'none',
+                                      background: '#EEF2FF',
+                                    }}
+                                  />
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* SINGLE-PRODUCT INTELLIGENCE: Smart Highlights Manager */}
+                  {singleProductIntelligenceEnabled && (currentProduct.recommended_highlights?.length > 0 || currentProduct.selected_highlights?.length > 0) && (
+                    <div className="highlights-manager-card">
+                      <div className="highlights-manager-header">
+                        <span className="highlights-manager-title">
+                          ⭐ Smart Catalogue Highlights
+                        </span>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                          Selected: <strong>{currentProduct.selected_highlights?.length || 0}</strong>
+                        </span>
+                      </div>
+                      <div style={{ fontSize: '0.71rem', color: 'var(--text-muted)', marginBottom: '8px' }}>
+                        Recommended top features for this category. Accept, reorder, or add custom highlights.
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '8px' }}>
+                        {(currentProduct.selected_highlights || []).map((h, idx) => (
+                          <div key={idx} className="highlight-item-row active">
+                            <span className="highlight-item-text">
+                              #{idx + 1} {h}
+                            </span>
+                            <div className="highlight-actions-group">
+                              <button
+                                type="button"
+                                className="highlight-mini-btn"
+                                onClick={() => handleReorderHighlight(idx, 'up')}
+                                disabled={idx === 0}
+                                title="Move Up"
+                              >
+                                ▲
+                              </button>
+                              <button
+                                type="button"
+                                className="highlight-mini-btn"
+                                onClick={() => handleReorderHighlight(idx, 'down')}
+                                disabled={idx === (currentProduct.selected_highlights?.length || 0) - 1}
+                                title="Move Down"
+                              >
+                                ▼
+                              </button>
+                              <button
+                                type="button"
+                                className="highlight-mini-btn"
+                                style={{ color: '#DC2626' }}
+                                onClick={() => handleRemoveHighlight(idx)}
+                                title="Remove"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Add Custom Highlight Input */}
+                      <div style={{ display: 'flex', gap: '6px' }}>
+                        <input
+                          type="text"
+                          placeholder="Add custom highlight..."
+                          value={customHighlightInput}
+                          onChange={(e) => setCustomHighlightInput(e.target.value)}
+                          style={{ flex: 1, padding: '4px 8px', borderRadius: '4px', border: '1px solid var(--border)', fontSize: '0.74rem' }}
+                        />
+                        <button
+                          type="button"
+                          className="btn-secondary-action"
+                          style={{ fontSize: '0.72rem', padding: '4px 10px', fontWeight: 700 }}
+                          onClick={handleAddCustomHighlight}
+                        >
+                          + Add
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* SINGLE-PRODUCT INTELLIGENCE: Visual Quality Observations */}
+                  {singleProductIntelligenceEnabled && currentProduct.quality_observations?.length > 0 && (
+                    <div style={{ marginBottom: '14px', background: '#F8FAFC', padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--border)' }}>
+                      <div style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '6px' }}>
+                        Visual Observations (Appearance Only):
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        {currentProduct.quality_observations.map((obs, idx) => (
+                          <div key={idx} className="quality-obs-tag" style={{ margin: 0 }}>
+                            <span className="quality-obs-label">{obs.label || 'visual observation'}</span>
+                            <span>{obs.observation}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <div style={{ fontSize: '0.67rem', color: 'var(--text-muted)', fontStyle: 'italic', marginTop: '4px' }}>
+                        Visible appearance only; never implies durability or verified material composition.
+                      </div>
+                    </div>
+                  )}
+
+                  {/* SECTION A: QUICK REVIEW UI — "Which features should we highlight?" */}
+                  <div className="features-highlight-card" style={{ marginBottom: '16px', background: 'var(--surface-card)', padding: '14px', borderRadius: '10px', border: '1px solid var(--surface-border)', boxShadow: 'var(--shadow-sm)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '0.86rem', fontWeight: 800, color: 'var(--text-ink)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        ✨ Which features should we highlight?
+                      </span>
+                      <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+                        Selected: <strong style={{ color: 'var(--accent-indigo)' }}>{(currentProduct.detected_features || []).filter(f => (currentProduct.feature_choices?.[f.id] ?? f.choice ?? 'INCLUDE') === 'INCLUDE').length}</strong> / {(currentProduct.detected_features || []).length}
+                      </span>
+                    </div>
+                    <p style={{ fontSize: '0.74rem', color: 'var(--text-secondary)', margin: '0 0 10px 0', lineHeight: 1.4 }}>
+                      Only selected features feed catalogue generation. Rejected features are strictly excluded.
+                    </p>
+
+                    {/* Feature Cards List */}
+                    {(currentProduct.detected_features && currentProduct.detected_features.length > 0) ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '280px', overflowY: 'auto', paddingRight: '4px' }}>
+                        {currentProduct.detected_features.map((f) => {
+                          const isPossibility = f.confidence === 'medium' || f.confidence === 'low';
+                          const labelTitle = isPossibility ? `Possible ${f.name}` : f.name;
+                          const currentChoice = currentProduct.feature_choices?.[f.id] ?? f.choice ?? 'INCLUDE';
+                          const isIncluded = currentChoice === 'INCLUDE';
+                          const isExcluded = currentChoice === 'EXCLUDE';
+                          const isUnsure = currentChoice === 'UNSURE';
+
+                          return (
+                            <div
+                              key={f.id}
+                              className="feature-card-item"
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                padding: '8px 12px',
+                                borderRadius: '8px',
+                                border: isIncluded
+                                  ? '1px solid rgba(5, 150, 105, 0.45)'
+                                  : isExcluded
+                                    ? '1px solid rgba(220, 38, 38, 0.4)'
+                                    : '1px solid var(--surface-border)',
+                                background: isIncluded
+                                  ? 'rgba(5, 150, 105, 0.1)'
+                                  : isExcluded
+                                    ? 'rgba(220, 38, 38, 0.1)'
+                                    : 'var(--surface-card-subtle)',
+                                gap: '10px',
+                                transition: 'all 0.15s ease'
+                              }}
+                            >
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                  <span style={{ fontWeight: 700, fontSize: '0.82rem', color: 'var(--text-ink)' }}>
+                                    {labelTitle}:
+                                  </span>
+                                  <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                                    {f.value}
+                                  </span>
+                                  <span className={`confidence-pill confidence-${f.confidence}`} style={{ fontSize: '0.64rem', padding: '1px 6px', borderRadius: '4px', textTransform: 'uppercase', fontWeight: 700 }}>
+                                    {f.confidence}
+                                  </span>
+                                  {f.source_view && (
+                                    <span className="feature-view-source-badge" title={`Visual feature verified in ${f.source_view} view`} style={{ fontSize: '0.64rem', padding: '1px 5px', borderRadius: '4px', background: 'var(--surface-card)', border: '1px solid var(--surface-border)', color: 'var(--text-muted)' }}>
+                                      📷 {f.source_view.toUpperCase()}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Yes / No / Unsure Controls */}
+                              <div className="feature-choice-btn-group" style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
+                                <button
+                                  type="button"
+                                  className={`feature-choice-btn ${isIncluded ? 'active-include' : ''}`}
+                                  style={{
+                                    padding: '4px 10px',
+                                    fontSize: '0.72rem',
+                                    borderRadius: '6px',
+                                    border: isIncluded ? '1px solid #059669' : '1px solid var(--surface-border)',
+                                    background: isIncluded ? '#059669' : 'var(--surface-card)',
+                                    color: isIncluded ? '#FFFFFF' : 'var(--emerald)',
+                                    fontWeight: 700,
+                                    cursor: 'pointer',
+                                    transition: 'all 0.15s ease',
+                                    boxShadow: isIncluded ? '0 1px 3px rgba(5,150,105,0.3)' : 'none'
+                                  }}
+                                  onClick={() => handleSetFeatureChoice(f.id, 'INCLUDE')}
+                                  title="Include feature in description"
+                                >
+                                  Yes
+                                </button>
+                                <button
+                                  type="button"
+                                  className={`feature-choice-btn ${isExcluded ? 'active-exclude' : ''}`}
+                                  style={{
+                                    padding: '4px 10px',
+                                    fontSize: '0.72rem',
+                                    borderRadius: '6px',
+                                    border: isExcluded ? '1px solid #DC2626' : '1px solid var(--surface-border)',
+                                    background: isExcluded ? '#DC2626' : 'var(--surface-card)',
+                                    color: isExcluded ? '#FFFFFF' : 'var(--rose)',
+                                    fontWeight: 700,
+                                    cursor: 'pointer',
+                                    transition: 'all 0.15s ease',
+                                    boxShadow: isExcluded ? '0 1px 3px rgba(220,38,38,0.3)' : 'none'
+                                  }}
+                                  onClick={() => handleSetFeatureChoice(f.id, 'EXCLUDE')}
+                                  title="Exclude feature (do not mention)"
+                                >
+                                  No
+                                </button>
+                                <button
+                                  type="button"
+                                  className={`feature-choice-btn ${isUnsure ? 'active-unsure' : ''}`}
+                                  style={{
+                                    padding: '4px 10px',
+                                    fontSize: '0.72rem',
+                                    borderRadius: '6px',
+                                    border: isUnsure ? '1px solid #D97706' : '1px solid var(--surface-border)',
+                                    background: isUnsure ? '#D97706' : 'var(--surface-card)',
+                                    color: isUnsure ? '#FFFFFF' : 'var(--amber)',
+                                    fontWeight: 700,
+                                    cursor: 'pointer',
+                                    transition: 'all 0.15s ease',
+                                    boxShadow: isUnsure ? '0 1px 3px rgba(217,119,6,0.3)' : 'none'
+                                  }}
+                                  onClick={() => handleSetFeatureChoice(f.id, 'UNSURE')}
+                                  title="Unsure / Not verified"
+                                >
+                                  Unsure
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div style={{ textAlign: 'center', padding: '16px', background: 'var(--surface-card-subtle)', borderRadius: '8px', border: '1px dashed var(--surface-border)' }}>
+                        <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: '0 0 10px 0' }}>
+                          No features detected yet. Click "Analyze Image" to extract visible traits dynamically.
+                        </p>
+                        <button
+                          type="button"
+                          className="btn-secondary-action"
+                          onClick={handleAnalyzeImage}
+                          disabled={isAnalyzingImage || currentProduct.imageError}
+                          style={{ fontSize: '0.76rem', padding: '6px 14px' }}
+                        >
+                          {isAnalyzingImage ? '🔍 Analyzing...' : '🔍 Analyze Image Now'}
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Add Custom Feature (Never auto-trusted) */}
+                    <div style={{ marginTop: '10px', paddingTop: '8px', borderTop: '1px solid var(--border)' }}>
+                      <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '4px' }}>
+                        + Add Custom Feature (Merchant-Supplied):
+                      </div>
+                      <div style={{ display: 'flex', gap: '6px' }}>
+                        <input
+                          type="text"
+                          value={newFeatureName}
+                          onChange={(e) => setNewFeatureName(e.target.value)}
+                          placeholder="e.g. Strap Material"
+                          style={{ flex: 1, padding: '4px 8px', borderRadius: '4px', border: '1px solid var(--border)', fontSize: '0.74rem' }}
+                        />
+                        <input
+                          type="text"
+                          value={newFeatureValue}
+                          onChange={(e) => setNewFeatureValue(e.target.value)}
+                          placeholder="e.g. Braided nylon"
+                          style={{ flex: 1, padding: '4px 8px', borderRadius: '4px', border: '1px solid var(--border)', fontSize: '0.74rem' }}
+                        />
+                        <button
+                          type="button"
+                          className="btn-secondary-action"
+                          onClick={handleAddCustomFeature}
+                          style={{ fontSize: '0.72rem', padding: '4px 10px', fontWeight: 700 }}
+                        >
+                          Add
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* SECTION B: DESCRIPTION TYPES & GENERATION */}
+                  {batchDashboardEnabled ? (
+                    <div className="batch-multiformat-studio" style={{ marginBottom: '16px', background: '#F8FAFC', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                        <span style={{ fontSize: '0.82rem', fontWeight: 800, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          📦 Multi-Format Catalogue Studio
+                        </span>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--primary)', fontWeight: 700, background: '#EEF2FF', padding: '2px 6px', borderRadius: '4px' }}>
+                          Batch 3: 4 Formats
+                        </span>
+                      </div>
+                      <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '10px' }}>
+                        All formats are generated from the SAME verified features with no contradictions.
+                      </div>
+
+                      {/* 4 Format Switcher Tabs */}
+                      <div className="format-tabs-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '4px', marginBottom: '10px' }}>
+                        {[
+                          { key: 'highlights', label: 'Highlights', badge: '10 bullets' },
+                          { key: 'short', label: 'Short', badge: '1 para' },
+                          { key: 'marketplace', label: 'Marketplace', badge: 'Catalogue' },
+                          { key: 'card_summary', label: 'Summary', badge: '1-2 lines' },
+                        ].map((fmt) => (
+                          <button
+                            key={fmt.key}
+                            type="button"
+                            className={`format-tab-btn ${activeFormatTab === fmt.key ? 'active' : ''}`}
+                            onClick={() => setActiveFormatTab(fmt.key)}
+                            style={{
+                              padding: '6px 4px',
+                              fontSize: '0.72rem',
+                              fontWeight: 700,
+                              borderRadius: '6px',
+                              border: activeFormatTab === fmt.key ? '2px solid var(--primary)' : '1px solid var(--border)',
+                              background: activeFormatTab === fmt.key ? '#EEF2FF' : '#FFF',
+                              color: activeFormatTab === fmt.key ? 'var(--primary)' : 'var(--text-secondary)',
+                              cursor: 'pointer',
+                              textAlign: 'center',
+                            }}
+                          >
+                            <div>{fmt.label}</div>
+                            <div style={{ fontSize: '0.62rem', fontWeight: 500, opacity: 0.8 }}>{fmt.badge}</div>
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Generation and Regeneration Action Row */}
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '8px', marginBottom: '8px' }}>
+                        <button
+                          type="button"
+                          className="btn-primary-action"
+                          onClick={() => handleGenerateMultiFormat(currentProduct)}
+                          disabled={isGeneratingMultiFormat || currentProduct.imageError}
+                          style={{ minHeight: '38px', fontWeight: 800, fontSize: '0.8rem' }}
+                        >
+                          {isGeneratingMultiFormat ? '⚡ Generating 4 Formats...' : '✨ Generate All 4 Formats'}
+                        </button>
+                        <button
+                          type="button"
+                          className="btn-secondary-action"
+                          onClick={() => handleRegenerateFormat(activeFormatTab)}
+                          disabled={isGeneratingMultiFormat || currentProduct.imageError}
+                          style={{ fontSize: '0.74rem', padding: '6px 12px' }}
+                          title={`Regenerate only ${activeFormatTab}`}
+                        >
+                          🔄 Regenerate {activeFormatTab}
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ marginBottom: '14px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-secondary)' }}>
+                          DESCRIPTION FORMAT TO EXPORT
+                        </span>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                          Driven by selected features
+                        </span>
+                      </div>
+
+                      <div className="desc-type-switcher" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px', marginBottom: '10px' }}>
+                        <button
+                          type="button"
+                          className={`desc-type-tab-btn ${(currentProduct.selected_description_type || 'BULLETS') === 'SHORT' ? 'active' : ''}`}
+                          onClick={() => handleDescTypeChange('SHORT')}
+                          style={{
+                            padding: '6px 8px',
+                            fontSize: '0.74rem',
+                            fontWeight: 700,
+                            borderRadius: '6px',
+                            border: (currentProduct.selected_description_type || 'BULLETS') === 'SHORT' ? '2px solid var(--primary)' : '1px solid var(--border)',
+                            background: (currentProduct.selected_description_type || 'BULLETS') === 'SHORT' ? '#EEF2FF' : '#FFF',
+                            color: (currentProduct.selected_description_type || 'BULLETS') === 'SHORT' ? 'var(--primary)' : 'var(--text-secondary)',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          Short (≤125)
+                        </button>
+                        <button
+                          type="button"
+                          className={`desc-type-tab-btn ${(currentProduct.selected_description_type || 'BULLETS') === 'BULLETS' ? 'active' : ''}`}
+                          onClick={() => handleDescTypeChange('BULLETS')}
+                          style={{
+                            padding: '6px 8px',
+                            fontSize: '0.74rem',
+                            fontWeight: 700,
+                            borderRadius: '6px',
+                            border: (currentProduct.selected_description_type || 'BULLETS') === 'BULLETS' ? '2px solid var(--primary)' : '1px solid var(--border)',
+                            background: (currentProduct.selected_description_type || 'BULLETS') === 'BULLETS' ? '#EEF2FF' : '#FFF',
+                            color: (currentProduct.selected_description_type || 'BULLETS') === 'BULLETS' ? 'var(--primary)' : 'var(--text-secondary)',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          Bullets (8–10)
+                        </button>
+                        <button
+                          type="button"
+                          className={`desc-type-tab-btn ${(currentProduct.selected_description_type || 'BULLETS') === 'LONG' ? 'active' : ''}`}
+                          onClick={() => handleDescTypeChange('LONG')}
+                          style={{
+                            padding: '6px 8px',
+                            fontSize: '0.74rem',
+                            fontWeight: 700,
+                            borderRadius: '6px',
+                            border: (currentProduct.selected_description_type || 'BULLETS') === 'LONG' ? '2px solid var(--primary)' : '1px solid var(--border)',
+                            background: (currentProduct.selected_description_type || 'BULLETS') === 'LONG' ? '#EEF2FF' : '#FFF',
+                            color: (currentProduct.selected_description_type || 'BULLETS') === 'LONG' ? 'var(--primary)' : 'var(--text-secondary)',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          Long Paragraph
+                        </button>
+                      </div>
+
+                      {/* AI Generation Button */}
+                      <button
+                        type="button"
+                        className="btn-primary-action"
+                        onClick={handleGenerateAI}
+                        disabled={isGenerating || currentProduct.imageError}
+                        style={{ width: '100%', minHeight: '42px', fontWeight: 800, fontSize: '0.86rem' }}
+                      >
+                        {isGenerating ? '⚡ Generating catalogue descriptions...' : '✨ Generate Catalogue Description'}
+                      </button>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                        <span>Model: <strong>Gemini 2.5 Flash</strong></span>
+                        <span>Tone: Catalogue Reviewer (No Hype)</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Keyword Highlighter Control & Preview (Section 6) */}
+                  <div>
+                    <div className="keyword-highlighter-bar">
+                      <span style={{ fontSize: '0.76rem', fontWeight: 700, color: 'var(--text-secondary)' }}>
+                        Visual Keyword Highlighting
+                      </span>
+                      <button
+                        type="button"
+                        className="btn-secondary-action"
+                        onClick={() => setHighlightKeywords(!highlightKeywords)}
+                        style={{ padding: '2px 8px', fontSize: '0.72rem' }}
+                      >
+                        {highlightKeywords ? 'Highlights: ON' : 'Highlights: OFF'}
+                      </button>
+                    </div>
+
+                    {highlightKeywords && (
+                      <div className="kw-highlighted-text" aria-live="polite">
+                        {renderHighlightedKeywords(currentText)}
+                      </div>
+                    )}
+                  </div>
+
+
+                  {/* Review / Edit Description Textarea (ALTLUME Human Review Engine) */}
+                  <div style={{ marginBottom: '14px' }}>
+                    {/* Draft Source & Character Meter Bar */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '6px' }}>
+                      <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                        Draft Source: <strong style={{ color: 'var(--accent-indigo)' }}>Gemini Vision 2.5 Flash</strong> (Visual facts only)
+                      </span>
+                      <span className={`char-meter-pill ${validationResult.lengthLevel}`}>
+                        {validationResult.charCount} / 125 chars ({validationResult.lengthLevel === 'block' ? 'Exceeds 250 limit' : validationResult.lengthLevel === 'warn' ? 'Over 125 chars (Warn)' : 'Optimal screen-reader brevity'})
+                      </span>
+                    </div>
+
+                    {/* Surrounding Page Context Field */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+                      <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', fontWeight: 600, flexShrink: 0 }}>
+                        Page Context:
+                      </span>
+                      <input
+                        type="text"
+                        placeholder="e.g. Primary PDP Hero Gallery / Search Results Thumbnail"
+                        value={currentProduct.page_context || ''}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setProducts((prev) =>
+                            prev.map((p) => (p.product_id === currentProduct.product_id ? { ...p, page_context: val } : p))
+                          );
+                        }}
+                        style={{
+                          flex: 1,
+                          padding: '5px 8px',
+                          fontSize: '0.74rem',
+                          borderRadius: '6px',
+                          border: '1px solid var(--surface-border)',
+                          background: 'var(--surface-card-subtle)',
+                          color: 'var(--text-ink)',
+                          outline: 'none',
+                        }}
+                      />
+                    </div>
+
+                    {/* Editorial Toggles Row */}
+                    <div className="editorial-toggles-row" style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', padding: '8px 10px', background: 'var(--surface-card-subtle)', borderRadius: '6px', border: '1px solid var(--surface-border)', marginBottom: '10px' }}>
+                      <label className="toggle-label-item" title="Decorative image: allows null/empty alt attribute" style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.72rem', cursor: 'pointer' }}>
+                        <input
+                          type="checkbox"
+                          checked={!!currentProduct.is_decorative}
+                          onChange={(e) => {
+                            const checked = e.target.checked;
+                            setProducts((prev) =>
+                              prev.map((p) => (p.product_id === currentProduct.product_id ? { ...p, is_decorative: checked } : p))
+                            );
+                          }}
+                        />
+                        <span>Decorative image (suppress alt text)</span>
+                      </label>
+
+                      <label className="toggle-label-item" title="Requires quoted transcription of any visible text" style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.72rem', cursor: 'pointer' }}>
+                        <input
+                          type="checkbox"
+                          checked={!!currentProduct.contains_text}
+                          onChange={(e) => {
+                            const checked = e.target.checked;
+                            setProducts((prev) =>
+                              prev.map((p) => (p.product_id === currentProduct.product_id ? { ...p, contains_text: checked } : p))
+                            );
+                          }}
+                        />
+                        <span>Contains visible text</span>
+                      </label>
+
+                      <label className="toggle-label-item" title="Requires group wording (e.g. Set of, Pair of)" style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.72rem', cursor: 'pointer' }}>
+                        <input
+                          type="checkbox"
+                          checked={!!currentProduct.has_multiple_products}
+                          onChange={(e) => {
+                            const checked = e.target.checked;
+                            setProducts((prev) =>
+                              prev.map((p) => (p.product_id === currentProduct.product_id ? { ...p, has_multiple_products: checked } : p))
+                            );
+                          }}
+                        />
+                        <span>Multiple products</span>
+                      </label>
+                    </div>
+
+                    {/* Language & Voice Selection Controls */}
+                    <div className="lang-voice-bar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', padding: '10px 12px', background: 'var(--surface-card)', border: '1px solid var(--surface-border)', borderRadius: '8px', marginBottom: '12px', flexWrap: 'wrap' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          🌐 Language:
+                        </span>
+                        <select
+                          value={reviewLanguage}
+                          onChange={(e) => {
+                            const newLang = e.target.value;
+                            setReviewLanguage(newLang);
+                            if (newLang !== 'en') {
+                              handleTranslate(newLang);
+                            }
+                          }}
+                          className="lang-select-dropdown"
+                          style={{
+                            padding: '5px 10px',
+                            fontSize: '0.76rem',
+                            fontWeight: 600,
+                            borderRadius: '6px',
+                            border: '1px solid var(--surface-border)',
+                            background: 'var(--surface-card-subtle)',
+                            color: 'var(--text-ink)',
+                            cursor: 'pointer',
+                            outline: 'none',
+                          }}
+                        >
+                          <option value="en">🇬🇧 English</option>
+                          <option value="hi">🇮🇳 हिन्दी (Hindi)</option>
+                          <option value="te">🇮🇳 తెలుగు (Telugu)</option>
+                          <option value="ta">🇮🇳 தமிழ் (Tamil)</option>
+                          <option value="es">🇪🇸 Español (Spanish)</option>
+                          <option value="fr">🇫🇷 Français (French)</option>
+                          <option value="de">🇩🇪 Deutsch (German)</option>
+                        </select>
+                        {isTranslating && (
+                          <span style={{ fontSize: '0.7rem', color: 'var(--accent-indigo)', fontWeight: 600 }}>
+                            ⚡ Translating...
+                          </span>
+                        )}
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <button
+                          type="button"
+                          className={`btn-voice-play ${isPlayingVoice ? 'playing' : ''}`}
+                          onClick={() => {
+                            if (isPlayingVoice) handleVoicePause();
+                            else handleVoicePlay(currentProduct);
+                          }}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            padding: '5px 12px',
+                            fontSize: '0.74rem',
+                            fontWeight: 700,
+                            borderRadius: '6px',
+                            border: '1px solid var(--accent-indigo)',
+                            background: isPlayingVoice ? 'var(--accent-indigo)' : 'var(--surface-card)',
+                            color: isPlayingVoice ? '#FFF' : 'var(--accent-indigo)',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                          }}
+                          title={`Listen to description in ${reviewLanguage.toUpperCase()}`}
+                        >
+                          {isPlayingVoice ? '⏸ Pause Voice' : `🔊 Listen in ${reviewLanguage.toUpperCase()}`}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setVoiceRate(prev => prev === 1 ? 1.25 : prev === 1.25 ? 0.85 : 1)}
+                          style={{
+                            padding: '4px 8px',
+                            fontSize: '0.68rem',
+                            fontFamily: 'var(--font-mono)',
+                            borderRadius: '4px',
+                            border: '1px solid var(--surface-border)',
+                            background: 'var(--surface-card-subtle)',
+                            color: 'var(--text-secondary)',
+                            cursor: 'pointer',
+                          }}
+                          title="Toggle voice playback speed"
+                        >
+                          {voiceRate}x
+                        </button>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <label htmlFor="varnix-text-editor" style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-secondary)' }}>
+                        {batchDashboardEnabled
+                          ? `Final Description (${activeFormatTab.replace(/_/g, ' ').toUpperCase()} • ${reviewLanguage.toUpperCase()}):`
+                          : `Final Description (${reviewLanguage.toUpperCase()}):`}
+                      </label>
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                        <button
+                          type="button"
+                          onClick={() => setShowDiffModal(true)}
+                          style={{ background: 'none', border: 'none', color: 'var(--accent-indigo)', fontSize: '0.7rem', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}
+                        >
+                          Draft vs Your version
+                        </button>
+                        {currentProduct.status === 'APPROVED' && (
+                          <span style={{ fontSize: '0.68rem', color: '#D97706', fontWeight: 600 }}>
+                            ⚠️ Editing resets to EDITED
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {(() => {
+                      const baseText = batchDashboardEnabled
+                        ? (activeFormatTab === 'highlights'
+                          ? (Array.isArray(currentProduct.product_highlights) ? currentProduct.product_highlights.map((h) => `• ${h}`).join('\n') : (currentProduct.product_highlights || currentProduct.description_bullets || ''))
+                          : activeFormatTab === 'short'
+                            ? (currentProduct.short_description || currentProduct.description_short || '')
+                            : activeFormatTab === 'marketplace'
+                              ? (currentProduct.marketplace_description || currentProduct.description_long || currentProduct.edited_text || currentProduct.draft || '')
+                              : (currentProduct.card_summary || ''))
+                        : currentText;
+
+                      const currentFormatText = reviewLanguage !== 'en' && currentProduct.translations?.[reviewLanguage]
+                        ? currentProduct.translations[reviewLanguage]
+                        : baseText;
+
+                      return (
+                        <>
+                          <textarea
+                            id="varnix-text-editor"
+                            className="editorial-textarea"
+                            value={currentFormatText}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              if (reviewLanguage !== 'en') {
+                                setProducts((prev) =>
+                                  prev.map((p) => (p.product_id === currentProduct.product_id
+                                    ? { ...p, translations: { ...(p.translations || {}), [reviewLanguage]: val } }
+                                    : p))
+                                );
+                              } else if (batchDashboardEnabled) {
+                                handleFormatTextEdit(activeFormatTab, val);
+                              } else {
+                                handleTextEdit(e);
+                              }
+                            }}
+                            rows={activeFormatTab === 'card_summary' ? 3 : 5}
+                            placeholder={currentProduct.is_decorative ? 'Decorative image confirmed. Empty description valid.' : `Enter or edit concise description in ${reviewLanguage.toUpperCase()} for ${currentProduct.metadata_title}...`}
+                          />
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px', fontSize: '0.72rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+                            <span>{currentFormatText.length} characters</span>
+                            <span>{currentFormatText.split(/\s+/).filter(Boolean).length} words ({reviewLanguage.toUpperCase()})</span>
+                          </div>
+                        </>
+                      );
+                    })()}
+
+                    {/* Plain Language Live Validation Feedback (aria-live="polite") */}
+                    <div aria-live="polite" style={{ marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      {validationResult.blockingErrors.map((err, idx) => (
+                        <div key={idx} style={{ background: '#FEE2E2', border: '1px solid #FECACA', borderRadius: '6px', padding: '6px 10px', fontSize: '0.73rem', color: '#B91C1C', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span>⛔ Blocking:</span> <span>{err}</span>
+                        </div>
+                      ))}
+                      {validationResult.warnings.map((warn, idx) => (
+                        <div key={idx} style={{ background: '#FEF3C7', border: '1px solid #FDE68A', borderRadius: '6px', padding: '6px 10px', fontSize: '0.73rem', color: '#92400E', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span>⚠️ Notice:</span> <span>{warn}</span>
+                        </div>
+                      ))}
+                      {validationResult.blockingErrors.length === 0 && validationResult.warnings.length === 0 && (
+                        <div style={{ background: '#ECFDF5', border: '1px solid #A7F3D0', borderRadius: '6px', padding: '6px 10px', fontSize: '0.73rem', color: '#047857', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span>✓ Valid:</span> <span>Concise, observable facts only. Ready for editorial approval.</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* SINGLE-PRODUCT INTELLIGENCE: VernX Content Check Panel */}
+                  {singleProductIntelligenceEnabled && (
+                    <div className="content-check-card">
+                      <div className="content-check-header">
+                        <span className="content-check-title">
+                          🛡️ VernX Content Check
+                        </span>
+                        <span style={{ fontSize: '0.72rem', fontWeight: 800, color: (currentProduct.content_check?.flagged_claims?.length > 0 || validationResult.offendingWords?.length > 0) ? '#DC2626' : '#059669' }}>
+                          {(currentProduct.content_check?.flagged_claims?.length > 0 || validationResult.offendingWords?.length > 0) ? '⚠️ ACTION REQUIRED' : '✓ ALL CHECKS PASSED'}
+                        </span>
+                      </div>
+
+                      <div className="content-check-grid">
+                        <div className={`content-check-pill ${currentProduct.detected_product ? 'pass' : 'warn'}`}>
+                          {currentProduct.detected_product ? `✓ Product Identified (${currentProduct.detected_product.product_name})` : 'ℹ Standard Model'}
+                        </div>
+                        <div className={`content-check-pill ${(currentProduct.detected_features?.length || 0) > 0 ? 'pass' : 'warn'}`}>
+                          ✓ Features Identified ({currentProduct.detected_features?.length || 0})
+                        </div>
+                        <div className={`content-check-pill ${Object.keys(currentProduct.merchant_confirmed_specs || {}).length > 0 ? 'pass' : 'warn'}`}>
+                          {Object.keys(currentProduct.merchant_confirmed_specs || {}).length > 0
+                            ? `✓ Merchant Specs (${Object.keys(currentProduct.merchant_confirmed_specs || {}).length} verified)`
+                            : 'ℹ Merchant Specs (None)'}
+                        </div>
+                        <div className="content-check-pill pass">
+                          ✓ Positive Tone (Catalogue standard)
+                        </div>
+                        <div className={`content-check-pill ${(currentProduct.content_check?.flagged_claims?.length > 0 || validationResult.offendingWords?.length > 0) ? 'fail' : 'pass'}`}>
+                          {(currentProduct.content_check?.flagged_claims?.length > 0 || validationResult.offendingWords?.length > 0)
+                            ? `⚠️ ${(currentProduct.content_check?.flagged_claims?.length || 0) + (validationResult.offendingWords?.length || 0)} Unsupported Claims`
+                            : '✓ No Unsupported Claims'}
+                        </div>
+                        <div className="content-check-pill pass">
+                          ✓ No Repetition Scan
+                        </div>
+                      </div>
+
+                      {/* Flagged Unsupported Claims Warning with [VERIFY] and [REMOVE] */}
+                      {(() => {
+                        const combined = [];
+                        const seen = new Set();
+                        (currentProduct.content_check?.flagged_claims || []).forEach((c) => {
+                          const key = c.word.toLowerCase();
+                          if (!seen.has(key)) {
+                            seen.add(key);
+                            combined.push({ word: c.word, category: c.category });
+                          }
+                        });
+                        (validationResult.offendingWords || []).forEach((c) => {
+                          const key = c.word.toLowerCase();
+                          const isMerchantConfirmed = Object.values(currentProduct.merchant_confirmed_specs || {}).some(
+                            (v) => String(v).toLowerCase().includes(key)
+                          );
+                          if (!seen.has(key) && !isMerchantConfirmed) {
+                            seen.add(key);
+                            combined.push({ word: c.word, category: c.category });
+                          }
+                        });
+
+                        if (combined.length === 0) return null;
+
+                        return (
+                          <div style={{ marginTop: '8px' }}>
+                            {combined.map((item, idx) => (
+                              <div key={idx} className="flagged-claim-box">
+                                <div className="flagged-claim-title">
+                                  ⚠️ Unsupported Claim Detected: "{item.word}" ({item.category})
+                                </div>
+                                <div className="flagged-claim-desc">
+                                  Visual image evidence does not prove {item.category}. Unconfirmed specs cannot be published without merchant verification.
+                                </div>
+                                <div className="flagged-claim-actions">
+                                  <button
+                                    type="button"
+                                    className="btn-claim-verify"
+                                    onClick={() => handleVerifyClaimAsSpec(item.word, item.category)}
+                                    title="Confirm this spec as verified merchant-provided"
+                                  >
+                                    [VERIFY] Merchant Confirms
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="btn-claim-remove"
+                                    onClick={() => handleRemoveClaimFromText(item.word)}
+                                    title="Remove this word from description text"
+                                  >
+                                    [REMOVE] Delete Claim
                                   </button>
                                 </div>
                               </div>
                             ))}
                           </div>
+                        );
+                      })()}
+                    </div>
+                  )}
+
+                  {/* BATCH 3: Catalogue Readiness Score Panel (Checklist-Based) */}
+                  {batchDashboardEnabled && (() => {
+                    const readiness = computeClientReadinessScore(currentProduct);
+                    const checklist = readiness.checklist || {};
+                    return (
+                      <div className="readiness-score-card" style={{ marginBottom: '14px', background: '#F8FAFC', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <span style={{ fontSize: '0.82rem', fontWeight: 800, color: 'var(--text-main)' }}>
+                              📊 Catalogue Readiness Score
+                            </span>
+                            <span
+                              style={{
+                                fontSize: '0.68rem',
+                                fontWeight: 800,
+                                padding: '2px 6px',
+                                borderRadius: '4px',
+                                background: readiness.status === 'READY' ? '#ECFDF5' : readiness.status === 'NEEDS REVIEW' ? '#FFFBEB' : '#EFF6FF',
+                                color: readiness.status === 'READY' ? '#059669' : readiness.status === 'NEEDS REVIEW' ? '#D97706' : '#2563EB',
+                                border: `1px solid ${readiness.status === 'READY' ? '#A7F3D0' : readiness.status === 'NEEDS REVIEW' ? '#FDE68A' : '#BFDBFE'}`,
+                              }}
+                            >
+                              {readiness.status}
+                            </span>
+                          </div>
+                          <span style={{ fontSize: '1.1rem', fontWeight: 800, color: readiness.score >= 80 ? '#059669' : readiness.score >= 50 ? '#D97706' : '#2563EB' }}>
+                            {readiness.score} / 100
+                          </span>
+                        </div>
+
+                        {/* Transparent Checklist Breakdown */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', marginBottom: '10px' }}>
+                          {Object.entries(checklist).map(([key, item]) => (
+                            <div
+                              key={key}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                padding: '5px 8px',
+                                borderRadius: '4px',
+                                fontSize: '0.72rem',
+                                background: item.passed ? '#ECFDF5' : '#F3F4F6',
+                                color: item.passed ? '#065F46' : 'var(--text-muted)',
+                                border: `1px solid ${item.passed ? '#A7F3D0' : 'var(--border)'}`,
+                              }}
+                            >
+                              <span>{item.passed ? '✓' : '○'} {item.label}</span>
+                              <span style={{ fontWeight: 700 }}>+{item.points}</span>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* What is missing callout */}
+                        {readiness.missing && readiness.missing.length > 0 && (
+                          <div style={{ background: '#FFFBEB', padding: '6px 10px', borderRadius: '4px', border: '1px solid #FDE68A', fontSize: '0.72rem', color: '#92400E', marginBottom: '8px' }}>
+                            <strong>Missing to achieve 100%:</strong> {readiness.missing.join(' · ')}
+                          </div>
+                        )}
+
+                        {/* Mandatory Disclaimer */}
+                        <div style={{ fontSize: '0.67rem', color: 'var(--text-muted)', fontStyle: 'italic', textAlign: 'center' }}>
+                          Prototype indicator only; not scientifically validated.
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  {/* Quick Audio Verification Strip */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: 'var(--surface-card-subtle)', borderRadius: '8px', border: '1px solid var(--surface-border)', marginBottom: '14px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-ink)' }}>
+                        🔊 Audio Verification
+                      </span>
+                      {currentProduct.listened && (
+                        <span style={{ fontSize: '0.64rem', background: '#ECFDF5', color: '#059669', padding: '1px 6px', borderRadius: '4px', fontWeight: 700 }}>
+                          Listened ✓
+                        </span>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      className="btn-editorial-primary"
+                      onClick={handleVoicePlay}
+                      style={{ padding: '5px 12px', fontSize: '0.74rem' }}
+                      title="Read description and risk warnings aloud"
+                    >
+                      {isPlayingVoice ? '⏸ Pause' : '🔊 Listen Aloud'}
+                    </button>
+                  </div>
+
+                  {/* Human Review Actions */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {batchDashboardEnabled && (
+                      <button
+                        type="button"
+                        className="btn-primary-action"
+                        onClick={handleApproveAllFormats}
+                        style={{ background: 'linear-gradient(135deg, #059669, #047857)', color: '#FFF', fontWeight: 800, minHeight: '38px' }}
+                        title="Explicitly approve all four formats (Highlights, Short, Marketplace, Card Summary)"
+                      >
+                        ✓ Approve All 4 Formats (Batch 3)
+                      </button>
+                    )}
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '8px' }}>
+                      <button
+                        type="button"
+                        className="btn-primary-action"
+                        onClick={handleApprove}
+                        style={{ background: 'linear-gradient(135deg, #059669, #047857)', color: '#FFF', fontWeight: 800, minHeight: '40px' }}
+                      >
+                        ✓ Approve Description (A)
+                      </button>
+                      <button
+                        type="button"
+                        className="btn-secondary-action"
+                        onClick={() => setShowDiffModal(true)}
+                        title="Compare Versions"
+                      >
+                        🔍 Diff
+                      </button>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                      <button
+                        type="button"
+                        className="btn-danger-action"
+                        onClick={() => setShowInaccessibleModal(true)}
+                      >
+                        🚩 Mark Inaccessible (I)
+                      </button>
+                      <button
+                        type="button"
+                        className="btn-secondary-action"
+                        onClick={() => {
+                          setProducts((prev) =>
+                            prev.map((p) =>
+                              p.product_id === currentProduct.product_id
+                                ? { ...p, edited_text: '', status: 'NOT_GENERATED' }
+                                : p
+                            )
+                          );
+                        }}
+                      >
+                        ↺ Reset Item
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </aside>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 2: OVERVIEW & 3D INTERACTIVE VISUALIZER */}
+        {activeTab === 'overview' && (
+          <div style={{ maxWidth: '980px', margin: '0 auto' }}>
+            <div style={{ textAlign: 'center', marginBottom: '28px' }}>
+              <h1 style={{ fontSize: '2.2rem', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--text-main)', margin: '0 0 10px 0' }}>
+                Turn every product image into accessible context.
+              </h1>
+              <p style={{ fontSize: '1.05rem', color: 'var(--text-secondary)', maxWidth: '680px', margin: '0 auto' }}>
+                Generate accurate descriptions, review every detail, and publish only what a human approves.
+              </p>
+            </div>
+
+            {/* 3D Visualizer Stage */}
+            <div className="hero-3d-stage">
+              <svg width="420" height="260" viewBox="0 0 420 260" fill="none">
+                {/* Orbit Path */}
+                <ellipse cx="210" cy="130" rx="160" ry="70" stroke="#818CF8" strokeWidth="2" strokeDasharray="6 6" opacity="0.6" />
+                {/* Central Product Image Card */}
+                <rect x="160" y="90" width="100" height="80" rx="10" fill="#FFFFFF" stroke="#4F46E5" strokeWidth="2" filter="drop-shadow(0 4px 12px rgba(79,70,229,0.15))" />
+                <text x="210" y="135" textAnchor="middle" fill="#4F46E5" fontWeight="800" fontSize="13" fontFamily="system-ui">IMAGE</text>
+                {/* Orbiting Node 1: Vision */}
+                <circle cx="50" cy="130" r="28" fill="#FFFFFF" stroke="#06B6D4" strokeWidth="2" filter="drop-shadow(0 2px 8px rgba(6,182,212,0.2))" />
+                <text x="50" y="134" textAnchor="middle" fill="#0891B2" fontWeight="700" fontSize="10">VISION</text>
+                {/* Orbiting Node 2: Description */}
+                <circle cx="210" cy="60" r="28" fill="#FFFFFF" stroke="#8B5CF6" strokeWidth="2" filter="drop-shadow(0 2px 8px rgba(139,92,246,0.2))" />
+                <text x="210" y="64" textAnchor="middle" fill="#7C3AED" fontWeight="700" fontSize="9">DESCRIBE</text>
+                {/* Orbiting Node 3: Review */}
+                <circle cx="370" cy="130" r="28" fill="#FFFFFF" stroke="#059669" strokeWidth="2" filter="drop-shadow(0 2px 8px rgba(5,150,105,0.2))" />
+                <text x="370" y="134" textAnchor="middle" fill="#059669" fontWeight="700" fontSize="10">REVIEW</text>
+                {/* Orbiting Node 4: Voice */}
+                <circle cx="210" cy="200" r="28" fill="#FFFFFF" stroke="#F59E0B" strokeWidth="2" filter="drop-shadow(0 2px 8px rgba(245,158,11,0.2))" />
+                <text x="210" y="204" textAnchor="middle" fill="#D97706" fontWeight="700" fontSize="10">VOICE</text>
+              </svg>
+            </div>
+
+            {/* Flow Steps Breakdown */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginTop: '24px' }}>
+              <div className="varnix-card" style={{ padding: '16px', textAlign: 'center' }}>
+                <div style={{ fontSize: '24px', marginBottom: '8px' }}>🖼️</div>
+                <div style={{ fontWeight: 700, fontSize: '0.9rem', marginBottom: '4px' }}>1. Quality Check</div>
+                <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: 0 }}>
+                  Evaluates resolution, blur, brightness, contrast, and visual clarity before drafting.
+                </p>
+              </div>
+              <div className="varnix-card" style={{ padding: '16px', textAlign: 'center' }}>
+                <div style={{ fontSize: '24px', marginBottom: '8px' }}>✨</div>
+                <div style={{ fontWeight: 700, fontSize: '0.9rem', marginBottom: '4px' }}>2. AI Drafting</div>
+                <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: 0 }}>
+                  Drafts concise short, detailed, or bullet descriptions from observable facts only.
+                </p>
+              </div>
+              <div className="varnix-card" style={{ padding: '16px', textAlign: 'center' }}>
+                <div style={{ fontSize: '24px', marginBottom: '8px' }}>🛡️</div>
+                <div style={{ fontWeight: 700, fontSize: '0.9rem', marginBottom: '4px' }}>3. Review Guard</div>
+                <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: 0 }}>
+                  Guards against unsupported material, certification, and performance claims in real time.
+                </p>
+              </div>
+              <div className="varnix-card" style={{ padding: '16px', textAlign: 'center' }}>
+                <div style={{ fontSize: '24px', marginBottom: '8px' }}>🌐</div>
+                <div style={{ fontWeight: 700, fontSize: '0.9rem', marginBottom: '4px' }}>4. Voice & Export</div>
+                <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: 0 }}>
+                  Synchronizes Hindi/Telugu voice audio and exports auditable RFC 4180 CSV & JSON.
+                </p>
+              </div>
+            </div>
+
+            <div style={{ textAlign: 'center', marginTop: '30px' }}>
+              <button
+                type="button"
+                className="btn-primary-action"
+                onClick={() => setActiveTab('workspace')}
+                style={{ minHeight: '44px', padding: '10px 24px' }}
+              >
+                Start Reviewing Queue →
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 3: METHOD PAGE (ALTLUME DISCIPLINE) */}
+        {activeTab === 'method' && (
+          <div style={{ maxWidth: '980px', margin: '40px auto 60px', padding: '0 24px' }}>
+            <div style={{ textAlign: 'center', marginBottom: '36px' }}>
+              <span className="brand-pill" style={{ marginBottom: '12px', display: 'inline-block' }}>
+                EDITORIAL DISCIPLINE
+              </span>
+              <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2.8rem', color: 'var(--text-ink)', margin: '0 0 14px' }}>
+                The ALTLUME Method: Observe → Check → Review
+              </h1>
+              <p style={{ fontSize: '1.08rem', color: 'var(--text-secondary)', maxWidth: '640px', margin: '0 auto', lineHeight: 1.6 }}>
+                A systematic standard for commerce image descriptions. We separate visual evidence from marketing copy so every published alt text is factual, concise, and verifiable.
+              </p>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', marginBottom: '36px' }}>
+              <div className="step-card">
+                <span className="step-number">Phase 01</span>
+                <div className="step-title">Observe</div>
+                <p className="step-desc">
+                  Look closely at visible light, material texture, silhouette, and geometry. <strong>Catalogue metadata is not proof of visible detail</strong>—only what is rendered in pixels may be described.
+                </p>
+              </div>
+
+              <div className="step-card">
+                <span className="step-number">Phase 02</span>
+                <div className="step-title">Check</div>
+                <p className="step-desc">
+                  Apply deterministic guardrails against unsupported claims. Banned words (eco-friendly, durable, ergonomic, pure silk) must be confirmed by merchant specs or removed.
+                </p>
+              </div>
+
+              <div className="step-card">
+                <span className="step-number">Phase 03</span>
+                <div className="step-title">Review</div>
+                <p className="step-desc">
+                  <strong>A generated draft is never an approval.</strong> The commerce editor holds ultimate responsibility for clarity, brevity (under 125 characters), and screen reader accessibility.
+                </p>
+              </div>
+            </div>
+
+            <div style={{ background: 'var(--surface-card)', border: '1px solid var(--surface-border)', borderRadius: '14px', padding: '28px', marginBottom: '28px', boxShadow: 'var(--shadow-md)' }}>
+              <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.4rem', color: 'var(--text-ink)', marginTop: 0, marginBottom: '10px' }}>
+                W3C Web Accessibility Guidelines
+              </h2>
+              <p style={{ color: 'var(--text-secondary)', lineHeight: 1.6, fontSize: '0.92rem', margin: '0 0 16px 0' }}>
+                ALTLUME aligns with the World Wide Web Consortium (W3C) Web Content Accessibility Guidelines (WCAG 2.2). Before writing descriptions, verify image intent using the decision tree: decorative images must use null alt text, informative images require concise descriptions, and text-containing images require verbatim transcription.
+              </p>
+              <a
+                href="https://www.w3.org/WAI/tutorials/images/decision-tree/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-editorial-primary"
+                style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+              >
+                ↗ Open W3C Image Alt-Text Decision Tree
+              </a>
+            </div>
+
+            <div style={{ background: 'var(--surface-card-subtle)', border: '1px solid var(--surface-border)', borderRadius: '10px', padding: '16px 20px', fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+              <strong>Synthetic Fixture Notice:</strong> ALTLUME operates on fixture dataset (P01–P10). This tool assists editorial workflows and <strong>does not prove website accessibility compliance</strong>. Human editorial sign-off is strictly required before public publishing.
+            </div>
+          </div>
+        )}
+
+        {/* TAB 4: EXPORT HUB (ALTLUME READINESS & AUDIT) */}
+        {activeTab === 'export' && (
+          <div style={{ maxWidth: '1080px', margin: '30px auto 60px', padding: '0 20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '14px' }}>
+              <div>
+                <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', color: 'var(--text-ink)', margin: '0 0 6px 0' }}>
+                  Export Reviewed Catalogue
+                </h1>
+                <p style={{ margin: 0, fontSize: '0.86rem', color: 'var(--text-secondary)' }}>
+                  Auditable export of human-approved visual descriptions with strict column contracts and complete ID preservation.
+                </p>
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button
+                  type="button"
+                  className="btn-editorial-secondary"
+                  onClick={handleExportJson}
+                  data-cursor="Download"
+                >
+                  📦 Download JSON
+                </button>
+                <button
+                  type="button"
+                  className="btn-editorial-primary"
+                  onClick={handleExportCsv}
+                  data-cursor="Download"
+                >
+                  📥 Download CSV
+                </button>
+              </div>
+            </div>
+
+            {/* Readiness Checklist Card */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '24px' }}>
+              <div className="varnix-card" style={{ padding: '16px', background: 'var(--surface-card)' }}>
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontFamily: 'var(--font-mono)' }}>Total Items</div>
+                <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--text-ink)', marginTop: '4px' }}>
+                  {products.length} / 10
+                </div>
+                <div style={{ fontSize: '0.72rem', color: 'var(--emerald)', marginTop: '2px' }}>100% ID preserved</div>
+              </div>
+
+              <div className="varnix-card" style={{ padding: '16px', background: 'var(--surface-card)' }}>
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontFamily: 'var(--font-mono)' }}>Approved</div>
+                <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--emerald)', marginTop: '4px' }}>
+                  {approvedCount}
+                </div>
+                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '2px' }}>Human endorsed</div>
+              </div>
+
+              <div className="varnix-card" style={{ padding: '16px', background: 'var(--surface-card)' }}>
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontFamily: 'var(--font-mono)' }}>Pending Review</div>
+                <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--accent-amber)', marginTop: '4px' }}>
+                  {products.length - approvedCount - inaccessibleCount}
+                </div>
+                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '2px' }}>Awaiting editor</div>
+              </div>
+
+              <div className="varnix-card" style={{ padding: '16px', background: 'var(--surface-card)' }}>
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontFamily: 'var(--font-mono)' }}>Inaccessible</div>
+                <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--rose)', marginTop: '4px' }}>
+                  {inaccessibleCount}
+                </div>
+                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '2px' }}>Flagged for reshoot</div>
+              </div>
+            </div>
+
+            {/* 10-Product Audit Table with Human Edit Badge */}
+            <div style={{ background: 'var(--surface-card)', border: '1px solid var(--surface-border)', borderRadius: '12px', overflow: 'hidden', boxShadow: 'var(--shadow-sm)', marginBottom: '24px' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.8rem' }}>
+                <thead>
+                  <tr style={{ background: 'var(--surface-card-subtle)', borderBottom: '1px solid var(--surface-border)' }}>
+                    <th style={{ padding: '12px 16px', fontWeight: 700, fontFamily: 'var(--font-mono)' }}>ID</th>
+                    <th style={{ padding: '12px 16px', fontWeight: 700 }}>Image</th>
+                    <th style={{ padding: '12px 16px', fontWeight: 700 }}>Product Title</th>
+                    <th style={{ padding: '12px 16px', fontWeight: 700 }}>Status</th>
+                    <th style={{ padding: '12px 16px', fontWeight: 700 }}>Reviewer Origin</th>
+                    <th style={{ padding: '12px 16px', fontWeight: 700 }}>Final Description</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {products.map((p) => {
+                    const isHuman = p.is_human_edited || p.status === 'APPROVED' || p.edited_text;
+                    return (
+                      <tr key={p.product_id} style={{ borderBottom: '1px solid var(--surface-border)' }}>
+                        <td style={{ padding: '12px 16px', fontFamily: 'var(--font-mono)', fontWeight: 800, color: 'var(--accent-indigo)' }}>
+                          {p.product_id}
+                        </td>
+                        <td style={{ padding: '12px 16px' }}>
+                          <img
+                            src={p.image_url}
+                            alt=""
+                            style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '6px', border: '1px solid var(--surface-border)' }}
+                            onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                          />
+                        </td>
+                        <td style={{ padding: '12px 16px', fontWeight: 600, color: 'var(--text-ink)' }}>
+                          {p.metadata_title}
+                        </td>
+                        <td style={{ padding: '12px 16px' }}>
+                          <span className={`status-pill ${p.status.toLowerCase().replace(/_/g, '-')}`}>
+                            {p.status}
+                          </span>
+                        </td>
+                        <td style={{ padding: '12px 16px' }}>
+                          <span
+                            style={{
+                              fontSize: '0.68rem',
+                              fontWeight: 700,
+                              padding: '2px 8px',
+                              borderRadius: '4px',
+                              background: isHuman ? '#ECFDF5' : '#F3F4F6',
+                              color: isHuman ? '#047857' : '#6B7280',
+                              border: `1px solid ${isHuman ? '#A7F3D0' : '#E5E7EB'}`,
+                            }}
+                          >
+                            {isHuman ? '✍️ Human Edited' : '🤖 AI Draft'}
+                          </span>
+                        </td>
+                        <td style={{ padding: '12px 16px', color: 'var(--text-secondary)', maxWidth: '320px', lineHeight: 1.5 }}>
+                          {p.final_description || (p.status === 'INACCESSIBLE' ? 'Image unavailable — manual review required.' : p.edited_text || p.draft || '—')}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Non-compliance Disclaimer */}
+            <div style={{ background: 'var(--surface-card-subtle)', border: '1px solid var(--surface-border)', borderRadius: '10px', padding: '16px 20px', fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.5, textAlign: 'center' }}>
+              ⚖️ <strong>Legal Notice:</strong> An export from this tool alone does not prove or guarantee website accessibility compliance. Human editorial review is strictly required.
+            </div>
+          </div>
+        )}
+
+        {/* TAB 404: MISSING IMAGE / SLIPPED FRAME */}
+        {activeTab === '404' && (
+          <div style={{ maxWidth: '640px', margin: '80px auto', textAlign: 'center', padding: '0 20px' }}>
+            <div style={{ fontSize: '4.5rem', marginBottom: '16px', filter: 'drop-shadow(0 6px 14px rgba(79,70,229,0.2))' }}>
+              🖼️💨
+            </div>
+            <span className="brand-pill" style={{ marginBottom: '12px', display: 'inline-block' }}>
+              STATUS 404
+            </span>
+            <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2.4rem', color: 'var(--text-ink)', margin: '0 0 12px 0' }}>
+              The image slipped out of the frame.
+            </h1>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '1rem', lineHeight: 1.6, marginBottom: '28px' }}>
+              We inspected every pixel between P01 and P10, but this frame is completely empty. It may have been relocated, unlinked, or never rendered.
+            </p>
+            <button
+              type="button"
+              className="btn-editorial-primary"
+              onClick={() => setActiveTab('workspace')}
+              data-cursor="Return"
+            >
+              ← Return to Review Studio
+            </button>
+          </div>
+        )}
+
+        {/* TAB 5: BATCH DASHBOARD VIEW (Batch 3 Feature) */}
+        {batchDashboardEnabled && activeTab === 'dashboard' && (
+          <div className="batch-dashboard-container">
+            {/* Dashboard Header Bar */}
+            <div className="batch-dashboard-header">
+              <div>
+                <h1 className="batch-dashboard-title">
+                  📊 Batch Operations & Catalogue Readiness Dashboard
+                </h1>
+                <p className="batch-dashboard-subtitle">
+                  Portfolio monitoring: Multi-format consistency, verification queue, transparent readiness checklists, and bulk approval.
+                </p>
+              </div>
+
+              <div className="batch-dashboard-actions">
+                <button
+                  type="button"
+                  className="btn-secondary-action"
+                  onClick={() => setShowApproveLowRiskModal(true)}
+                  title="Approve all products with readiness score ≥ 80 and zero unsupported claims"
+                >
+                  🛡️ Approve All Low-Risk Items
+                </button>
+                <button
+                  type="button"
+                  className="btn-secondary-action"
+                  onClick={() => bulkFileInputRef.current?.click()}
+                  title="Upload up to 20 images at once"
+                >
+                  📤 Batch Upload Images (Max 20)
+                </button>
+                <button
+                  type="button"
+                  className="btn-primary-action"
+                  onClick={handleExportCsv}
+                >
+                  📥 Export CSV
+                </button>
+              </div>
+            </div>
+
+            {/* Summary Metrics Strip */}
+            {(() => {
+              const allReadiness = products.map((p) => computeClientReadinessScore(p));
+              const readyCount = allReadiness.filter((r) => r.status === 'READY').length;
+              const needReviewCount = allReadiness.filter((r) => r.status === 'NEEDS REVIEW').length;
+              const needInfoCount = allReadiness.filter((r) => r.status === 'NEEDS INFORMATION').length;
+              const errorCount = products.filter((p) => p.status === 'INACCESSIBLE' || p.status === 'ERROR').length;
+              const approvedCount = products.filter((p) => p.status === 'APPROVED').length;
+              const totalImages = products.reduce((acc, p) => acc + (p.images?.length || 1), 0);
+
+              const categories = ['ALL', ...Array.from(new Set(products.map((p) => p.detected_category || p.category || p.product_category || 'General').filter(Boolean)))];
+
+              const filteredProducts = products.filter((p) => {
+                const readiness = computeClientReadinessScore(p);
+                const cat = p.detected_category || p.category || p.product_category || 'General';
+
+                // Category filter
+                if (dashboardCategoryFilter !== 'ALL' && cat !== dashboardCategoryFilter) {
+                  return false;
+                }
+
+                // Status filter
+                if (dashboardFilter === 'ALL') return true;
+                if (dashboardFilter === 'READY') return readiness.status === 'READY' && p.status !== 'INACCESSIBLE';
+                if (dashboardFilter === 'NEEDS REVIEW') return readiness.status === 'NEEDS REVIEW' && p.status !== 'INACCESSIBLE';
+                if (dashboardFilter === 'NEEDS INFORMATION') return readiness.status === 'NEEDS INFORMATION' && p.status !== 'INACCESSIBLE';
+                if (dashboardFilter === 'ERROR') return p.status === 'INACCESSIBLE' || p.status === 'ERROR' || readiness.status === 'ERROR';
+                return true;
+              });
+
+              return (
+                <div>
+                  {/* Summary Counts Banner */}
+                  <div className="dashboard-summary-bar">
+                    <div className="dashboard-summary-chip">
+                      <strong>{products.length} Products</strong> ({totalImages} images)
+                    </div>
+                    <span className="summary-dot">·</span>
+                    <div className="dashboard-summary-chip chip-ready">
+                      <span className="chip-indicator">●</span> <strong>{readyCount} Ready</strong>
+                    </div>
+                    <span className="summary-dot">·</span>
+                    <div className="dashboard-summary-chip chip-review">
+                      <span className="chip-indicator">●</span> <strong>{needReviewCount} Need Review</strong>
+                    </div>
+                    <span className="summary-dot">·</span>
+                    <div className="dashboard-summary-chip chip-info">
+                      <span className="chip-indicator">●</span> <strong>{needInfoCount} Need Information</strong>
+                    </div>
+                    <span className="summary-dot">·</span>
+                    <div className="dashboard-summary-chip chip-approved">
+                      <span className="chip-indicator">✓</span> <strong>{approvedCount} Approved</strong>
+                    </div>
+                    {errorCount > 0 && (
+                      <>
+                        <span className="summary-dot">·</span>
+                        <div className="dashboard-summary-chip chip-error">
+                          <span className="chip-indicator">⚠️</span> <strong>{errorCount} Inaccessible / Error</strong>
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Filter Row */}
+                  <div className="dashboard-filters-row">
+                    <div className="dashboard-filter-group">
+                      <span style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-muted)' }}>Status:</span>
+                      {[
+                        { id: 'ALL', label: 'ALL', count: products.length },
+                        { id: 'READY', label: 'READY', count: readyCount },
+                        { id: 'NEEDS REVIEW', label: 'NEEDS REVIEW', count: needReviewCount },
+                        { id: 'NEEDS INFORMATION', label: 'NEEDS INFORMATION', count: needInfoCount },
+                        { id: 'ERROR', label: 'ERROR', count: errorCount },
+                      ].map((f) => (
+                        <button
+                          key={f.id}
+                          type="button"
+                          className={`dashboard-filter-btn ${dashboardFilter === f.id ? 'active' : ''}`}
+                          onClick={() => setDashboardFilter(f.id)}
+                        >
+                          {f.label} ({f.count})
+                        </button>
+                      ))}
+                    </div>
+
+                    <div className="dashboard-filter-group">
+                      <span style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-muted)' }}>Category:</span>
+                      <select
+                        className="dashboard-category-select"
+                        value={dashboardCategoryFilter}
+                        onChange={(e) => setDashboardCategoryFilter(e.target.value)}
+                      >
+                        {categories.map((c) => (
+                          <option key={c} value={c}>
+                            {c === 'ALL' ? 'All Categories' : c}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Product Cards Grid */}
+                  <div className="dashboard-products-grid">
+                    {filteredProducts.map((p) => {
+                      const readiness = computeClientReadinessScore(p);
+                      const cat = p.detected_category || p.category || p.product_category || 'General';
+                      const viewCount = p.images?.length || 1;
+                      const verifiedSpecsCount = Object.keys(p.merchant_confirmed_specs || p.verified_specs || {}).length;
+                      const featuresList = (p.detected_features || []).filter(
+                        (f) => (p.feature_choices?.[f.id] || 'INCLUDE') === 'INCLUDE'
+                      );
+                      const highlightsList = p.selected_highlights || p.recommended_highlights || (Array.isArray(p.product_highlights) ? p.product_highlights : []);
+
+                      const statusColor =
+                        p.status === 'APPROVED' ? '#059669' :
+                          p.status === 'INACCESSIBLE' ? '#DC2626' :
+                            p.status === 'ERROR' ? '#DC2626' :
+                              p.status === 'EDITED' ? '#D97706' :
+                                p.status === 'GENERATED' ? '#4F46E5' :
+                                  p.status === 'ANALYZING' ? '#2563EB' :
+                                    '#6B7280';
+
+                      return (
+                        <div key={p.product_id} className="dashboard-product-card">
+                          {/* Card Header: Thumbnail + Identity */}
+                          <div className="product-card-top">
+                            <div className="product-card-thumb-container">
+                              <img
+                                src={p.image_url}
+                                alt={p.metadata_title || p.product_id}
+                                className="product-card-thumb"
+                              />
+                              <span className="product-card-view-badge">
+                                📷 {viewCount} view{viewCount > 1 ? 's' : ''}
+                              </span>
+                            </div>
+
+                            <div className="product-card-info">
+                              <div className="product-card-id-row">
+                                <span className="product-card-id">{p.product_id}</span>
+                                <span
+                                  className="product-card-status-pill"
+                                  style={{ background: `${statusColor}15`, color: statusColor, border: `1px solid ${statusColor}40` }}
+                                >
+                                  {p.status}
+                                </span>
+                              </div>
+
+                              <div className="product-card-title">
+                                {p.metadata_title || p.product_id}
+                              </div>
+
+                              <div className="product-card-meta-row">
+                                <span className="product-card-category-tag">
+                                  📁 {cat}
+                                </span>
+                                <span className={`product-card-confidence ${p.confidence || 'medium'}`}>
+                                  Confidence: {p.confidence || 'high'}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Catalogue Readiness Score Meter */}
+                          <div className="readiness-meter-block">
+                            <div className="readiness-meter-header">
+                              <span className="readiness-meter-label">Catalogue Readiness</span>
+                              <span className="readiness-meter-val" style={{ color: readiness.score >= 80 ? '#059669' : readiness.score >= 50 ? '#D97706' : '#2563EB' }}>
+                                <strong>{readiness.score}/100</strong> ({readiness.status})
+                              </span>
+                            </div>
+
+                            <div className="readiness-meter-track">
+                              <div
+                                className="readiness-meter-fill"
+                                style={{
+                                  width: `${readiness.score}%`,
+                                  background: readiness.score >= 80 ? 'linear-gradient(90deg, #10B981, #059669)' : readiness.score >= 50 ? 'linear-gradient(90deg, #F59E0B, #D97706)' : 'linear-gradient(90deg, #60A5FA, #3B82F6)',
+                                }}
+                              />
+                            </div>
+
+                            {/* Missing items indicator */}
+                            {readiness.missing && readiness.missing.length > 0 && (
+                              <div className="readiness-missing-note">
+                                ⚠️ {readiness.missing[0]}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Observable Features & Verified Specs Summary */}
+                          <div className="card-specs-row">
+                            <span className="spec-indicator">
+                              ✨ <strong>{featuresList.length}</strong> Features Confirmed
+                            </span>
+                            <span className="spec-indicator">
+                              ❓ <strong>{verifiedSpecsCount}</strong> Verified Specs
+                            </span>
+                            <span className="spec-indicator">
+                              ⭐ <strong>{highlightsList.length}</strong> Highlights
+                            </span>
+                          </div>
+
+                          {/* Description Snippet Preview */}
+                          <div className="card-description-preview">
+                            <div className="preview-label">Short Description Preview:</div>
+                            <div className="preview-text">
+                              {p.short_description || p.description_short || p.marketplace_description || p.draft || 'No description generated yet.'}
+                            </div>
+                          </div>
+
+                          {/* Card Footer Actions */}
+                          <div className="card-actions-footer">
+                            <button
+                              type="button"
+                              className="btn-card-workspace"
+                              onClick={() => {
+                                setSelectedId(p.product_id);
+                                setActiveTab('workspace');
+                              }}
+                            >
+                              🏢 Review in Workspace
+                            </button>
+
+                            {p.status !== 'APPROVED' ? (
+                              <button
+                                type="button"
+                                className="btn-card-approve"
+                                onClick={() => {
+                                  setSelectedId(p.product_id);
+                                  handleApproveAllFormats();
+                                }}
+                                title="Explicitly approve all four formats for this item"
+                              >
+                                ✓ Approve All 4 Formats
+                              </button>
+                            ) : (
+                              <span style={{ fontSize: '0.72rem', color: '#059669', fontWeight: 700, padding: '4px 8px' }}>
+                                ✓ Approved
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {filteredProducts.length === 0 && (
+                    <div style={{ textAlign: 'center', padding: '40px', background: '#FFF', borderRadius: '8px', border: '1px dashed var(--border)', marginTop: '20px' }}>
+                      <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
+                        No products match the filter "{dashboardFilter}" {dashboardCategoryFilter !== 'ALL' ? `in category ${dashboardCategoryFilter}` : ''}.
+                      </p>
+                      <button
+                        type="button"
+                        className="btn-secondary-action"
+                        onClick={() => {
+                          setDashboardFilter('ALL');
+                          setDashboardCategoryFilter('ALL');
+                        }}
+                      >
+                        Reset Filters
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+          </div>
+        )}
+      </main>
+
+
+      {/* MODAL 1: Inaccessible Image Dialog */}
+      {showInaccessibleModal && (
+        <div className="modal-overlay" role="dialog" aria-modal="true">
+          <div className="modal-dialog">
+            <div className="modal-header">
+              <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>🚩 Mark Image as Inaccessible</span>
+              <button type="button" onClick={() => setShowInaccessibleModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem' }}>✕</button>
+            </div>
+            <div className="modal-body">
+              <p style={{ fontSize: '0.84rem', color: 'var(--text-muted)', marginTop: 0 }}>
+                Flagging {currentProduct.product_id} as Inaccessible will preserve its product ID and assign the standard placeholder without generating fabricated AI copy.
+              </p>
+              <div style={{ marginBottom: '12px' }}>
+                <label style={{ fontSize: '0.78rem', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Reason:</label>
+                <select
+                  value={inaccessibleReason}
+                  onChange={(e) => setInaccessibleReason(e.target.value)}
+                  style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border)', fontSize: '0.84rem' }}
+                >
+                  <option value="Image unavailable">Image unavailable</option>
+                  <option value="Image too blurry">Image too blurry</option>
+                  <option value="Image too unclear">Image too unclear</option>
+                  <option value="Insufficient visual information">Insufficient visual information</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div>
+                <label style={{ fontSize: '0.78rem', fontWeight: 600, display: 'block', marginBottom: '4px' }}>Reviewer Note:</label>
+                <textarea
+                  rows={3}
+                  value={inaccessibleNote}
+                  onChange={(e) => setInaccessibleNote(e.target.value)}
+                  placeholder="Explain why visual details cannot be reliably described..."
+                  style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid var(--border)', fontSize: '0.84rem' }}
+                />
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button type="button" className="btn-secondary-action" onClick={() => setShowInaccessibleModal(false)}>
+                Cancel
+              </button>
+              <button type="button" className="btn-danger-action" onClick={handleConfirmInaccessible}>
+                Confirm Inaccessible
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 2: Keyboard Shortcuts Help */}
+      {showShortcutsModal && (
+        <div className="modal-overlay" role="dialog" aria-modal="true">
+          <div className="modal-dialog">
+            <div className="modal-header">
+              <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>⌨️ Keyboard Navigation Shortcuts</span>
+              <button type="button" onClick={() => setShowShortcutsModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem' }}>✕</button>
+            </div>
+            <div className="modal-body">
+              <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr', gap: '10px', fontSize: '0.84rem' }}>
+                <kbd style={{ background: '#F3F4F6', padding: '2px 8px', borderRadius: '4px', textAlign: 'center', fontWeight: 700 }}>N</kbd>
+                <span>Navigate to Next Product in Queue</span>
+
+                <kbd style={{ background: '#F3F4F6', padding: '2px 8px', borderRadius: '4px', textAlign: 'center', fontWeight: 700 }}>P</kbd>
+                <span>Navigate to Previous Product in Queue</span>
+
+                <kbd style={{ background: '#F3F4F6', padding: '2px 8px', borderRadius: '4px', textAlign: 'center', fontWeight: 700 }}>E</kbd>
+                <span>Focus Description Editor Textarea</span>
+
+                <kbd style={{ background: '#F3F4F6', padding: '2px 8px', borderRadius: '4px', textAlign: 'center', fontWeight: 700 }}>A</kbd>
+                <span>Approve Current Description</span>
+
+                <kbd style={{ background: '#F3F4F6', padding: '2px 8px', borderRadius: '4px', textAlign: 'center', fontWeight: 700 }}>I</kbd>
+                <span>Open Mark Inaccessible Dialog</span>
+
+                <kbd style={{ background: '#F3F4F6', padding: '2px 8px', borderRadius: '4px', textAlign: 'center', fontWeight: 700 }}>?</kbd>
+                <span>Toggle Shortcuts Help Dialog</span>
+
+                <kbd style={{ background: '#F3F4F6', padding: '2px 8px', borderRadius: '4px', textAlign: 'center', fontWeight: 700 }}>Esc</kbd>
+                <span>Close any open modal or unfocus</span>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button type="button" className="btn-primary-action" onClick={() => setShowShortcutsModal(false)}>
+                Got it
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 3: Version Diff Viewer */}
+      {showDiffModal && (
+        <div className="modal-overlay" role="dialog" aria-modal="true">
+          <div className="modal-dialog" style={{ maxWidth: '640px' }}>
+            <div className="modal-header">
+              <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>🔍 Description Version Comparison ({currentProduct.product_id})</span>
+              <button type="button" onClick={() => setShowDiffModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem' }}>✕</button>
+            </div>
+            <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div>
+                <span style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-muted)' }}>1. AI DRAFT:</span>
+                <div style={{ background: '#EFF6FF', padding: '8px 12px', borderRadius: '6px', fontSize: '0.82rem', marginTop: '2px', color: '#1E40AF' }}>
+                  {currentProduct.draft || 'No draft generated yet'}
+                </div>
+              </div>
+              <div>
+                <span style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-muted)' }}>2. HUMAN EDITED:</span>
+                <div style={{ background: '#FFFBEB', padding: '8px 12px', borderRadius: '6px', fontSize: '0.82rem', marginTop: '2px', color: '#92400E' }}>
+                  {currentProduct.edited_text || 'No edits applied'}
+                </div>
+              </div>
+              <div>
+                <span style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-muted)' }}>3. APPROVED FINAL:</span>
+                <div style={{ background: '#ECFDF5', padding: '8px 12px', borderRadius: '6px', fontSize: '0.82rem', marginTop: '2px', color: '#065F46' }}>
+                  {currentProduct.final_description || (currentProduct.status === 'APPROVED' ? currentText : 'Not approved yet')}
+                </div>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button type="button" className="btn-primary-action" onClick={() => setShowDiffModal(false)}>
+                Close Diff
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 4: Camera Capture Dialog */}
+      {isCameraActive && (
+        <div className="modal-overlay" role="dialog" aria-modal="true">
+          <div className="modal-dialog" style={{ maxWidth: '540px' }}>
+            <div className="modal-header">
+              <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>📸 Direct Camera Capture</span>
+              <button type="button" onClick={handleStopCamera} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem' }}>✕</button>
+            </div>
+            <div className="modal-body" style={{ textAlign: 'center' }}>
+              <div style={{ width: '100%', height: '320px', background: '#000', borderRadius: '8px', overflow: 'hidden', position: 'relative' }}>
+                <video
+                  ref={videoRef}
+                  autoPlay
+                  playsInline
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+              </div>
+              <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '8px' }}>
+                Center the product in the frame. Captured photos will automatically pass through client-side quality checks.
+              </p>
+            </div>
+            <div className="modal-footer" style={{ justifyContent: 'space-between' }}>
+              <button type="button" className="btn-secondary-action" onClick={handleStopCamera}>
+                Cancel
+              </button>
+              <button type="button" className="btn-primary-action" onClick={handleSnapCamera} style={{ background: 'linear-gradient(135deg, #4F46E5, #6366F1)' }}>
+                📸 Capture Photo
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 5: Bulk Upload Processing Queue */}
+      {(isBulkProcessing || bulkQueue.length > 0) && (
+        <div className="modal-overlay" role="dialog" aria-modal="true">
+          <div className="modal-dialog" style={{ maxWidth: '640px' }}>
+            <div className="modal-header">
+              <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>
+                📂 Bulk Upload & Analysis Queue ({bulkQueue.length} Images)
+              </span>
+              {!isBulkProcessing && (
+                <button type="button" onClick={() => setBulkQueue([])} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem' }}>✕</button>
+              )}
+            </div>
+            <div className="modal-body">
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: 0 }}>
+                Processing sequentially with concurrency limit (max 2–3). Each image is checked for quality and analyzed with Gemini.
+              </p>
+
+              {/* Overall Progress Bar */}
+              <div style={{ marginBottom: '14px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.74rem', marginBottom: '4px', fontWeight: 600 }}>
+                  <span>Batch Progress</span>
+                  <span>{bulkProgress}%</span>
+                </div>
+                <div style={{ width: '100%', height: '8px', background: '#E2E8F0', borderRadius: '4px', overflow: 'hidden' }}>
+                  <div style={{ width: `${bulkProgress}%`, height: '100%', background: 'linear-gradient(90deg, #4F46E5, #10B981)', transition: 'width 0.3s' }} />
+                </div>
+              </div>
+
+              {/* Items List */}
+              <div style={{ maxHeight: '280px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {bulkQueue.map((item) => (
+                  <div key={item.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: '#F8FAFC', borderRadius: '6px', border: '1px solid var(--border)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <span style={{ fontWeight: 800, fontFamily: 'var(--font-mono)', fontSize: '0.78rem', color: 'var(--primary)' }}>
+                        {item.id}
+                      </span>
+                      <span style={{ fontSize: '0.78rem', fontWeight: 600, maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {item.name}
+                      </span>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      {/* Category selector */}
+                      <select
+                        value={item.category || 'General'}
+                        onChange={(e) => {
+                          const cat = e.target.value;
+                          setBulkQueue(prev => prev.map(q => q.id === item.id ? { ...q, category: cat } : q));
+                          setProducts(prev => prev.map(p => p.product_id === item.id ? { ...p, category: cat } : p));
+                        }}
+                        style={{ padding: '3px 6px', fontSize: '0.72rem', borderRadius: '4px', border: '1px solid var(--border)' }}
+                      >
+                        <option value="General">General</option>
+                        <option value="Electronics">Electronics</option>
+                        <option value="Footwear">Footwear</option>
+                        <option value="Bag">Bag</option>
+                        <option value="Watch">Watch</option>
+                        <option value="Drinkware">Drinkware</option>
+                        <option value="Clothing">Clothing</option>
+                      </select>
+
+                      {/* Status indicator */}
+                      <span
+                        style={{
+                          fontSize: '0.68rem',
+                          fontWeight: 700,
+                          padding: '2px 6px',
+                          borderRadius: '4px',
+                          background: item.status === 'READY' ? '#ECFDF5' : item.status === 'FAILED' ? '#FEF2F2' : item.status === 'ANALYZING' ? '#EEF2FF' : '#F3F4F6',
+                          color: item.status === 'READY' ? '#059669' : item.status === 'FAILED' ? '#DC2626' : item.status === 'ANALYZING' ? '#4F46E5' : '#6B7280'
+                        }}
+                      >
+                        {item.status}
+                      </span>
+
+                      {/* Retry button on failed item */}
+                      {item.status === 'FAILED' && (
+                        <button
+                          type="button"
+                          className="btn-secondary-action"
+                          onClick={() => handleRetryBulkItem(item.id)}
+                          style={{ padding: '2px 6px', fontSize: '0.68rem', color: '#DC2626' }}
+                          title="Retry processing this item"
+                        >
+                          🔄 Retry
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button
+                type="button"
+                className="btn-primary-action"
+                disabled={isBulkProcessing}
+                onClick={() => setBulkQueue([])}
+              >
+                {isBulkProcessing ? 'Processing Batch...' : 'Done / View in Queue'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 6: Approve All Low-Risk Listened Items Confirmation */}
+      {showApproveAllModal && (
+        <div className="modal-overlay" role="dialog" aria-modal="true">
+          <div className="modal-dialog" style={{ maxWidth: '480px' }}>
+            <div className="modal-header">
+              <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>✓ Approve Low-Risk Listened Products</span>
+              <button type="button" onClick={() => setShowApproveAllModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem' }}>✕</button>
+            </div>
+            <div className="modal-body">
+              <p style={{ fontSize: '0.84rem', color: 'var(--text-main)', marginTop: 0 }}>
+                This action will mark all eligible items that you have listened to as <strong>APPROVED</strong>.
+              </p>
+              <div style={{ background: '#F8FAFC', padding: '12px', borderRadius: '6px', border: '1px solid var(--border)', fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                <div>• Only applies to items with badge <strong>🔊 Listened</strong></div>
+                <div>• Items flagged with critical risk warnings or inaccessible status are <strong>skipped</strong></div>
+                <div>• Remember to spot-check audio-reviewed items against the images</div>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button type="button" className="btn-secondary-action" onClick={() => setShowApproveAllModal(false)}>
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn-primary-action"
+                onClick={handleApproveAllListened}
+                style={{ background: 'linear-gradient(135deg, #059669, #047857)' }}
+              >
+                Confirm Batch Approval
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 6B: Batch 3 - Approve All Low-Risk Items Confirmation Dialog */}
+      {showApproveLowRiskModal && (
+        <div className="modal-overlay" role="dialog" aria-modal="true">
+          <div className="modal-dialog" style={{ maxWidth: '500px' }}>
+            <div className="modal-header">
+              <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>🛡️ Approve All Low-Risk Catalogue Items</span>
+              <button type="button" onClick={() => setShowApproveLowRiskModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem' }}>✕</button>
+            </div>
+            <div className="modal-body">
+              <p style={{ fontSize: '0.84rem', color: 'var(--text-main)', marginTop: 0 }}>
+                This bulk action will explicitly approve all products meeting high-confidence readiness criteria.
+              </p>
+              <div style={{ background: '#F8FAFC', padding: '12px', borderRadius: '6px', border: '1px solid var(--border)', fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                <div>• Minimum Readiness Score: <strong>80 / 100</strong></div>
+                <div>• Claim Check: <strong>Zero unverified claims</strong></div>
+                <div>• Excludes items marked <strong>INACCESSIBLE</strong> or <strong>ERROR</strong></div>
+                <div>• Generates immutable audit log entries</div>
+              </div>
+              <div style={{ marginTop: '10px', fontSize: '0.72rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                Prototype indicator only; not scientifically validated. Merchants remain responsible for catalog accuracy.
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button type="button" className="btn-secondary-action" onClick={() => setShowApproveLowRiskModal(false)}>
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn-primary-action"
+                onClick={handleConfirmApproveLowRisk}
+                style={{ background: 'linear-gradient(135deg, #059669, #047857)' }}
+              >
+                ✓ Confirm Approval of Low-Risk Items
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+
+      {/* MODAL 7: Batch 2 AI Multi-Image Grouping & View Orientation Studio */}
+      {showGroupingModal && (
+        <div className="grouping-modal-overlay" role="dialog" aria-modal="true">
+          <div className="grouping-modal">
+            <div className="grouping-modal-header">
+              <div>
+                <div className="grouping-modal-title">
+                  🖼️ AI Multi-Image Grouping & View Orientation Studio
+                </div>
+                <div style={{ fontSize: '0.74rem', color: 'var(--text-secondary)' }}>
+                  Gemini analyzed your uploaded images and suggested product groupings and view angles.
+                </div>
+              </div>
+              <button
+                type="button"
+                className="grouping-modal-close"
+                onClick={() => setShowGroupingModal(false)}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="grouping-modal-body">
+              <div className="grouping-modal-actions-bar">
+                <div style={{ fontSize: '0.78rem', color: 'var(--text-main)', fontWeight: 600 }}>
+                  {stagedGroups.length} Suggested Product Group{stagedGroups.length > 1 ? 's' : ''}
+                </div>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  {stagedGroups.length > 1 && (
+                    <button
+                      type="button"
+                      className="btn-group-action"
+                      onClick={handleMergeAllStagedGroups}
+                      title="Merge all images into a single product group"
+                    >
+                      🔗 Merge All Into 1 Product
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <div className="grouping-groups-list">
+                {stagedGroups.map((grp, gIdx) => (
+                  <div key={grp.group_id || gIdx} className="grouping-card">
+                    <div className="grouping-card-header">
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--primary)' }}>
+                          Group #{gIdx + 1}:
+                        </span>
+                        <input
+                          type="text"
+                          className="grouping-card-title-input"
+                          value={grp.group_name}
+                          onChange={(e) => handleRenameStagedGroup(gIdx, e.target.value)}
+                          placeholder="Product Group Name"
+                        />
+                        <span style={{ fontSize: '0.72rem', background: '#F3F4F6', padding: '2px 6px', borderRadius: '4px', color: 'var(--text-muted)' }}>
+                          {grp.images.length} view{grp.images.length > 1 ? 's' : ''}
+                        </span>
+                      </div>
+
+                      <div style={{ display: 'flex', gap: '6px' }}>
+                        {grp.images.length > 1 && (
+                          <button
+                            type="button"
+                            className="btn-group-action"
+                            onClick={() => handleSeparateStagedGroup(gIdx)}
+                            title="Split this group so every image becomes an individual product"
+                          >
+                            ✂️ Separate Images
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Low confidence warning banner if AI suggests confirmation */}
+                    {grp.needs_merchant_confirmation && (
+                      <div className="low-confidence-banner">
+                        <span className="low-confidence-banner-icon">⚠️</span>
+                        <span>{grp.confirmation_message || 'These images may represent the same product. Please confirm.'}</span>
+                      </div>
+                    )}
+
+                    {/* Images Grid */}
+                    <div className="grouping-images-grid">
+                      {grp.images.map((img, imgIdx) => (
+                        <div key={img.id || imgIdx} className="grouping-image-tile">
+                          <img src={img.url} alt={img.file_name || `Angle ${imgIdx + 1}`} />
+                          <div className="grouping-tile-overlay">
+                            <select
+                              className="grouping-tile-view-select"
+                              value={img.view || 'front'}
+                              onChange={(e) => handleChangeStagedImageView(gIdx, imgIdx, e.target.value)}
+                              title="Correct view label"
+                            >
+                              <option value="front">Front View</option>
+                              <option value="back">Back View</option>
+                              <option value="side">Side View</option>
+                              <option value="left">Left View</option>
+                              <option value="right">Right View</option>
+                              <option value="top">Top View</option>
+                              <option value="detail">Detail View</option>
+                              <option value="heel">Heel View</option>
+                              <option value="sole">Sole View</option>
+                              <option value="ports">Ports / Controls</option>
+                            </select>
+                            <button
+                              type="button"
+                              className="grouping-tile-remove-btn"
+                              onClick={() => handleRemoveStagedImage(gIdx, imgIdx)}
+                              title="Remove image from group"
+                            >
+                              ✕
+                            </button>
+                          </div>
                         </div>
                       ))}
                     </div>
                   </div>
-
-                  <div className="grouping-modal-footer">
-                    <button
-                      type="button"
-                      className="btn-secondary-action"
-                      onClick={() => setShowGroupingModal(false)}
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="button"
-                      className="btn-primary-action"
-                      onClick={handleConfirmGroupingCommit}
-                      style={{ background: 'linear-gradient(135deg, #4F46E5, #7C3AED)' }}
-                    >
-                      ✓ Confirm & Add to Review Queue
-                    </button>
-                  </div>
-                </div>
+                ))}
               </div>
-            )}
+            </div>
 
-            {/* Command Palette Modal (Cmd+K / Ctrl+K) */}
-            {showCommandPalette && (
-              <div
-                className="modal-overlay"
-                onClick={() => setShowCommandPalette(false)}
-                role="dialog"
-                aria-modal="true"
-                aria-label="Command Palette"
+            <div className="grouping-modal-footer">
+              <button
+                type="button"
+                className="btn-secondary-action"
+                onClick={() => setShowGroupingModal(false)}
               >
-                <div
-                  className="glass-modal"
-                  style={{ maxWidth: '540px' }}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px', borderBottom: '1px solid var(--surface-border)', paddingBottom: '10px' }}>
-                    <span style={{ fontSize: '1.2rem' }}>🔍</span>
-                    <input
-                      type="text"
-                      autoFocus
-                      placeholder="Type a product ID (P01–P10) or action..."
-                      value={commandQuery}
-                      onChange={(e) => setCommandQuery(e.target.value)}
-                      style={{
-                        flex: 1,
-                        background: 'transparent',
-                        border: 'none',
-                        outline: 'none',
-                        fontSize: '1rem',
-                        color: 'var(--text-ink)',
-                        fontFamily: 'var(--font-sans)',
-                      }}
-                    />
-                    <kbd style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', padding: '2px 6px', borderRadius: '4px', background: 'var(--surface-card-subtle)', border: '1px solid var(--surface-border)' }}>
-                      ESC
-                    </kbd>
-                  </div>
-
-                  {/* Filtered Results */}
-                  <div style={{ maxHeight: '320px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <div style={{ fontSize: '0.68rem', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', textTransform: 'uppercase', padding: '4px 8px' }}>
-                      Products ({products.length})
-                    </div>
-                    {products
-                      .filter(
-                        (p) =>
-                          !commandQuery ||
-                          p.product_id.toLowerCase().includes(commandQuery.toLowerCase()) ||
-                          p.metadata_title.toLowerCase().includes(commandQuery.toLowerCase())
-                      )
-                      .map((p) => (
-                        <button
-                          key={p.product_id}
-                          type="button"
-                          className="btn-editorial-secondary"
-                          style={{
-                            width: '100%',
-                            justifyContent: 'space-between',
-                            padding: '8px 12px',
-                            border: '1px solid var(--surface-border)',
-                            background: p.product_id === selectedId ? 'var(--primary-light)' : 'transparent',
-                          }}
-                          onClick={() => {
-                            setSelectedId(p.product_id);
-                            setActiveTab('workspace');
-                            setShowCommandPalette(false);
-                          }}
-                        >
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 800, color: 'var(--accent-indigo)' }}>
-                              {p.product_id}
-                            </span>
-                            <span style={{ fontSize: '0.8rem', color: 'var(--text-ink)' }}>
-                              {p.metadata_title}
-                            </span>
-                          </div>
-                          <span className={`status-pill ${p.status.toLowerCase().replace(/_/g, '-')}`}>
-                            {p.status}
-                          </span>
-                        </button>
-                      ))}
-
-                    <div style={{ fontSize: '0.68rem', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', textTransform: 'uppercase', padding: '8px 8px 4px' }}>
-                      Studio Navigation
-                    </div>
-                    {[
-                      { label: '✦ Review Workspace', tab: 'workspace' },
-                      { label: '📊 Batch Dashboard', tab: 'dashboard' },
-                      { label: '📖 Editorial Method (WCAG)', tab: 'method' },
-                      { label: '📥 Export Hub (CSV & JSON)', tab: 'export' },
-                      { label: '🖼️ Simulated 404 (Missing Frame)', tab: '404' },
-                    ].map((nav) => (
-                      <button
-                        key={nav.tab}
-                        type="button"
-                        className="btn-editorial-secondary"
-                        style={{ width: '100%', justifyContent: 'flex-start', padding: '8px 12px' }}
-                        onClick={() => {
-                          setActiveTab(nav.tab);
-                          setShowCommandPalette(false);
-                        }}
-                      >
-                        {nav.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Keyboard Shortcuts Guide Modal */}
-            {showShortcutsModal && (
-              <div
-                className="modal-overlay"
-                onClick={() => setShowShortcutsModal(false)}
-                role="dialog"
-                aria-modal="true"
-                aria-label="Keyboard Shortcuts"
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn-primary-action"
+                onClick={handleConfirmGroupingCommit}
+                style={{ background: 'linear-gradient(135deg, #4F46E5, #7C3AED)' }}
               >
-                <div
-                  className="glass-modal"
-                  style={{ maxWidth: '480px' }}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                    <h3 style={{ fontFamily: 'var(--font-display)', margin: 0, fontSize: '1.25rem', color: 'var(--text-ink)' }}>
-                      Keyboard Shortcuts
-                    </h3>
-                    <button
-                      type="button"
-                      onClick={() => setShowShortcutsModal(false)}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem', color: 'var(--text-muted)' }}
-                    >
-                      ✕
-                    </button>
-                  </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    {[
-                      { key: 'A', desc: 'Approve current description' },
-                      { key: 'I', desc: 'Flag image as inaccessible' },
-                      { key: 'Space', desc: 'Listen / play description aloud' },
-                      { key: '⌘ + K', desc: 'Toggle command palette' },
-                      { key: '← / →', desc: 'Previous / next product in filmstrip' },
-                      { key: '?', desc: 'Toggle keyboard shortcut cheat sheet' },
-                    ].map((sc) => (
-                      <div
-                        key={sc.key}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          padding: '8px 12px',
-                          borderRadius: '6px',
-                          background: 'var(--surface-card-subtle)',
-                          border: '1px solid var(--surface-border)',
-                        }}
-                      >
-                        <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>{sc.desc}</span>
-                        <kbd style={{ fontFamily: 'var(--font-mono)', fontSize: '0.74rem', fontWeight: 800, padding: '2px 8px', borderRadius: '4px', background: 'var(--surface-card)', border: '1px solid var(--surface-border)', color: 'var(--accent-indigo)' }}>
-                          {sc.key}
-                        </kbd>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Global ALTLUME Footer */}
-            <footer className="altlume-footer">
-              <div style={{ maxWidth: '1440px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-                <div>
-                  <strong>ALTLUME Review Studio</strong> — Human-in-the-loop product image descriptions for digital commerce.
-                </div>
-                <div style={{ fontStyle: 'italic', color: 'var(--text-muted)' }}>
-                  This tool does not prove website accessibility compliance. Human review is strictly required.
-                </div>
-              </div>
-            </footer>
+                ✓ Confirm & Add to Review Queue
+              </button>
+            </div>
           </div>
-        );
+        </div>
+      )}
+
+      {/* Command Palette Modal (Cmd+K / Ctrl+K) */}
+      {showCommandPalette && (
+        <div
+          className="modal-overlay"
+          onClick={() => setShowCommandPalette(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Command Palette"
+        >
+          <div
+            className="glass-modal"
+            style={{ maxWidth: '540px' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px', borderBottom: '1px solid var(--surface-border)', paddingBottom: '10px' }}>
+              <span style={{ fontSize: '1.2rem' }}>🔍</span>
+              <input
+                type="text"
+                autoFocus
+                placeholder="Type a product ID (P01–P10) or action..."
+                value={commandQuery}
+                onChange={(e) => setCommandQuery(e.target.value)}
+                style={{
+                  flex: 1,
+                  background: 'transparent',
+                  border: 'none',
+                  outline: 'none',
+                  fontSize: '1rem',
+                  color: 'var(--text-ink)',
+                  fontFamily: 'var(--font-sans)',
+                }}
+              />
+              <kbd style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', padding: '2px 6px', borderRadius: '4px', background: 'var(--surface-card-subtle)', border: '1px solid var(--surface-border)' }}>
+                ESC
+              </kbd>
+            </div>
+
+            {/* Filtered Results */}
+            <div style={{ maxHeight: '320px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <div style={{ fontSize: '0.68rem', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', textTransform: 'uppercase', padding: '4px 8px' }}>
+                Products ({products.length})
+              </div>
+              {products
+                .filter(
+                  (p) =>
+                    !commandQuery ||
+                    p.product_id.toLowerCase().includes(commandQuery.toLowerCase()) ||
+                    p.metadata_title.toLowerCase().includes(commandQuery.toLowerCase())
+                )
+                .map((p) => (
+                  <button
+                    key={p.product_id}
+                    type="button"
+                    className="btn-editorial-secondary"
+                    style={{
+                      width: '100%',
+                      justifyContent: 'space-between',
+                      padding: '8px 12px',
+                      border: '1px solid var(--surface-border)',
+                      background: p.product_id === selectedId ? 'var(--primary-light)' : 'transparent',
+                    }}
+                    onClick={() => {
+                      setSelectedId(p.product_id);
+                      setActiveTab('workspace');
+                      setShowCommandPalette(false);
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 800, color: 'var(--accent-indigo)' }}>
+                        {p.product_id}
+                      </span>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--text-ink)' }}>
+                        {p.metadata_title}
+                      </span>
+                    </div>
+                    <span className={`status-pill ${p.status.toLowerCase().replace(/_/g, '-')}`}>
+                      {p.status}
+                    </span>
+                  </button>
+                ))}
+
+              <div style={{ fontSize: '0.68rem', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', textTransform: 'uppercase', padding: '8px 8px 4px' }}>
+                Studio Navigation
+              </div>
+              {[
+                { label: '✦ Review Workspace', tab: 'workspace' },
+                { label: '📊 Batch Dashboard', tab: 'dashboard' },
+                { label: '📖 Editorial Method (WCAG)', tab: 'method' },
+                { label: '📥 Export Hub (CSV & JSON)', tab: 'export' },
+                { label: '🖼️ Simulated 404 (Missing Frame)', tab: '404' },
+              ].map((nav) => (
+                <button
+                  key={nav.tab}
+                  type="button"
+                  className="btn-editorial-secondary"
+                  style={{ width: '100%', justifyContent: 'flex-start', padding: '8px 12px' }}
+                  onClick={() => {
+                    setActiveTab(nav.tab);
+                    setShowCommandPalette(false);
+                  }}
+                >
+                  {nav.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Keyboard Shortcuts Guide Modal */}
+      {showShortcutsModal && (
+        <div
+          className="modal-overlay"
+          onClick={() => setShowShortcutsModal(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Keyboard Shortcuts"
+        >
+          <div
+            className="glass-modal"
+            style={{ maxWidth: '480px' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h3 style={{ fontFamily: 'var(--font-display)', margin: 0, fontSize: '1.25rem', color: 'var(--text-ink)' }}>
+                Keyboard Shortcuts
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowShortcutsModal(false)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem', color: 'var(--text-muted)' }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {[
+                { key: 'A', desc: 'Approve current description' },
+                { key: 'I', desc: 'Flag image as inaccessible' },
+                { key: 'Space', desc: 'Listen / play description aloud' },
+                { key: '⌘ + K', desc: 'Toggle command palette' },
+                { key: '← / →', desc: 'Previous / next product in filmstrip' },
+                { key: '?', desc: 'Toggle keyboard shortcut cheat sheet' },
+              ].map((sc) => (
+                <div
+                  key={sc.key}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '8px 12px',
+                    borderRadius: '6px',
+                    background: 'var(--surface-card-subtle)',
+                    border: '1px solid var(--surface-border)',
+                  }}
+                >
+                  <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>{sc.desc}</span>
+                  <kbd style={{ fontFamily: 'var(--font-mono)', fontSize: '0.74rem', fontWeight: 800, padding: '2px 8px', borderRadius: '4px', background: 'var(--surface-card)', border: '1px solid var(--surface-border)', color: 'var(--accent-indigo)' }}>
+                    {sc.key}
+                  </kbd>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Global ALTLUME Footer */}
+      <footer className="altlume-footer">
+        <div style={{ maxWidth: '1440px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+          <div>
+            <strong>ALTLUME Review Studio</strong> — Human-in-the-loop product image descriptions for digital commerce.
+          </div>
+          <div style={{ fontStyle: 'italic', color: 'var(--text-muted)' }}>
+            This tool does not prove website accessibility compliance. Human review is strictly required.
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
 }

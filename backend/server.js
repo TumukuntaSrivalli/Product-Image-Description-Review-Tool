@@ -30,6 +30,23 @@ import {
   generateMultiFormatDescriptions,
 } from './batchDashboardService.js';
 
+// SQLite Persistent Database Service
+import {
+  saveProduct,
+  saveProductsBatch,
+  getAllProductsMap,
+  getAllProductsList,
+  getProduct,
+  logAudit,
+  getAuditHistory,
+  getSetting,
+  setSetting,
+  resetDatabase,
+  getDatabaseStats,
+  getTableRows,
+  DB_PATH,
+} from './database.js';
+
 // Locate authoritative fixture and assets
 const ROOT_DIR = path.resolve(__dirname, '..');
 const FIXTURE_PATH = fs.existsSync(path.join(ROOT_DIR, 'Starter_Data', 'C04', 'fixture.json'))
@@ -109,12 +126,12 @@ const UNSUPPORTED_WORDS = {
   unmatched: 'superlative',
 };
 
-// In-memory persistent state across session
+// Persistent state backed by SQLite across server restarts
 let sessionState = {
-  images: {},
-  history: [],
-  merchantName: '',
-  uploadedProducts: [],
+  images: getAllProductsMap(),
+  history: getAuditHistory(200),
+  merchantName: getSetting('merchantName', ''),
+  uploadedProducts: getAllProductsList().filter((p) => p.is_uploaded),
 };
 
 // Pre-packaged high-quality multilingual fallbacks for C04 synthetic items
@@ -1156,6 +1173,12 @@ NO markdown fences, no preamble, no trailing commentary.`;
       timestamp: new Date().toISOString(),
       mode,
     });
+    // Persist to SQLite
+    saveProduct({
+      product_id: productId,
+      ...sessionState.images[productId],
+    });
+    logAudit(productId, 'GENERATED', { mode });
   }
 
   const validation = validateDescriptionText(activeDescription, productName);
@@ -1214,6 +1237,13 @@ app.put('/api/images/:productId/description', (req, res) => {
     timestamp: new Date().toISOString(),
   });
 
+  // Persist to SQLite
+  saveProduct({
+    product_id: productId,
+    ...sessionState.images[productId],
+  });
+  logAudit(productId, 'EDITED', { edited_text });
+
   const validation = validateDescriptionText(edited_text);
 
   return res.json({
@@ -1249,6 +1279,13 @@ app.post('/api/images/:productId/approve', (req, res) => {
     timestamp: new Date().toISOString(),
   });
 
+  // Persist to SQLite
+  saveProduct({
+    product_id: productId,
+    ...sessionState.images[productId],
+  });
+  logAudit(productId, 'APPROVED', { final_description: activeDesc });
+
   return res.json({
     success: true,
     productId,
@@ -1276,6 +1313,13 @@ app.post('/api/images/:productId/inaccessible', (req, res) => {
     reason,
     timestamp: new Date().toISOString(),
   });
+
+  // Persist to SQLite
+  saveProduct({
+    product_id: productId,
+    ...sessionState.images[productId],
+  });
+  logAudit(productId, 'INACCESSIBLE', { reason, reviewer_note });
 
   return res.json({
     success: true,
@@ -1331,6 +1375,13 @@ Source text: "${text}"`;
     sessionState.images[productId].translations = {};
   }
   sessionState.images[productId].translations[targetLanguage] = translatedText;
+
+  // Persist to SQLite
+  saveProduct({
+    product_id: productId,
+    ...sessionState.images[productId],
+  });
+  logAudit(productId, 'TRANSLATED', { targetLanguage });
 
   return res.json({
     success: true,
@@ -1397,6 +1448,7 @@ app.post('/api/products/sync', (req, res) => {
   const { products, merchantName } = req.body;
   if (merchantName !== undefined) {
     sessionState.merchantName = String(merchantName).trim();
+    setSetting('merchantName', sessionState.merchantName);
   }
   if (Array.isArray(products)) {
     sessionState.uploadedProducts = products.filter((p) => p.isUploaded);
@@ -1408,6 +1460,8 @@ app.post('/api/products/sync', (req, res) => {
         };
       }
     }
+    saveProductsBatch(products);
+    logAudit(null, 'SYNC', { count: products.length });
   }
   return res.json({ success: true, count: products?.length || 0 });
 });
@@ -1583,11 +1637,14 @@ app.get('/api/export/json', (req, res) => {
 
 // POST /api/reset - Reset state to initial fixture
 app.post('/api/reset', (req, res) => {
+  resetDatabase();
   sessionState = {
     images: {},
     history: [],
+    merchantName: '',
+    uploadedProducts: [],
   };
-  res.json({ success: true, message: 'Session state reset to original fixture values' });
+  res.json({ success: true, message: 'Session state and SQLite database reset to original fixture values' });
 });
 
 // ==================== BATCH 2 MULTI-IMAGE ENDPOINTS ====================
@@ -1613,7 +1670,404 @@ app.post('/api/multi-image/analyze', async (req, res) => {
   }
 });
 
+// ==================== DATABASE EXPLORER & RENDER DEPLOYMENT ====================
+
+// GET /api/database/stats - Return JSON metadata about SQLite database
+app.get('/api/database/stats', (req, res) => {
+  try {
+    const stats = getDatabaseStats();
+    res.json({ success: true, ...stats });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// GET /api/database/table/:name - Return table rows with column details
+app.get('/api/database/table/:name', (req, res) => {
+  try {
+    const { name } = req.params;
+    const { limit = 200 } = req.query;
+    const result = getTableRows(name, limit);
+    if (result.error) {
+      return res.status(400).json({ success: false, error: result.error });
+    }
+    res.json({ success: true, ...result });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// GET /api/database/download - Download the actual SQLite .db file directly from Render
+app.get('/api/database/download', (req, res) => {
+  try {
+    if (!fs.existsSync(DB_PATH)) {
+      return res.status(404).send('Database file not found on server.');
+    }
+    res.download(DB_PATH, 'vernx.db', (err) => {
+      if (err) {
+        console.error('Database download error:', err);
+      }
+    });
+  } catch (err) {
+    res.status(500).send(`Failed to download database: ${err.message}`);
+  }
+});
+
+// GET /database - Interactive Visual Database Explorer Web Page
+app.get(['/database', '/admin/database'], (req, res) => {
+  const stats = getDatabaseStats();
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VARNIX — Live Database Explorer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card-bg: #111827;
+      --card-border: #1f2937;
+      --text: #f3f4f6;
+      --text-muted: #9ca3af;
+      --accent: #6366f1;
+      --accent-hover: #4f46e5;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --code-bg: #1e293b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding: 24px;
+      min-height: 100vh;
+    }
+    .container { max-width: 1400px; margin: 0 auto; }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--card-border);
+    }
+    .logo-area { display: flex; align-items: center; gap: 12px; }
+    .badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(99, 102, 241, 0.15);
+      color: #818cf8;
+      border: 1px solid rgba(99, 102, 241, 0.3);
+    }
+    .btn {
+      font-family: inherit;
+      font-size: 0.82rem;
+      font-weight: 600;
+      padding: 8px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+      border: 1px solid transparent;
+    }
+    .btn-primary { background: var(--accent); color: white; }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-secondary { background: var(--card-bg); color: var(--text); border-color: var(--card-border); }
+    .btn-secondary:hover { background: #1a2234; }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .stat-label { font-size: 0.76rem; color: var(--text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; }
+    .stat-value { font-size: 1.6rem; font-weight: 700; margin-top: 4px; font-family: 'JetBrains Mono', monospace; }
+    .stat-sub { font-size: 0.74rem; color: var(--text-muted); margin-top: 4px; }
+    .controls-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .tabs { display: flex; gap: 8px; }
+    .tab-btn {
+      font-family: inherit;
+      font-size: 0.82rem;
+      font-weight: 600;
+      padding: 8px 16px;
+      border-radius: 8px;
+      background: var(--card-bg);
+      color: var(--text-muted);
+      border: 1px solid var(--card-border);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .tab-btn.active {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+    .search-box {
+      position: relative;
+      min-width: 280px;
+    }
+    .search-input {
+      width: 100%;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.82rem;
+      padding: 8px 12px 8px 32px;
+      border-radius: 8px;
+      outline: none;
+    }
+    .search-input:focus { border-color: var(--accent); }
+    .search-icon {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+    .table-container {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      overflow-x: auto;
+      max-height: 600px;
+      overflow-y: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+      text-align: left;
+    }
+    th {
+      background: #162032;
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 0.74rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--card-border);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    td {
+      padding: 12px 16px;
+      border-bottom: 1px solid #1a2333;
+      vertical-align: top;
+    }
+    tr:hover td { background: rgba(255, 255, 255, 0.02); }
+    .status-tag {
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 4px;
+      display: inline-block;
+      text-transform: uppercase;
+    }
+    .status-APPROVED { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .status-EDITED { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .status-PENDING { background: rgba(156, 163, 175, 0.15); color: #d1d5db; border: 1px solid rgba(156, 163, 175, 0.3); }
+    .status-INACCESSIBLE { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+    .json-cell {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      background: var(--code-bg);
+      padding: 6px 8px;
+      border-radius: 6px;
+      max-width: 320px;
+      max-height: 80px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 48px;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo-area">
+        <h1 style="font-size: 1.3rem; font-weight: 700;">VARNIX Database Explorer</h1>
+        <span class="badge">SQLite • WAL Mode</span>
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <a href="/" class="btn btn-secondary">🏠 Back to App</a>
+        <button onclick="fetchCurrentTable()" class="btn btn-secondary">🔄 Refresh</button>
+        <a href="/api/database/download" class="btn btn-primary" download>📥 Download vernx.db</a>
+      </div>
+    </header>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Database File</div>
+        <div class="stat-value" style="font-size: 1.2rem; color: #818cf8;">\${stats.fileName}</div>
+        <div class="stat-sub">Size: \${stats.fileSizeKB} KB</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total Products</div>
+        <div class="stat-value" id="stat-products">\${stats.counts.totalProducts}</div>
+        <div class="stat-sub">Indexed in SQLite</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Approved</div>
+        <div class="stat-value" style="color: var(--success);" id="stat-approved">\${stats.counts.approvedProducts}</div>
+        <div class="stat-sub">Review Complete</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Audit Logs</div>
+        <div class="stat-value" style="color: #f59e0b;" id="stat-audit">\${stats.counts.auditLogs}</div>
+        <div class="stat-sub">Recorded Actions</div>
+      </div>
+    </div>
+
+    <div class="controls-bar">
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTable('products', this)">📦 products</button>
+        <button class="tab-btn" onclick="switchTable('audit_history', this)">📜 audit_history</button>
+        <button class="tab-btn" onclick="switchTable('app_settings', this)">⚙️ app_settings</button>
+      </div>
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" class="search-input" placeholder="Filter rows in table..." oninput="filterTable()">
+      </div>
+    </div>
+
+    <div class="table-container">
+      <table id="dataTable">
+        <thead id="tableHead"></thead>
+        <tbody id="tableBody">
+          <tr><td colspan="10" class="empty-state">Loading table data...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    let currentTable = 'products';
+    let rawRows = [];
+
+    async function switchTable(tableName, btn) {
+      currentTable = tableName;
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      document.getElementById('searchInput').value = '';
+      await fetchCurrentTable();
+    }
+
+    async function fetchCurrentTable() {
+      try {
+        const res = await fetch('/api/database/table/' + currentTable);
+        const data = await res.json();
+        if (data.success && Array.isArray(data.rows)) {
+          rawRows = data.rows;
+          renderTable(rawRows);
+        }
+      } catch (err) {
+        document.getElementById('tableBody').innerHTML = '<tr><td colspan="10" class="empty-state" style="color: var(--danger)">Failed to load data: ' + err.message + '</td></tr>';
+      }
+    }
+
+    function renderTable(rows) {
+      const thead = document.getElementById('tableHead');
+      const tbody = document.getElementById('tableBody');
+
+      if (!rows || rows.length === 0) {
+        thead.innerHTML = '';
+        tbody.innerHTML = '<tr><td colspan="10" class="empty-state">No rows found in ' + currentTable + '</td></tr>';
+        return;
+      }
+
+      const columns = Object.keys(rows[0]);
+      thead.innerHTML = '<tr>' + columns.map(c => '<th>' + c + '</th>').join('') + '</tr>';
+
+      tbody.innerHTML = rows.map(row => {
+        return '<tr>' + columns.map(col => {
+          let val = row[col];
+          if (val === null || val === undefined) return '<td style="color: var(--text-muted)">null</td>';
+          if (col === 'status') {
+            return '<td><span class="status-tag status-' + val + '">' + val + '</span></td>';
+          }
+          if (typeof val === 'string' && (val.startsWith('{') || val.startsWith('['))) {
+            return '<td><div class="json-cell">' + escapeHtml(val) + '</div></td>';
+          }
+          return '<td>' + escapeHtml(String(val)) + '</td>';
+        }).join('') + '</tr>';
+      }).join('');
+    }
+
+    function filterTable() {
+      const q = (document.getElementById('searchInput').value || '').toLowerCase();
+      if (!q) {
+        renderTable(rawRows);
+        return;
+      }
+      const filtered = rawRows.filter(row => {
+        return Object.values(row).some(v => String(v).toLowerCase().includes(q));
+      });
+      renderTable(filtered);
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    // Initial load
+    fetchCurrentTable();
+  </script>
+</body>
+</html>`;
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.send(html);
+});
+
+// Serve static frontend build if it exists (for combined single-service deployment on Render)
+const FRONTEND_DIST = path.resolve(__dirname, '../frontend/dist');
+if (fs.existsSync(FRONTEND_DIST)) {
+  app.use(express.static(FRONTEND_DIST));
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api') || req.path.startsWith('/database') || req.path.startsWith('/assets')) {
+      return next();
+    }
+    res.sendFile(path.join(FRONTEND_DIST, 'index.html'));
+  });
+}
+
 app.listen(PORT, () => {
   console.log(`VARNIX Express Server running on http://localhost:${PORT}`);
+  console.log(`Live SQLite Database Explorer: http://localhost:${PORT}/database`);
 });
+
 
