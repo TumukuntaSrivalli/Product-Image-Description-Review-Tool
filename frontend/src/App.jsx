@@ -809,18 +809,14 @@ export default function App() {
       blockingErrors.push('Do not start with "image of", "picture of", or "photo of". Screen readers already announce images.');
     }
 
-    // 3. Length thresholds: Calm <=125, Warn 126-250, Block >250
+    // 3. Length tracking
     const charCount = raw.length;
     let lengthLevel = 'calm';
-    if (charCount > 250) {
-      lengthLevel = 'block';
-      blockingErrors.push(`Description length (${charCount} characters) exceeds hard limit of 250 characters.`);
-    } else if (charCount > 125) {
+    if (charCount > 5000) {
       lengthLevel = 'warn';
-      warnings.push(`Description length (${charCount} characters) exceeds recommended screen reader brevity of 125 characters.`);
     }
 
-    // 4. Unsupported Claims (Material, Certification, Performance, Superlatives)
+    // 4. Unsupported Claims check (tracked for metadata without blocking)
     const verifiedSpecs = currentProduct?.merchant_confirmed_specs || {};
     for (const w of words) {
       if (UNSUPPORTED_WORDS && UNSUPPORTED_WORDS[w]) {
@@ -828,7 +824,6 @@ export default function App() {
         const isVerified = Object.values(verifiedSpecs).some((v) => String(v).toLowerCase().includes(w));
         if (!isVerified) {
           offendingWords.push({ word: w, category: cat });
-          warnings.push(`Unsupported ${cat} claim: "${w}". Confirm spec or remove.`);
         }
       }
     }
@@ -5671,24 +5666,7 @@ export default function App() {
                       );
                     })()}
 
-                    {/* Plain Language Live Validation Feedback (aria-live="polite") */}
-                    <div aria-live="polite" style={{ marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      {validationResult.blockingErrors.map((err, idx) => (
-                        <div key={idx} style={{ background: '#FEE2E2', border: '1px solid #FECACA', borderRadius: '6px', padding: '6px 10px', fontSize: '0.73rem', color: '#B91C1C', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <span>⛔ Blocking:</span> <span>{err}</span>
-                        </div>
-                      ))}
-                      {validationResult.warnings.map((warn, idx) => (
-                        <div key={idx} style={{ background: '#FEF3C7', border: '1px solid #FDE68A', borderRadius: '6px', padding: '6px 10px', fontSize: '0.73rem', color: '#92400E', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <span>⚠️ Notice:</span> <span>{warn}</span>
-                        </div>
-                      ))}
-                      {validationResult.blockingErrors.length === 0 && validationResult.warnings.length === 0 && (
-                        <div style={{ background: '#ECFDF5', border: '1px solid #A7F3D0', borderRadius: '6px', padding: '6px 10px', fontSize: '0.73rem', color: '#047857', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <span>✓ Valid:</span> <span>Concise, observable facts only. Ready for editorial approval.</span>
-                        </div>
-                      )}
-                    </div>
+
                   </div>
 
 
