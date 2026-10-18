@@ -3518,14 +3518,6 @@ export default function App() {
               </button>
               <button
                 type="button"
-                className={`workspace-nav-tab ${activeTab === 'method' ? 'active' : ''}`}
-                onClick={() => setActiveTab('method')}
-                title="Editorial Guidelines & W3C Standards"
-              >
-                📖 Method
-              </button>
-              <button
-                type="button"
                 className={`workspace-nav-tab ${activeTab === 'export' ? 'active' : ''}`}
                 onClick={() => setActiveTab('export')}
                 title="Export Verified CSV & JSON"
