@@ -188,6 +188,41 @@ const MULTILINGUAL_FALLBACKS = {
   },
 };
 
+// Automatically seed initial fixture products into SQLite if products table is empty
+function seedDatabaseIfEmpty() {
+  try {
+    const existing = getAllProductsList();
+    if (existing.length === 0 && fs.existsSync(FIXTURE_PATH)) {
+      const raw = fs.readFileSync(FIXTURE_PATH, 'utf-8');
+      const fixture = JSON.parse(raw);
+      const rawImages = (fixture.records?.images || []).slice(0, 10);
+      const toSeed = rawImages.map((img) => ({
+        product_id: img.product_id,
+        metadata_title: img.metadata_title || '',
+        category: 'Apparel',
+        draft: img.visible_description || '',
+        visible_description: img.visible_description || '',
+        final_description: '',
+        status: 'PENDING',
+        translations: MULTILINGUAL_FALLBACKS[img.product_id] || {},
+        flags: [],
+        path: img.path,
+        review_note: img.review_note || '',
+        quality_score: 92,
+        quality_status: 'GOOD',
+      }));
+      saveProductsBatch(toSeed);
+      logAudit(null, 'DATABASE_INITIALIZED', { count: toSeed.length });
+      console.log(`[SQLite] Seeded ${toSeed.length} baseline products into database.`);
+      // Refresh in-memory map
+      sessionState.images = getAllProductsMap();
+    }
+  } catch (err) {
+    console.error('[SQLite] Seeding error:', err.message);
+  }
+}
+seedDatabaseIfEmpty();
+
 /**
  * Validate text for unsupported claims
  */
@@ -1958,22 +1993,22 @@ app.get(['/database', '/admin/database'], (req, res) => {
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-label">Database File</div>
-        <div class="stat-value" style="font-size: 1.2rem; color: #818cf8;">\${stats.fileName}</div>
-        <div class="stat-sub">Size: \${stats.fileSizeKB} KB</div>
+        <div class="stat-value" style="font-size: 1.2rem; color: #818cf8;" id="stat-fileName">${stats.fileName}</div>
+        <div class="stat-sub" id="stat-fileSize">Size: ${stats.fileSizeKB} KB</div>
       </div>
       <div class="stat-card">
         <div class="stat-label">Total Products</div>
-        <div class="stat-value" id="stat-products">\${stats.counts.totalProducts}</div>
+        <div class="stat-value" id="stat-products">${stats.counts.totalProducts}</div>
         <div class="stat-sub">Indexed in SQLite</div>
       </div>
       <div class="stat-card">
         <div class="stat-label">Approved</div>
-        <div class="stat-value" style="color: var(--success);" id="stat-approved">\${stats.counts.approvedProducts}</div>
+        <div class="stat-value" style="color: var(--success);" id="stat-approved">${stats.counts.approvedProducts}</div>
         <div class="stat-sub">Review Complete</div>
       </div>
       <div class="stat-card">
         <div class="stat-label">Audit Logs</div>
-        <div class="stat-value" style="color: #f59e0b;" id="stat-audit">\${stats.counts.auditLogs}</div>
+        <div class="stat-value" style="color: #f59e0b;" id="stat-audit">${stats.counts.auditLogs}</div>
         <div class="stat-sub">Recorded Actions</div>
       </div>
     </div>
@@ -2014,6 +2049,21 @@ app.get(['/database', '/admin/database'], (req, res) => {
 
     async function fetchCurrentTable() {
       try {
+        const statsRes = await fetch('/api/database/stats');
+        const statsData = await statsRes.json();
+        if (statsData.success) {
+          const fn = document.getElementById('stat-fileName');
+          if (fn) fn.textContent = statsData.fileName;
+          const fs = document.getElementById('stat-fileSize');
+          if (fs) fs.textContent = 'Size: ' + statsData.fileSizeKB + ' KB';
+          const sp = document.getElementById('stat-products');
+          if (sp) sp.textContent = statsData.counts.totalProducts;
+          const sa = document.getElementById('stat-approved');
+          if (sa) sa.textContent = statsData.counts.approvedProducts;
+          const sl = document.getElementById('stat-audit');
+          if (sl) sl.textContent = statsData.counts.auditLogs;
+        }
+
         const res = await fetch('/api/database/table/' + currentTable);
         const data = await res.json();
         if (data.success && Array.isArray(data.rows)) {

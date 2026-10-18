@@ -510,6 +510,26 @@ export default function App() {
       });
   }, []);
 
+  // Auto-sync products to SQLite database on state updates
+  const isInitialSyncMount = useRef(true);
+  useEffect(() => {
+    if (isInitialSyncMount.current) {
+      isInitialSyncMount.current = false;
+      return;
+    }
+    if (!products || products.length === 0) return;
+
+    const timer = setTimeout(() => {
+      fetch('/api/products/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ products, merchantName }),
+      }).catch(() => {});
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [products, merchantName]);
+
   const currentProduct = products.find((p) => p.product_id === selectedId) || products[0];
 
   // Transparent category view checklist calculator
@@ -1387,6 +1407,14 @@ export default function App() {
         };
       })
     );
+
+    // Direct SQLite backend update for approval and audit logging
+    fetch(`/api/images/${currentProduct.product_id}/approve`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ description: approvedText }),
+    }).catch(() => {});
+
     setSuccessMessage(`Product ${currentProduct.product_id} approved successfully!`);
   };
 
@@ -1411,6 +1439,17 @@ export default function App() {
         };
       })
     );
+
+    // Direct SQLite backend update for inaccessible status and audit logging
+    fetch(`/api/images/${currentProduct.product_id}/inaccessible`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        reason: inaccessibleReason,
+        reviewer_note: inaccessibleNote || 'Visual details cannot be reliably identified.',
+      }),
+    }).catch(() => {});
+
     setShowInaccessibleModal(false);
     setSuccessMessage(`Marked ${currentProduct.product_id} as Inaccessible.`);
   };
