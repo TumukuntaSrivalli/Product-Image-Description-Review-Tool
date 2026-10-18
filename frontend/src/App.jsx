@@ -2981,6 +2981,8 @@ export default function App() {
         file_name: file.name,
       }) || {};
 
+      const descText = detailedInitial.marketplace_description || `Comprehensive catalogue review of ${cleanTitle}.`;
+
       const prod = {
         product_id: newId,
         metadata_title: cleanTitle,
@@ -2991,17 +2993,17 @@ export default function App() {
         image_url: base64,
         file_name: file.name,
         status: 'GENERATED',
-        draft: detailedInitial.marketplace_description || `Comprehensive catalogue review of ${cleanTitle}.`,
+        draft: descText,
         short_description: detailedInitial.short_description || `Observable ${cleanTitle} item.`,
         description_short: detailedInitial.short_description || `Observable ${cleanTitle} item.`,
         description_bullets: detailedInitial.description_bullets || '',
         product_highlights: detailedInitial.product_highlights || [],
-        description_long: detailedInitial.marketplace_description || '',
-        marketplace_description: detailedInitial.marketplace_description || '',
+        description_long: descText,
+        marketplace_description: descText,
         card_summary: detailedInitial.card_summary || '',
         selected_description_type: 'marketplace',
         edited_text: '',
-        final_description: detailedInitial.marketplace_description || '',
+        final_description: descText,
         mode: 'BULLETS',
         quality_status: qualityCheck.warnings.length === 0 ? 'GOOD' : 'WARNING',
         quality_score: qualityCheck.warnings.length === 0 ? 92 : 70,
@@ -3022,7 +3024,7 @@ export default function App() {
         recommended_highlights: [],
         listened: false,
         selected_language: 'en',
-        translations: { en: placeholderDesc },
+        translations: { en: descText },
         edge_cases: { is_decorative: false, contains_text: false, multiple_products: false, ambiguous_color: false },
         history: [{ action: 'BATCH_UPLOADED', timestamp: new Date().toLocaleTimeString() }],
         isUploaded: true,
@@ -3692,7 +3694,7 @@ export default function App() {
         type="file"
         ref={bulkFileInputRef}
         multiple
-        accept=".png,.jpg,.jpeg,.webp"
+        accept="image/*,.png,.jpg,.jpeg,.webp"
         style={{ display: 'none' }}
         onChange={handleBulkFilesSelected}
       />
@@ -3700,7 +3702,7 @@ export default function App() {
         type="file"
         ref={multiImageUploadRef}
         multiple
-        accept=".png,.jpg,.jpeg,.webp"
+        accept="image/*,.png,.jpg,.jpeg,.webp"
         style={{ display: 'none' }}
         onChange={handleMultiImageFiles}
       />
@@ -4090,7 +4092,10 @@ export default function App() {
                       type="button"
                       className="btn-editorial-secondary"
                       style={{ padding: '3px 8px', fontSize: '0.7rem' }}
-                      onClick={() => fileInputRef.current?.click()}
+                      onClick={() => {
+                        if (fileInputRef.current) fileInputRef.current.value = '';
+                        fileInputRef.current?.click();
+                      }}
                       title="Upload Single Product Image"
                       data-cursor="Upload"
                     >
@@ -4100,7 +4105,10 @@ export default function App() {
                       type="button"
                       className="btn-editorial-secondary"
                       style={{ padding: '3px 8px', fontSize: '0.7rem' }}
-                      onClick={() => bulkFileInputRef.current?.click()}
+                      onClick={() => {
+                        if (bulkFileInputRef.current) bulkFileInputRef.current.value = '';
+                        bulkFileInputRef.current?.click();
+                      }}
                       title="Bulk Upload (Up to 20 images)"
                       data-cursor="Bulk"
                     >
@@ -5926,7 +5934,10 @@ export default function App() {
                     type="button"
                     className="btn-editorial-primary"
                     style={{ padding: '10px 22px', fontSize: '0.85rem' }}
-                    onClick={() => fileInputRef.current?.click()}
+                    onClick={() => {
+                      if (fileInputRef.current) fileInputRef.current.value = '';
+                      fileInputRef.current?.click();
+                    }}
                   >
                     📁 Select Single Image
                   </button>
@@ -5934,7 +5945,10 @@ export default function App() {
                     type="button"
                     className="btn-editorial-secondary"
                     style={{ padding: '10px 22px', fontSize: '0.85rem' }}
-                    onClick={() => bulkFileInputRef.current?.click()}
+                    onClick={() => {
+                      if (bulkFileInputRef.current) bulkFileInputRef.current.value = '';
+                      bulkFileInputRef.current?.click();
+                    }}
                   >
                     📂 Bulk Upload (Up to 20)
                   </button>
