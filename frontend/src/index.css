@@ -127,3 +127,25 @@ button, a, input, select, textarea {
 h1, h2, h3, h4, h5, h6, p {
   margin-top: 0;
 }
+
+/* Language Dropdown Styling & Enhanced Legibility */
+.lang-select-dropdown {
+  font-size: 0.92rem !important;
+  font-weight: 600 !important;
+  line-height: 1.5 !important;
+  color: var(--text-ink) !important;
+  background-color: var(--surface-card-subtle) !important;
+}
+
+.lang-select-dropdown option {
+  font-size: 0.94rem !important;
+  font-weight: 600 !important;
+  padding: 8px 14px !important;
+  color: #14110F !important;
+  background-color: #FFFFFF !important;
+}
+
+:root[data-theme='dark'] .lang-select-dropdown option {
+  color: #F3F4F6 !important;
+  background-color: #1A1D27 !important;
+}

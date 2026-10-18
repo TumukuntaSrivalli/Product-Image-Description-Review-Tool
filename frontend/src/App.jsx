@@ -4238,7 +4238,7 @@ export default function App() {
                         </span>
                       </div>
 
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '4px' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
                         {[
                           { code: 'en', label: 'English' },
                           { code: 'hi', label: 'हिन्दी' },
@@ -4249,11 +4249,11 @@ export default function App() {
                             type="button"
                             className={`btn-editorial-secondary ${reviewLanguage === lang.code ? 'active' : ''}`}
                             style={{
-                              padding: '6px 4px',
-                              fontSize: '0.7rem',
+                              padding: '8px 6px',
+                              fontSize: '0.84rem',
                               fontWeight: 700,
                               background: reviewLanguage === lang.code ? 'var(--accent-indigo)' : 'var(--surface-card)',
-                              color: reviewLanguage === lang.code ? '#FFF' : 'var(--text-secondary)',
+                              color: reviewLanguage === lang.code ? '#FFF' : 'var(--text-main)',
                               borderColor: reviewLanguage === lang.code ? 'var(--accent-indigo)' : 'var(--surface-border)',
                             }}
                             onClick={() => handleLanguageSelect(lang.code)}
@@ -5353,7 +5353,7 @@ export default function App() {
                     {/* Language & Voice Selection Controls */}
                     <div className="lang-voice-bar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', padding: '10px 12px', background: 'var(--surface-card)', border: '1px solid var(--surface-border)', borderRadius: '8px', marginBottom: '12px', flexWrap: 'wrap' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                        <span style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <span style={{ fontSize: '0.86rem', fontWeight: 700, color: 'var(--text-ink)', display: 'flex', alignItems: 'center', gap: '5px' }}>
                           🌐 Language:
                         </span>
                         <select
@@ -5367,24 +5367,26 @@ export default function App() {
                           }}
                           className="lang-select-dropdown"
                           style={{
-                            padding: '5px 10px',
-                            fontSize: '0.76rem',
+                            padding: '7px 14px',
+                            fontSize: '0.92rem',
                             fontWeight: 600,
-                            borderRadius: '6px',
-                            border: '1px solid var(--surface-border)',
+                            borderRadius: '8px',
+                            border: '1.5px solid var(--surface-border)',
                             background: 'var(--surface-card-subtle)',
                             color: 'var(--text-ink)',
                             cursor: 'pointer',
                             outline: 'none',
+                            minHeight: '38px',
+                            minWidth: '170px',
                           }}
                         >
-                          <option value="en">🇬🇧 English</option>
-                          <option value="hi">🇮🇳 हिन्दी (Hindi)</option>
-                          <option value="te">🇮🇳 తెలుగు (Telugu)</option>
-                          <option value="ta">🇮🇳 தமிழ் (Tamil)</option>
-                          <option value="es">🇪🇸 Español (Spanish)</option>
-                          <option value="fr">🇫🇷 Français (French)</option>
-                          <option value="de">🇩🇪 Deutsch (German)</option>
+                          <option value="en" style={{ fontSize: '0.94rem', fontWeight: 600, padding: '8px 12px' }}>🇬🇧 English</option>
+                          <option value="hi" style={{ fontSize: '0.94rem', fontWeight: 600, padding: '8px 12px' }}>🇮🇳 हिन्दी (Hindi)</option>
+                          <option value="te" style={{ fontSize: '0.94rem', fontWeight: 600, padding: '8px 12px' }}>🇮🇳 తెలుగు (Telugu)</option>
+                          <option value="ta" style={{ fontSize: '0.94rem', fontWeight: 600, padding: '8px 12px' }}>🇮🇳 தமிழ் (Tamil)</option>
+                          <option value="es" style={{ fontSize: '0.94rem', fontWeight: 600, padding: '8px 12px' }}>🇪🇸 Español (Spanish)</option>
+                          <option value="fr" style={{ fontSize: '0.94rem', fontWeight: 600, padding: '8px 12px' }}>🇫🇷 Français (French)</option>
+                          <option value="de" style={{ fontSize: '0.94rem', fontWeight: 600, padding: '8px 12px' }}>🇩🇪 Deutsch (German)</option>
                         </select>
                         {isTranslating && (
                           <span style={{ fontSize: '0.7rem', color: 'var(--accent-indigo)', fontWeight: 600 }}>
