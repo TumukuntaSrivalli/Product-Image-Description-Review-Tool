@@ -681,9 +681,25 @@ button, a, label, [role="button"] {
 
 .workspace-grid {
   display: grid;
-  grid-template-columns: 310px 1fr 490px;
+  grid-template-columns: 280px 1fr 480px;
   gap: 20px;
   align-items: start;
+  transition: all 0.25s ease;
+}
+
+/* Horizontal standard view: 3 columns */
+.workspace-grid.orientation-horizontal {
+  grid-template-columns: 260px minmax(360px, 1fr) minmax(420px, 1fr);
+}
+
+/* Vertical stack view: Filmstrip on left, main image and review editor stacked vertically */
+.workspace-grid.orientation-vertical {
+  grid-template-columns: 260px 1fr;
+}
+
+.workspace-grid.orientation-vertical .center-column,
+.workspace-grid.orientation-vertical .editor-column {
+  grid-column: 2;
 }
 
 /* Responsive collapse on smaller monitors */

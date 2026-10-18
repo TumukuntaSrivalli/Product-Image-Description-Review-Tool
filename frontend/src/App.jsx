@@ -478,6 +478,20 @@ export default function App() {
   const [isAnalyzingProduct, setIsAnalyzingProduct] = useState(false);
   const [customHighlightInput, setCustomHighlightInput] = useState('');
 
+  // Review Studio Accordion & Orientation Layout State
+  const [studioOrientation, setStudioOrientation] = useState('horizontal'); // 'horizontal' | 'vertical'
+  const [studioAccordion, setStudioAccordion] = useState({
+    context: true,
+    quality: false,
+    questionnaire: false,
+    highlights: false,
+    features: true,
+    format: true,
+  });
+  const toggleAccordion = (key) => {
+    setStudioAccordion((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
   // Batch 2: Multi-Image Support State (Feature flag + staging + viewer)
   const [multiImageSupportEnabled, setMultiImageSupportEnabled] = useState(true);
   const [isGroupingImages, setIsGroupingImages] = useState(false);
@@ -3739,6 +3753,49 @@ export default function App() {
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', background: 'var(--surface-card)', borderRadius: '6px', border: '1px solid var(--surface-border)', padding: '2px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setStudioOrientation('horizontal')}
+                    style={{
+                      padding: '4px 10px',
+                      fontSize: '0.72rem',
+                      fontWeight: 700,
+                      borderRadius: '4px',
+                      border: 'none',
+                      background: studioOrientation === 'horizontal' ? 'var(--accent-indigo)' : 'transparent',
+                      color: studioOrientation === 'horizontal' ? '#FFF' : 'var(--text-secondary)',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}
+                    title="Horizontal View (Side-by-side columns)"
+                  >
+                    <span>⇄</span> Horizontal
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setStudioOrientation('vertical')}
+                    style={{
+                      padding: '4px 10px',
+                      fontSize: '0.72rem',
+                      fontWeight: 700,
+                      borderRadius: '4px',
+                      border: 'none',
+                      background: studioOrientation === 'vertical' ? 'var(--accent-indigo)' : 'transparent',
+                      color: studioOrientation === 'vertical' ? '#FFF' : 'var(--text-secondary)',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}
+                    title="Vertical Stack View (Compact vertical flow)"
+                  >
+                    <span>⇅</span> Vertical
+                  </button>
+                </div>
+
                 <button
                   type="button"
                   className="btn-editorial-secondary"
@@ -3762,8 +3819,8 @@ export default function App() {
               </div>
             </div>
 
-            {/* 3-Column Studio Grid */}
-            <div className="workspace-grid">
+            {/* Studio Workspace Grid */}
+            <div className={`workspace-grid orientation-${studioOrientation}`}>
               {/* COLUMN 1: FILMSTRIP QUEUE (LEFT) */}
               <aside className="filmstrip-col" aria-label="Product Review Filmstrip">
                 <div className="filmstrip-header">
@@ -4548,84 +4605,98 @@ export default function App() {
                       </div>
                     )}
 
-                    {/* Product Context Panel (Optional Name & Category inputs) */}
-                    <div className="context-box">
-                      <div className="context-box-header">
-                        <span className="context-box-title">📝 Product Context</span>
+                    {/* Product Context Accordion Panel (Optional Name & Category inputs) */}
+                    <div className="context-box" style={{ marginBottom: '12px' }}>
+                      <div
+                        className="context-box-header"
+                        onClick={() => toggleAccordion('context')}
+                        style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                      >
+                        <span className="context-box-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span>{studioAccordion.context ? '▼' : '▶'}</span> 📝 Product Context
+                        </span>
                         <span className="context-box-pill">Context Only</span>
                       </div>
 
-                      <div className="context-inputs-grid">
-                        <div className="context-input-group">
-                          <label className="context-input-label">
-                            Product Name (Context only):
-                          </label>
-                          <input
-                            type="text"
-                            value={currentProduct.metadata_title || ''}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              setProducts(prev => prev.map(p => p.product_id === currentProduct.product_id ? { ...p, metadata_title: val } : p));
-                            }}
-                            placeholder="e.g. Wireless Noise-Cancelling Headphones"
-                            className="context-input-field"
-                          />
-                        </div>
-                        <div className="context-input-group">
-                          <label className="context-input-label">
-                            Product Category (Context only):
-                          </label>
-                          <input
-                            type="text"
-                            value={currentProduct.category || ''}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              setProducts(prev => prev.map(p => p.product_id === currentProduct.product_id ? { ...p, category: val } : p));
-                            }}
-                            placeholder="e.g. Apparel, Footwear, Drinkware"
-                            className="context-input-field"
-                          />
-                        </div>
-                        <div className="context-input-group">
-                          <label className="context-input-label">
-                            Product Price ($):
-                          </label>
-                          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                            <span style={{ position: 'absolute', left: '10px', color: 'var(--text-muted)', fontWeight: 700, fontSize: '0.85rem' }}>$</span>
-                            <input
-                              type="number"
-                              step="0.01"
-                              min="0"
-                              value={currentProduct.price !== undefined ? currentProduct.price : ''}
-                              onChange={(e) => {
-                                const val = e.target.value === '' ? '' : parseFloat(e.target.value);
-                                setProducts(prev => prev.map(p => p.product_id === currentProduct.product_id ? { ...p, price: val } : p));
-                              }}
-                              placeholder="e.g. 24.99"
-                              className="context-input-field"
-                              style={{ paddingLeft: '24px' }}
-                            />
+                      {studioAccordion.context && (
+                        <>
+                          <div className="context-inputs-grid">
+                            <div className="context-input-group">
+                              <label className="context-input-label">
+                                Product Name (Context only):
+                              </label>
+                              <input
+                                type="text"
+                                value={currentProduct.metadata_title || ''}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  setProducts(prev => prev.map(p => p.product_id === currentProduct.product_id ? { ...p, metadata_title: val } : p));
+                                }}
+                                placeholder="e.g. Wireless Noise-Cancelling Headphones"
+                                className="context-input-field"
+                              />
+                            </div>
+                            <div className="context-input-group">
+                              <label className="context-input-label">
+                                Product Category (Context only):
+                              </label>
+                              <input
+                                type="text"
+                                value={currentProduct.category || ''}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  setProducts(prev => prev.map(p => p.product_id === currentProduct.product_id ? { ...p, category: val } : p));
+                                }}
+                                placeholder="e.g. Apparel, Footwear, Drinkware"
+                                className="context-input-field"
+                              />
+                            </div>
+                            <div className="context-input-group">
+                              <label className="context-input-label">
+                                Product Price ($):
+                              </label>
+                              <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                                <span style={{ position: 'absolute', left: '10px', color: 'var(--text-muted)', fontWeight: 700, fontSize: '0.85rem' }}>$</span>
+                                <input
+                                  type="number"
+                                  step="0.01"
+                                  min="0"
+                                  value={currentProduct.price !== undefined ? currentProduct.price : ''}
+                                  onChange={(e) => {
+                                    const val = e.target.value === '' ? '' : parseFloat(e.target.value);
+                                    setProducts(prev => prev.map(p => p.product_id === currentProduct.product_id ? { ...p, price: val } : p));
+                                  }}
+                                  placeholder="e.g. 24.99"
+                                  className="context-input-field"
+                                  style={{ paddingLeft: '24px' }}
+                                />
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      </div>
 
-                      {currentProduct.visible_description && (
-                        <div className="context-visible-card">
-                          <span className="context-visible-tag">👁️ VISIBLE INFORMATION</span>
-                          <span className="context-visible-text">{currentProduct.visible_description}</span>
-                        </div>
+                          {currentProduct.visible_description && (
+                            <div className="context-visible-card">
+                              <span className="context-visible-tag">👁️ VISIBLE INFORMATION</span>
+                              <span className="context-visible-text">{currentProduct.visible_description}</span>
+                            </div>
+                          )}
+
+                          <div className="context-note-pill">
+                            <span>ℹ️ <strong>Note:</strong> Product Name, Category, and Price are context only and are never proof of visual traits or specs.</span>
+                          </div>
+                        </>
                       )}
-
-                      <div className="context-note-pill">
-                        <span>ℹ️ <strong>Note:</strong> Product Name, Category, and Price are context only and are never proof of visual traits or specs.</span>
-                      </div>
                     </div>
 
-                    {/* Image Quality Metrics (Sections 7 & 8) */}
+                    {/* Image Quality Metrics Accordion (Sections 7 & 8) */}
                     <div className="quality-panel">
-                      <div className="quality-header-row">
-                        <span className="quality-title">
-                          🔍 Quality Evaluation
+                      <div
+                        className="quality-header-row"
+                        onClick={() => toggleAccordion('quality')}
+                        style={{ cursor: 'pointer' }}
+                      >
+                        <span className="quality-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span>{studioAccordion.quality ? '▼' : '▶'}</span> 🔍 Quality Evaluation
                         </span>
                         <div className="quality-status-badge-wrap">
                           <span className="quality-status-label">Status:</span>
@@ -4635,34 +4706,36 @@ export default function App() {
                         </div>
                       </div>
 
-                      <div className="quality-grid">
-                        <div className="quality-metric-item">
-                          <span className="quality-metric-label">Resolution</span>
-                          <span className="quality-metric-val">{currentProduct.quality_details?.resolution || '1200 x 900 px'}</span>
+                      {studioAccordion.quality && (
+                        <div className="quality-grid">
+                          <div className="quality-metric-item">
+                            <span className="quality-metric-label">Resolution</span>
+                            <span className="quality-metric-val">{currentProduct.quality_details?.resolution || '1200 x 900 px'}</span>
+                          </div>
+                          <div className="quality-metric-item">
+                            <span className="quality-metric-label">Aspect Ratio</span>
+                            <span className="quality-metric-val">{currentProduct.quality_details?.aspect_ratio || '4:3'}</span>
+                          </div>
+                          <div className="quality-metric-item">
+                            <span className="quality-metric-label">Blur Estimate</span>
+                            <span className="quality-metric-val">{currentProduct.quality_details?.blur_estimate || 'Sharp / Clear focus'}</span>
+                          </div>
+                          <div className="quality-metric-item">
+                            <span className="quality-metric-label">Brightness</span>
+                            <span className="quality-metric-val">{currentProduct.quality_details?.brightness || '84% (Optimal)'}</span>
+                          </div>
+                          <div className="quality-metric-item">
+                            <span className="quality-metric-label">Contrast</span>
+                            <span className="quality-metric-val">{currentProduct.quality_details?.contrast || '12.4:1 (High)'}</span>
+                          </div>
+                          <div className="quality-metric-item">
+                            <span className="quality-metric-label">Review Warning</span>
+                            <span className={`quality-metric-val ${currentProduct.quality_warning ? 'warning' : 'clean'}`}>
+                              {currentProduct.quality_warning ? '⚠️ Flagged' : '✓ Clean'}
+                            </span>
+                          </div>
                         </div>
-                        <div className="quality-metric-item">
-                          <span className="quality-metric-label">Aspect Ratio</span>
-                          <span className="quality-metric-val">{currentProduct.quality_details?.aspect_ratio || '4:3'}</span>
-                        </div>
-                        <div className="quality-metric-item">
-                          <span className="quality-metric-label">Blur Estimate</span>
-                          <span className="quality-metric-val">{currentProduct.quality_details?.blur_estimate || 'Sharp / Clear focus'}</span>
-                        </div>
-                        <div className="quality-metric-item">
-                          <span className="quality-metric-label">Brightness</span>
-                          <span className="quality-metric-val">{currentProduct.quality_details?.brightness || '84% (Optimal)'}</span>
-                        </div>
-                        <div className="quality-metric-item">
-                          <span className="quality-metric-label">Contrast</span>
-                          <span className="quality-metric-val">{currentProduct.quality_details?.contrast || '12.4:1 (High)'}</span>
-                        </div>
-                        <div className="quality-metric-item">
-                          <span className="quality-metric-label">Review Warning</span>
-                          <span className={`quality-metric-val ${currentProduct.quality_warning ? 'warning' : 'clean'}`}>
-                            {currentProduct.quality_warning ? '⚠️ Flagged' : '✓ Clean'}
-                          </span>
-                        </div>
-                      </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -4674,168 +4747,186 @@ export default function App() {
 
 
 
-                  {/* SINGLE-PRODUCT INTELLIGENCE: Category-Specific Merchant Verification Questionnaire */}
+                  {/* SINGLE-PRODUCT INTELLIGENCE: Category-Specific Merchant Verification Questionnaire Accordion */}
                   {singleProductIntelligenceEnabled && currentProduct.verification_questions && currentProduct.verification_questions.length > 0 && (
-                    <div className="questionnaire-panel">
-                      <div className="questionnaire-header">
-                        <span className="questionnaire-title">
-                          ❓ Merchant Verification Questionnaire ({currentProduct.verification_questions.length})
+                    <div className="questionnaire-panel" style={{ marginBottom: '12px' }}>
+                      <div
+                        className="questionnaire-header"
+                        onClick={() => toggleAccordion('questionnaire')}
+                        style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                      >
+                        <span className="questionnaire-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span>{studioAccordion.questionnaire ? '▼' : '▶'}</span> ❓ Verification Questionnaire ({currentProduct.verification_questions.length})
                         </span>
                         <span className="merchant-provided-pill">
                           {Object.keys(currentProduct.merchant_confirmed_specs || {}).length} Verified
                         </span>
                       </div>
-                      <div className="questionnaire-sub">
-                        Dynamic non-observable attributes for this product category. Confirmed answers are tagged <strong>Merchant-provided</strong>. Unconfirmed specs <em>never</em> appear in descriptions.
-                      </div>
 
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        {currentProduct.verification_questions.map((q) => {
-                          const answeredVal = currentProduct.merchant_answers?.[q.id];
-                          const isConfirmed = answeredVal && answeredVal !== 'Not known' && answeredVal !== 'Skipped';
+                      {studioAccordion.questionnaire && (
+                        <>
+                          <div className="questionnaire-sub">
+                            Dynamic non-observable attributes for this product category. Confirmed answers are tagged <strong>Merchant-provided</strong>.
+                          </div>
 
-                          return (
-                            <div key={q.id} className="question-item-card">
-                              <div className="question-item-title">
-                                <span>{q.question_text || `Verify ${q.attribute}:`}</span>
-                                {isConfirmed && (
-                                  <span className="merchant-provided-pill">
-                                    ✓ Merchant-provided
-                                  </span>
-                                )}
-                              </div>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            {currentProduct.verification_questions.map((q) => {
+                              const answeredVal = currentProduct.merchant_answers?.[q.id];
+                              const isConfirmed = answeredVal && answeredVal !== 'Not known' && answeredVal !== 'Skipped';
 
-                              <div className="question-options-grid">
-                                {(q.options || ['Not known', 'Other (custom value)']).map((opt) => {
-                                  const isSelected = answeredVal === opt;
-                                  return (
-                                    <label
-                                      key={opt}
-                                      className={`question-option-row ${isSelected ? 'selected' : ''}`}
-                                      onClick={() => handleAnswerQuestion(q.id, q.attribute, opt)}
-                                    >
+                              return (
+                                <div key={q.id} className="question-item-card">
+                                  <div className="question-item-title">
+                                    <span>{q.question_text || `Verify ${q.attribute}:`}</span>
+                                    {isConfirmed && (
+                                      <span className="merchant-provided-pill">
+                                        ✓ Merchant-provided
+                                      </span>
+                                    )}
+                                  </div>
+
+                                  <div className="question-options-grid">
+                                    {(q.options || ['Not known', 'Other (custom value)']).map((opt) => {
+                                      const isSelected = answeredVal === opt;
+                                      return (
+                                        <label
+                                          key={opt}
+                                          className={`question-option-row ${isSelected ? 'selected' : ''}`}
+                                          onClick={() => handleAnswerQuestion(q.id, q.attribute, opt)}
+                                        >
+                                          <input
+                                            type="radio"
+                                            name={`q-${currentProduct.product_id}-${q.id}`}
+                                            checked={isSelected}
+                                            onChange={() => handleAnswerQuestion(q.id, q.attribute, opt)}
+                                          />
+                                          <span>{opt}</span>
+                                          {opt === 'Not known' && (
+                                            <span style={{ fontSize: '0.64rem', color: '#9CA3AF', marginLeft: 'auto' }}>
+                                              (Omit)
+                                            </span>
+                                          )}
+                                        </label>
+                                      );
+                                    })}
+                                  </div>
+
+                                  {/* Custom value text input */}
+                                  {answeredVal === 'Other (custom value)' && (
+                                    <div style={{ marginTop: '6px' }}>
                                       <input
-                                        type="radio"
-                                        name={`q-${currentProduct.product_id}-${q.id}`}
-                                        checked={isSelected}
-                                        onChange={() => handleAnswerQuestion(q.id, q.attribute, opt)}
+                                        type="text"
+                                        placeholder={`Enter custom ${q.attribute}...`}
+                                        value={currentProduct.merchant_custom_answers?.[q.id] || ''}
+                                        onChange={(e) => handleCustomAnswerChange(q.id, q.attribute, e.target.value)}
+                                        style={{
+                                          width: '100%',
+                                          padding: '5px 8px',
+                                          borderRadius: '4px',
+                                          border: '1px solid #4F46E5',
+                                          fontSize: '0.74rem',
+                                          outline: 'none',
+                                          background: '#EEF2FF',
+                                        }}
                                       />
-                                      <span>{opt}</span>
-                                      {opt === 'Not known' && (
-                                        <span style={{ fontSize: '0.64rem', color: '#9CA3AF', marginLeft: 'auto' }}>
-                                          (Omit from catalogue)
-                                        </span>
-                                      )}
-                                    </label>
-                                  );
-                                })}
-                              </div>
-
-                              {/* Custom value text input */}
-                              {answeredVal === 'Other (custom value)' && (
-                                <div style={{ marginTop: '6px' }}>
-                                  <input
-                                    type="text"
-                                    placeholder={`Enter custom ${q.attribute}...`}
-                                    value={currentProduct.merchant_custom_answers?.[q.id] || ''}
-                                    onChange={(e) => handleCustomAnswerChange(q.id, q.attribute, e.target.value)}
-                                    style={{
-                                      width: '100%',
-                                      padding: '5px 8px',
-                                      borderRadius: '4px',
-                                      border: '1px solid #4F46E5',
-                                      fontSize: '0.74rem',
-                                      outline: 'none',
-                                      background: '#EEF2FF',
-                                    }}
-                                  />
+                                    </div>
+                                  )}
                                 </div>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
+                              );
+                            })}
+                          </div>
+                        </>
+                      )}
                     </div>
                   )}
 
-                  {/* SINGLE-PRODUCT INTELLIGENCE: Smart Highlights Manager */}
+                  {/* SINGLE-PRODUCT INTELLIGENCE: Smart Highlights Manager Accordion */}
                   {singleProductIntelligenceEnabled && (currentProduct.recommended_highlights?.length > 0 || currentProduct.selected_highlights?.length > 0) && (
-                    <div className="highlights-manager-card">
-                      <div className="highlights-manager-header">
-                        <span className="highlights-manager-title">
-                          ⭐ Smart Catalogue Highlights
+                    <div className="highlights-manager-card" style={{ marginBottom: '12px' }}>
+                      <div
+                        className="highlights-manager-header"
+                        onClick={() => toggleAccordion('highlights')}
+                        style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                      >
+                        <span className="highlights-manager-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span>{studioAccordion.highlights ? '▼' : '▶'}</span> ⭐ Smart Highlights
                         </span>
                         <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
                           Selected: <strong>{currentProduct.selected_highlights?.length || 0}</strong>
                         </span>
                       </div>
-                      <div style={{ fontSize: '0.71rem', color: 'var(--text-muted)', marginBottom: '8px' }}>
-                        Recommended top features for this category. Accept, reorder, or add custom highlights.
-                      </div>
 
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '8px' }}>
-                        {(currentProduct.selected_highlights || []).map((h, idx) => (
-                          <div key={idx} className="highlight-item-row active">
-                            <span className="highlight-item-text">
-                              #{idx + 1} {h}
-                            </span>
-                            <div className="highlight-actions-group">
-                              <button
-                                type="button"
-                                className="highlight-mini-btn"
-                                onClick={() => handleReorderHighlight(idx, 'up')}
-                                disabled={idx === 0}
-                                title="Move Up"
-                              >
-                                ▲
-                              </button>
-                              <button
-                                type="button"
-                                className="highlight-mini-btn"
-                                onClick={() => handleReorderHighlight(idx, 'down')}
-                                disabled={idx === (currentProduct.selected_highlights?.length || 0) - 1}
-                                title="Move Down"
-                              >
-                                ▼
-                              </button>
-                              <button
-                                type="button"
-                                className="highlight-mini-btn"
-                                style={{ color: '#DC2626' }}
-                                onClick={() => handleRemoveHighlight(idx)}
-                                title="Remove"
-                              >
-                                ✕
-                              </button>
-                            </div>
+                      {studioAccordion.highlights && (
+                        <>
+                          <div style={{ fontSize: '0.71rem', color: 'var(--text-muted)', marginBottom: '8px' }}>
+                            Recommended top features for this category. Accept, reorder, or add custom highlights.
                           </div>
-                        ))}
-                      </div>
 
-                      {/* Add Custom Highlight Input */}
-                      <div style={{ display: 'flex', gap: '6px' }}>
-                        <input
-                          type="text"
-                          placeholder="Add custom highlight..."
-                          value={customHighlightInput}
-                          onChange={(e) => setCustomHighlightInput(e.target.value)}
-                          style={{ flex: 1, padding: '4px 8px', borderRadius: '4px', border: '1px solid var(--border)', fontSize: '0.74rem' }}
-                        />
-                        <button
-                          type="button"
-                          className="btn-secondary-action"
-                          style={{ fontSize: '0.72rem', padding: '4px 10px', fontWeight: 700 }}
-                          onClick={handleAddCustomHighlight}
-                        >
-                          + Add
-                        </button>
-                      </div>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '8px' }}>
+                            {(currentProduct.selected_highlights || []).map((h, idx) => (
+                              <div key={idx} className="highlight-item-row active">
+                                <span className="highlight-item-text">
+                                  #{idx + 1} {h}
+                                </span>
+                                <div className="highlight-actions-group">
+                                  <button
+                                    type="button"
+                                    className="highlight-mini-btn"
+                                    onClick={() => handleReorderHighlight(idx, 'up')}
+                                    disabled={idx === 0}
+                                    title="Move Up"
+                                  >
+                                    ▲
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="highlight-mini-btn"
+                                    onClick={() => handleReorderHighlight(idx, 'down')}
+                                    disabled={idx === (currentProduct.selected_highlights?.length || 0) - 1}
+                                    title="Move Down"
+                                  >
+                                    ▼
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="highlight-mini-btn"
+                                    style={{ color: '#DC2626' }}
+                                    onClick={() => handleRemoveHighlight(idx)}
+                                    title="Remove"
+                                  >
+                                    ✕
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+
+                          {/* Add Custom Highlight Input */}
+                          <div style={{ display: 'flex', gap: '6px' }}>
+                            <input
+                              type="text"
+                              placeholder="Add custom highlight..."
+                              value={customHighlightInput}
+                              onChange={(e) => setCustomHighlightInput(e.target.value)}
+                              style={{ flex: 1, padding: '4px 8px', borderRadius: '4px', border: '1px solid var(--border)', fontSize: '0.74rem' }}
+                            />
+                            <button
+                              type="button"
+                              className="btn-secondary-action"
+                              style={{ fontSize: '0.72rem', padding: '4px 10px', fontWeight: 700 }}
+                              onClick={handleAddCustomHighlight}
+                            >
+                              + Add
+                            </button>
+                          </div>
+                        </>
+                      )}
                     </div>
                   )}
 
                   {/* SINGLE-PRODUCT INTELLIGENCE: Visual Quality Observations */}
                   {singleProductIntelligenceEnabled && currentProduct.quality_observations?.length > 0 && (
-                    <div style={{ marginBottom: '14px', background: '#F8FAFC', padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--border)' }}>
+                    <div style={{ marginBottom: '12px', background: '#F8FAFC', padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--border)' }}>
                       <div style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '6px' }}>
                         Visual Observations (Appearance Only):
                       </div>
@@ -4853,19 +4944,25 @@ export default function App() {
                     </div>
                   )}
 
-                  {/* SECTION A: QUICK REVIEW UI — "Which features should we highlight?" */}
-                  <div className="features-highlight-card" style={{ marginBottom: '16px', background: 'var(--surface-card)', padding: '14px', borderRadius: '10px', border: '1px solid var(--surface-border)', boxShadow: 'var(--shadow-sm)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  {/* SECTION A: QUICK REVIEW UI — "Which features should we highlight?" Accordion */}
+                  <div className="features-highlight-card" style={{ marginBottom: '14px', background: 'var(--surface-card)', padding: '14px', borderRadius: '10px', border: '1px solid var(--surface-border)', boxShadow: 'var(--shadow-sm)' }}>
+                    <div
+                      style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: studioAccordion.features ? '8px' : 0, cursor: 'pointer' }}
+                      onClick={() => toggleAccordion('features')}
+                    >
                       <span style={{ fontSize: '0.86rem', fontWeight: 800, color: 'var(--text-ink)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        ✨ Which features should we highlight?
+                        <span>{studioAccordion.features ? '▼' : '▶'}</span> ✨ Which features should we highlight?
                       </span>
                       <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
                         Selected: <strong style={{ color: 'var(--accent-indigo)' }}>{(currentProduct.detected_features || []).filter(f => (currentProduct.feature_choices?.[f.id] ?? f.choice ?? 'INCLUDE') === 'INCLUDE').length}</strong> / {(currentProduct.detected_features || []).length}
                       </span>
                     </div>
-                    <p style={{ fontSize: '0.74rem', color: 'var(--text-secondary)', margin: '0 0 10px 0', lineHeight: 1.4 }}>
-                      Only selected features feed catalogue generation. Rejected features are strictly excluded.
-                    </p>
+
+                    {studioAccordion.features && (
+                      <>
+                        <p style={{ fontSize: '0.74rem', color: 'var(--text-secondary)', margin: '0 0 10px 0', lineHeight: 1.4 }}>
+                          Only selected features feed catalogue generation. Rejected features are strictly excluded.
+                        </p>
 
                     {/* Feature Cards List */}
                     {(currentProduct.detected_features && currentProduct.detected_features.length > 0) ? (
@@ -5033,24 +5130,32 @@ export default function App() {
                         >
                           Add
                         </button>
+                        </div>
                       </div>
-                    </div>
-                  </div>
+                    </>
+                  )}
+                </div>
 
                   {/* SECTION B: DESCRIPTION TYPES & GENERATION */}
                   {batchDashboardEnabled ? (
-                    <div className="batch-multiformat-studio" style={{ marginBottom: '16px', background: '#F8FAFC', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <div className="batch-multiformat-studio" style={{ marginBottom: '14px', background: '#F8FAFC', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                      <div
+                        style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: studioAccordion.format ? '8px' : 0, cursor: 'pointer' }}
+                        onClick={() => toggleAccordion('format')}
+                      >
                         <span style={{ fontSize: '0.82rem', fontWeight: 800, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          📦 Multi-Format Catalogue Studio
+                          <span>{studioAccordion.format ? '▼' : '▶'}</span> 📦 Multi-Format Catalogue Studio
                         </span>
                         <span style={{ fontSize: '0.7rem', color: 'var(--primary)', fontWeight: 700, background: '#EEF2FF', padding: '2px 6px', borderRadius: '4px' }}>
                           Batch 3: 4 Formats
                         </span>
                       </div>
-                      <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '10px' }}>
-                        All formats are generated from the SAME verified features with no contradictions.
-                      </div>
+
+                      {studioAccordion.format && (
+                        <>
+                          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: '10px' }}>
+                            All formats are generated from the SAME verified features with no contradictions.
+                          </div>
 
                       {/* 4 Format Switcher Tabs */}
                       <div className="format-tabs-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '4px', marginBottom: '10px' }}>
@@ -5105,7 +5210,9 @@ export default function App() {
                           🔄 Regenerate {activeFormatTab}
                         </button>
                       </div>
-                    </div>
+                    </>
+                  )}
+                </div>
                   ) : (
                     <div style={{ marginBottom: '14px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
