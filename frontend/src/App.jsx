@@ -6,6 +6,7 @@ import { OnboardingFlow } from './components/onboarding/OnboardingFlow';
 import { SubscriptionFlow } from './components/subscription/SubscriptionFlow';
 import { HomeLandingPage } from './components/landing/HomeLandingPage';
 import { BatchView } from './components/workspace/BatchView';
+import { EcommercePreviewPage } from './components/preview/EcommercePreviewPage';
 
 // Dynamic Price Estimation Helper based on product category, title, and file keywords
 export function getEstimatedProductPrice(category = '', title = '', filename = '') {
@@ -320,8 +321,30 @@ export default function App() {
     return 'home';
   });
 
-  // Navigation tabs within Workspace: 'dashboard' | 'batch' | 'workspace' (Studio) | 'export'
+  // Navigation tabs within Workspace: 'dashboard' | 'batch' | 'workspace' (Studio) | 'export' (Results) | 'preview'
   const [activeTab, setActiveTab] = useState('dashboard');
+
+  // Configurable Ecommerce Product URLs (persisted in localStorage and product objects)
+  const [ecommerceUrls, setEcommerceUrls] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('varnx_ecommerce_urls') || '{}');
+    } catch {
+      return {};
+    }
+  });
+
+  const handleUpdateEcommerceUrl = (productId, url) => {
+    setEcommerceUrls((prev) => {
+      const next = { ...prev, [productId]: url };
+      try {
+        localStorage.setItem('varnx_ecommerce_urls', JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+    setProducts((prev) =>
+      prev.map((p) => (p.product_id === productId ? { ...p, ecommerce_url: url } : p))
+    );
+  };
 
   // Auto-redirect if tab was set to 'method'
   useEffect(() => {
@@ -3528,9 +3551,17 @@ export default function App() {
                 type="button"
                 className={`workspace-nav-tab ${activeTab === 'export' ? 'active' : ''}`}
                 onClick={() => setActiveTab('export')}
-                title="Export Verified CSV & JSON"
+                title="Results: Verified Catalogue, CSV & JSON"
               >
-                📥 Export
+                📥 Results
+              </button>
+              <button
+                type="button"
+                className={`workspace-nav-tab ${activeTab === 'preview' ? 'active' : ''}`}
+                onClick={() => setActiveTab('preview')}
+                title="Marketing / Ecommerce Product Preview"
+              >
+                🛍️ Ecommerce Preview
               </button>
             </nav>
           )}
@@ -5784,6 +5815,31 @@ export default function App() {
                       </button>
                     </div>
 
+                    {currentProduct?.status === 'APPROVED' && (
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('preview')}
+                        style={{
+                          background: '#EFF6FF',
+                          border: '1px solid #BFDBFE',
+                          color: '#1D4ED8',
+                          fontWeight: 700,
+                          fontSize: '0.82rem',
+                          borderRadius: '8px',
+                          padding: '9px 12px',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '6px',
+                        }}
+                        title="View approved product in Ecommerce Preview"
+                      >
+                        <span>🛍️ View in Ecommerce Preview</span>
+                        <span>→</span>
+                      </button>
+                    )}
+
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                       <button
                         type="button"
@@ -6256,7 +6312,7 @@ export default function App() {
                       <th style={{ padding: '12px 14px', fontWeight: 700 }}>Status</th>
                       <th style={{ padding: '12px 14px', fontWeight: 700 }}>Origin</th>
                       <th style={{ padding: '12px 14px', fontWeight: 700 }}>Reviewed Description</th>
-                      <th style={{ padding: '12px 14px', fontWeight: 700, textAlign: 'center', width: '140px' }}>Download Single</th>
+                      <th style={{ padding: '12px 14px', fontWeight: 700, textAlign: 'center', width: '220px' }}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -6337,6 +6393,27 @@ export default function App() {
                               <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
                                 <button
                                   type="button"
+                                  onClick={() => {
+                                    setSelectedId(p.product_id);
+                                    setActiveTab('preview');
+                                  }}
+                                  title={`Preview ${p.product_id} in Ecommerce Storefront View`}
+                                  style={{
+                                    padding: '4px 8px',
+                                    fontSize: '0.72rem',
+                                    fontWeight: 700,
+                                    borderRadius: '6px',
+                                    border: '1px solid #BFDBFE',
+                                    background: '#EFF6FF',
+                                    color: '#1D4ED8',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.15s ease'
+                                  }}
+                                >
+                                  🛍️ Preview
+                                </button>
+                                <button
+                                  type="button"
                                   onClick={() => handleExportSingleCsv(p)}
                                   title={`Download CSV only for ${p.product_id}`}
                                   style={{
@@ -6388,6 +6465,19 @@ export default function App() {
             </div>
           );
         })()}
+
+        {/* TAB: ECOMMERCE PREVIEW PAGE */}
+        {activeFlow === 'workspace' && activeTab === 'preview' && (
+          <EcommercePreviewPage
+            products={products}
+            selectedId={selectedId}
+            onSelectProduct={(id) => setSelectedId(id)}
+            onNavigate={(tab) => setActiveTab(tab)}
+            ecommerceUrls={ecommerceUrls}
+            onUpdateEcommerceUrl={handleUpdateEcommerceUrl}
+            setSuccessMessage={setSuccessMessage}
+          />
+        )}
 
         {/* TAB 404: MISSING IMAGE / SLIPPED FRAME */}
         {activeTab === '404' && (
@@ -7329,7 +7419,8 @@ export default function App() {
               {[
                 { label: '✦ Review Workspace', tab: 'workspace' },
                 { label: '📊 Batch Dashboard', tab: 'dashboard' },
-                { label: '📥 Export Hub (CSV & JSON)', tab: 'export' },
+                { label: '📥 Results & Export (CSV & JSON)', tab: 'export' },
+                { label: '🛍️ Ecommerce Product Preview', tab: 'preview' },
                 { label: '🖼️ Simulated 404 (Missing Frame)', tab: '404' },
               ].map((nav) => (
                 <button
