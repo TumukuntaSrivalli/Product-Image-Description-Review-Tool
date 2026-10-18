@@ -453,6 +453,7 @@ export default function App() {
   // Bulk Upload Queue State
   const [bulkQueue, setBulkQueue] = useState([]);
   const [bulkProgress, setBulkProgress] = useState(0);
+  const [isBulkProcessing, setIsBulkProcessing] = useState(false);
 
   // Voice TTS State
   const [isPlayingVoice, setIsPlayingVoice] = useState(false);
@@ -520,7 +521,6 @@ export default function App() {
   const isListeningAll = listenAllPlaying;
   const isAutoAdvance = autoAdvanceVoice;
   const setIsAutoAdvance = setAutoAdvanceVoice;
-  const isBulkProcessing = showBulkUploadModal;
   const customFeatureName = newFeatureName;
   const setCustomFeatureName = setNewFeatureName;
   const customFeatureValue = newFeatureValue;
@@ -2014,14 +2014,20 @@ export default function App() {
     handleCloseCamera();
   };
 
-  // Single Merchant File Upload with client-side quality check
+  // Single/Multiple Merchant File Upload with client-side quality check
   const handleFileUpload = async (e) => {
-    const file = e?.target?.files?.[0] || e?.dataTransfer?.files?.[0] || (e instanceof File ? e : null);
+    const rawFiles = Array.from(e?.target?.files || e?.dataTransfer?.files || []);
+    if (rawFiles.length > 1) {
+      return handleBulkFilesSelected(e);
+    }
+    const file = rawFiles[0] || (e instanceof File ? e : null);
     if (!file) return;
 
     const allowed = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
     if (!allowed.includes(file.type.toLowerCase())) {
       setErrorMessage('Please upload a valid image file (PNG, JPG, JPEG, WEBP).');
+      if (e?.target) e.target.value = '';
+      if (fileInputRef.current) fileInputRef.current.value = '';
       return;
     }
 
@@ -2726,16 +2732,35 @@ export default function App() {
 
   // Bulk Upload (max 20 images)
   const handleBulkFilesSelected = async (e) => {
-    const files = Array.from(e?.target?.files || e?.dataTransfer?.files || []);
-    if (files.length === 0) return;
+    const rawList = Array.from(e?.target?.files || e?.dataTransfer?.files || []);
+    if (rawList.length === 0) return;
+
+    // Filter valid image types
+    const validExts = ['.png', '.jpg', '.jpeg', '.webp'];
+    const files = rawList.filter((f) => {
+      const name = f.name?.toLowerCase() || '';
+      return validExts.some((ext) => name.endsWith(ext)) || (f.type && f.type.startsWith('image/'));
+    });
+
+    if (files.length === 0) {
+      setErrorMessage('Please select valid image files (PNG, JPG, JPEG, WEBP).');
+      if (e?.target) e.target.value = '';
+      if (bulkFileInputRef.current) bulkFileInputRef.current.value = '';
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
 
     if (files.length > 20) {
-      setErrorMessage(`Batch limit exceeded: You selected ${files.length} images. Maximum 20 images per batch allowed (10 recommended).`);
+      setErrorMessage(`Batch limit exceeded: You selected ${files.length} images. Maximum 20 images per batch allowed.`);
       if (e?.target) e.target.value = '';
+      if (bulkFileInputRef.current) bulkFileInputRef.current.value = '';
+      if (fileInputRef.current) fileInputRef.current.value = '';
       return;
     }
 
     const newQueueItems = [];
+    const initialProducts = [];
+
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       const numStr = String(uploadCounterRef.current).padStart(3, '0');
@@ -2745,39 +2770,113 @@ export default function App() {
       const base64 = await new Promise((res) => {
         const r = new FileReader();
         r.onload = (ev) => res(ev.target?.result);
+        r.onerror = () => res('');
         r.readAsDataURL(file);
       });
 
+      if (!base64) continue;
+
       const qualityCheck = await checkImageQualityClient(base64);
+      const cleanTitle = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+      const category = 'Merchant Item';
+      const estPrice = getEstimatedProductPrice(category, cleanTitle, file.name);
+
+      const placeholderDesc = `Visual inspection of ${cleanTitle}. Observable ${category} displaying distinct form and exterior contours.`;
+
+      const prod = {
+        product_id: newId,
+        metadata_title: cleanTitle,
+        category: category,
+        price: estPrice,
+        visible_description: 'Merchant batch uploaded product',
+        review_note: 'Batch image upload; review observable features before approval.',
+        image_url: base64,
+        file_name: file.name,
+        status: 'GENERATED',
+        draft: placeholderDesc,
+        short_description: placeholderDesc,
+        description_short: placeholderDesc,
+        description_bullets: `• Observable silhouette: ${category} item with defined form.\n• High-contrast finish visible on exterior.\n• Neutral backdrop suitable for review.`,
+        product_highlights: [
+          `Visual silhouette: ${category} item with defined form.`,
+          `High-contrast finish visible on exterior.`,
+          `Neutral backdrop suitable for review.`
+        ],
+        description_long: placeholderDesc,
+        marketplace_description: placeholderDesc,
+        card_summary: `Observable ${category} item.`,
+        selected_description_type: 'marketplace',
+        edited_text: '',
+        final_description: placeholderDesc,
+        mode: 'BULLETS',
+        quality_status: qualityCheck.warnings.length === 0 ? 'GOOD' : 'WARNING',
+        quality_score: qualityCheck.warnings.length === 0 ? 92 : 70,
+        quality_warning: qualityCheck.warnings.length > 0 ? qualityCheck.warnings : null,
+        quality_details: {
+          resolution: `${qualityCheck.width} x ${qualityCheck.height} px`,
+          aspect_ratio: 'Standard',
+          visual_clarity: qualityCheck.isGood ? 'Good' : 'Needs Review',
+          blur_estimate: qualityCheck.variance < 150 ? 'Blurry' : 'Sharp focus',
+          brightness: `${qualityCheck.avgBrightness}%`,
+          contrast: 'High',
+        },
+        detected_features: [],
+        feature_choices: {},
+        verification_questions: [],
+        merchant_confirmed_specs: {},
+        selected_highlights: [],
+        recommended_highlights: [],
+        listened: false,
+        selected_language: 'en',
+        translations: { en: placeholderDesc },
+        edge_cases: { is_decorative: false, contains_text: false, multiple_products: false, ambiguous_color: false },
+        history: [{ action: 'BATCH_UPLOADED', timestamp: new Date().toLocaleTimeString() }],
+        isUploaded: true,
+      };
+      prod.readiness_score = computeClientReadinessScore(prod);
+
+      initialProducts.push(prod);
 
       newQueueItems.push({
         id: newId,
         file,
+        name: cleanTitle,
         product_id: newId,
-        metadata_title: file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' '),
-        category: 'Merchant Item',
+        metadata_title: cleanTitle,
+        category: category,
         visible_description: 'Merchant batch uploaded item',
         image_url: base64,
-        status: 'QUEUED', // QUEUED | ANALYZING | READY | FAILED
+        status: 'QUEUED',
         qualityCheck,
       });
     }
 
-    setBulkQueue(newQueueItems);
-    setBulkProgress({ total: newQueueItems.length, completed: 0 });
-    setShowBulkUploadModal(true);
-    if (e?.target) e.target.value = '';
+    if (initialProducts.length === 0) return;
 
-    // Process bulk items sequentially (2 concurrent)
+    // Immediately commit to review queue so user sees all items in Review Studio instantly
+    setProducts((prev) => [...prev, ...initialProducts]);
+    setSelectedId((prev) => (prev ? prev : initialProducts[0].product_id));
+
+    setBulkQueue(newQueueItems);
+    setBulkProgress(0);
+    setIsBulkProcessing(true);
+    setShowBulkUploadModal(true);
+
+    if (e?.target) e.target.value = '';
+    if (bulkFileInputRef.current) bulkFileInputRef.current.value = '';
+    if (fileInputRef.current) fileInputRef.current.value = '';
+
+    // Asynchronously analyze items with Gemini and refine descriptions & pricing
     processBulkQueue(newQueueItems);
   };
 
   const processBulkQueue = async (items) => {
-    const updatedProducts = [];
+    let completedCount = 0;
+    const totalCount = items.length;
     const concurrency = 2;
 
     const processSingleItem = async (item) => {
-      // Set item to ANALYZING
+      // Set item to ANALYZING in queue
       setBulkQueue((prev) =>
         prev.map((q) => (q.id === item.id ? { ...q, status: 'ANALYZING', error: null } : q))
       );
@@ -2858,60 +2957,42 @@ export default function App() {
 
       const estPrice = getEstimatedProductPrice(cat, item.metadata_title, item.file?.name);
 
-      const prod = {
-        product_id: item.id,
-        metadata_title: item.metadata_title,
-        category: cat,
-        price: estPrice,
-        visible_description: 'Merchant batch uploaded product',
-        review_note: 'Batch image upload; review observable features before approval.',
-        image_url: item.image_url,
-        file_name: item.file.name,
-        status: 'GENERATED',
-        draft: formats.marketplace_description,
-        short_description: formats.short_description,
-        description_short: formats.short_description,
-        description_bullets: bulletsText,
-        product_highlights: formats.product_highlights,
-        description_long: formats.marketplace_description,
-        marketplace_description: formats.marketplace_description,
-        card_summary: formats.card_summary,
-        selected_description_type: 'marketplace',
-        edited_text: '',
-        final_description: formats.marketplace_description,
-        mode: 'BULLETS',
-        quality_status: item.qualityCheck.warnings.length === 0 ? 'GOOD' : 'WARNING',
-        quality_score: item.qualityCheck.warnings.length === 0 ? 92 : 70,
-        quality_warning: item.qualityCheck.warnings.length > 0 ? item.qualityCheck.warnings : null,
-        quality_details: {
-          resolution: `${item.qualityCheck.width} x ${item.qualityCheck.height} px`,
-          aspect_ratio: 'Standard',
-          visual_clarity: item.qualityCheck.isGood ? 'Good' : 'Needs Review',
-          blur_estimate: item.qualityCheck.variance < 150 ? 'Blurry' : 'Sharp focus',
-          brightness: `${item.qualityCheck.avgBrightness}%`,
-          contrast: 'High',
-        },
-        detected_features: features,
-        feature_choices: initialChoices,
-        verification_questions: questions,
-        merchant_confirmed_specs: {},
-        selected_highlights: suggestedHighlights,
-        recommended_highlights: suggestedHighlights,
-        listened: false,
-        selected_language: 'en',
-        translations: { en: formats.marketplace_description },
-        edge_cases: { is_decorative: false, contains_text: false, multiple_products: false, ambiguous_color: false },
-        history: [{ action: 'BATCH_UPLOADED', timestamp: new Date().toLocaleTimeString() }],
-        isUploaded: true,
-      };
+      // Dynamically update this product in products queue
+      setProducts((prev) =>
+        prev.map((p) => {
+          if (p.product_id !== item.id) return p;
+          const updated = {
+            ...p,
+            category: cat,
+            price: estPrice,
+            draft: formats.marketplace_description,
+            short_description: formats.short_description,
+            description_short: formats.short_description,
+            description_bullets: bulletsText,
+            product_highlights: formats.product_highlights,
+            description_long: formats.marketplace_description,
+            marketplace_description: formats.marketplace_description,
+            card_summary: formats.card_summary,
+            final_description: formats.marketplace_description,
+            detected_features: features,
+            feature_choices: initialChoices,
+            verification_questions: questions,
+            selected_highlights: suggestedHighlights,
+            recommended_highlights: suggestedHighlights,
+            translations: { en: formats.marketplace_description },
+          };
+          updated.readiness_score = computeClientReadinessScore(updated);
+          return updated;
+        })
+      );
 
-      prod.readiness_score = computeClientReadinessScore(prod);
-      updatedProducts.push(prod);
-
+      // Update item in bulk queue state
       setBulkQueue((prev) =>
         prev.map((q) => (q.id === item.id ? { ...q, status: 'READY', category: cat } : q))
       );
-      setBulkProgress((prev) => ({ ...prev, completed: prev.completed + 1 }));
+
+      completedCount += 1;
+      setBulkProgress(Math.round((completedCount / totalCount) * 100));
     };
 
     // Process with concurrency of 2
@@ -2920,8 +3001,9 @@ export default function App() {
       await Promise.all(chunk.map((item) => processSingleItem(item)));
     }
 
-    setProducts((prev) => [...prev, ...updatedProducts]);
-    setSuccessMessage(`Processed ${updatedProducts.length} images in bulk upload!`);
+    setIsBulkProcessing(false);
+    setBulkProgress(100);
+    setSuccessMessage(`Processed ${totalCount} images in bulk upload!`);
   };
 
   // Approve all low-risk listened items
@@ -3416,6 +3498,7 @@ export default function App() {
       <input
         type="file"
         ref={fileInputRef}
+        multiple
         accept=".png,.jpg,.jpeg,.webp"
         style={{ display: 'none' }}
         onChange={handleFileUpload}
@@ -6769,30 +6852,47 @@ export default function App() {
       )}
 
       {/* MODAL 5: Bulk Upload Processing Queue */}
-      {(isBulkProcessing || bulkQueue.length > 0) && (
+      {(showBulkUploadModal || isBulkProcessing || bulkQueue.length > 0) && (
         <div className="modal-overlay" role="dialog" aria-modal="true">
           <div className="modal-dialog" style={{ maxWidth: '640px' }}>
             <div className="modal-header">
               <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>
                 📂 Bulk Upload & Analysis Queue ({bulkQueue.length} Images)
               </span>
-              {!isBulkProcessing && (
-                <button type="button" onClick={() => setBulkQueue([])} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem' }}>✕</button>
-              )}
+              <button
+                type="button"
+                onClick={() => {
+                  setShowBulkUploadModal(false);
+                  if (!isBulkProcessing) setBulkQueue([]);
+                }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', color: 'var(--text-muted)' }}
+                title="Close Modal"
+              >
+                ✕
+              </button>
             </div>
             <div className="modal-body">
               <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: 0 }}>
-                Processing sequentially with concurrency limit (max 2–3). Each image is checked for quality and analyzed with Gemini.
+                {isBulkProcessing
+                  ? 'Analyzing images, calculating estimated prices, and generating descriptions in the background...'
+                  : 'All images processed and added to Review Studio!'}
               </p>
 
               {/* Overall Progress Bar */}
               <div style={{ marginBottom: '14px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.74rem', marginBottom: '4px', fontWeight: 600 }}>
                   <span>Batch Progress</span>
-                  <span>{bulkProgress}%</span>
+                  <span>{typeof bulkProgress === 'number' ? bulkProgress : 0}%</span>
                 </div>
                 <div style={{ width: '100%', height: '8px', background: '#E2E8F0', borderRadius: '4px', overflow: 'hidden' }}>
-                  <div style={{ width: `${bulkProgress}%`, height: '100%', background: 'linear-gradient(90deg, #4F46E5, #10B981)', transition: 'width 0.3s' }} />
+                  <div
+                    style={{
+                      width: `${typeof bulkProgress === 'number' ? bulkProgress : 0}%`,
+                      height: '100%',
+                      background: 'linear-gradient(90deg, #4F46E5, #10B981)',
+                      transition: 'width 0.3s ease'
+                    }}
+                  />
                 </div>
               </div>
 
@@ -6801,12 +6901,21 @@ export default function App() {
                 {bulkQueue.map((item) => (
                   <div key={item.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: '#F8FAFC', borderRadius: '6px', border: '1px solid var(--border)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <span style={{ fontWeight: 800, fontFamily: 'var(--font-mono)', fontSize: '0.78rem', color: 'var(--primary)' }}>
-                        {item.id}
-                      </span>
-                      <span style={{ fontSize: '0.78rem', fontWeight: 600, maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {item.name}
-                      </span>
+                      {item.image_url && (
+                        <img
+                          src={item.image_url}
+                          alt={item.metadata_title || item.name || 'Product'}
+                          style={{ width: '36px', height: '36px', objectFit: 'cover', borderRadius: '4px', border: '1px solid var(--border)' }}
+                        />
+                      )}
+                      <div>
+                        <div style={{ fontWeight: 800, fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--primary)' }}>
+                          {item.id}
+                        </div>
+                        <div style={{ fontSize: '0.75rem', fontWeight: 600, maxWidth: '180px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {item.metadata_title || item.name || 'Product Image'}
+                        </div>
+                      </div>
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -6815,8 +6924,8 @@ export default function App() {
                         value={item.category || 'General'}
                         onChange={(e) => {
                           const cat = e.target.value;
-                          setBulkQueue(prev => prev.map(q => q.id === item.id ? { ...q, category: cat } : q));
-                          setProducts(prev => prev.map(p => p.product_id === item.id ? { ...p, category: cat } : p));
+                          setBulkQueue((prev) => prev.map((q) => (q.id === item.id ? { ...q, category: cat } : q)));
+                          setProducts((prev) => prev.map((p) => (p.product_id === item.id ? { ...p, category: cat } : p)));
                         }}
                         style={{ padding: '3px 6px', fontSize: '0.72rem', borderRadius: '4px', border: '1px solid var(--border)' }}
                       >
@@ -6860,14 +6969,25 @@ export default function App() {
                 ))}
               </div>
             </div>
-            <div className="modal-footer">
+            <div className="modal-footer" style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+              <button
+                type="button"
+                className="btn-editorial-secondary"
+                onClick={() => {
+                  setShowBulkUploadModal(false);
+                }}
+              >
+                {isBulkProcessing ? 'Continue in Background' : 'Close'}
+              </button>
               <button
                 type="button"
                 className="btn-primary-action"
-                disabled={isBulkProcessing}
-                onClick={() => setBulkQueue([])}
+                onClick={() => {
+                  setShowBulkUploadModal(false);
+                  if (!isBulkProcessing) setBulkQueue([]);
+                }}
               >
-                {isBulkProcessing ? 'Processing Batch...' : 'Done / View in Queue'}
+                View in Review Studio
               </button>
             </div>
           </div>
