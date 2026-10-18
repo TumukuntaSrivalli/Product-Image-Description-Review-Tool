@@ -6440,14 +6440,6 @@ export default function App() {
                 </button>
                 <button
                   type="button"
-                  className="btn-secondary-action"
-                  onClick={() => bulkFileInputRef.current?.click()}
-                  title="Upload up to 20 images at once"
-                >
-                  📤 Batch Upload Images (Max 20)
-                </button>
-                <button
-                  type="button"
                   className="btn-primary-action"
                   onClick={handleExportCsv}
                 >
