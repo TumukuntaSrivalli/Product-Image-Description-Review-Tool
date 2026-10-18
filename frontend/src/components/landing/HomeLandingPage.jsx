@@ -147,6 +147,9 @@ export function HomeLandingPage({ onGetStarted, onLogin, products = [], onSelect
                 <span style={{ fontSize: '0.68rem', padding: '2px 6px', borderRadius: '4px', background: 'rgba(5, 150, 105, 0.12)', color: 'var(--emerald)', fontWeight: 600 }}>
                   VERIFIED OBSERVATION
                 </span>
+                <span style={{ fontSize: '0.74rem', padding: '2px 8px', borderRadius: '4px', background: 'rgba(5, 150, 105, 0.15)', color: 'var(--emerald)', fontWeight: 700, fontFamily: 'var(--font-mono)' }}>
+                  ${activeProduct.price !== undefined ? Number(activeProduct.price).toFixed(2) : '24.99'}
+                </span>
               </div>
               <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.45, margin: '0 0 10px 0' }}>
                 "{activeDesc}"

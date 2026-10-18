@@ -7,18 +7,51 @@ import { SubscriptionFlow } from './components/subscription/SubscriptionFlow';
 import { HomeLandingPage } from './components/landing/HomeLandingPage';
 import { BatchView } from './components/workspace/BatchView';
 
+// Dynamic Price Estimation Helper based on product category, title, and file keywords
+export function getEstimatedProductPrice(category = '', title = '', filename = '') {
+  const combined = `${category} ${title} ${filename}`.toLowerCase();
+  if (combined.includes('keyboard')) return 68.00;
+  if (combined.includes('mouse')) return 34.99;
+  if (combined.includes('hub') || combined.includes('adapter') || combined.includes('charger')) return 42.50;
+  if (combined.includes('headphone') || combined.includes('earbud') || combined.includes('audio')) return 79.99;
+  if (combined.includes('watch') || combined.includes('smartwatch')) return 129.00;
+  if (combined.includes('camera')) return 249.00;
+  if (combined.includes('laptop') || combined.includes('computer')) return 899.00;
+  if (combined.includes('phone') || combined.includes('mobile')) return 499.00;
+  if (combined.includes('bottle') || combined.includes('flask') || combined.includes('tumbler')) return 19.99;
+  if (combined.includes('mug') || combined.includes('cup')) return 16.00;
+  if (combined.includes('sneaker') || combined.includes('shoe') || combined.includes('footwear')) return 85.00;
+  if (combined.includes('bag') || combined.includes('backpack') || combined.includes('tote')) return 45.00;
+  if (combined.includes('jacket') || combined.includes('hoodie') || combined.includes('coat')) return 59.99;
+  if (combined.includes('tshirt') || combined.includes('t-shirt') || combined.includes('shirt') || combined.includes('top')) return 24.99;
+  if (combined.includes('pant') || combined.includes('jean') || combined.includes('trouser')) return 39.99;
+  if (combined.includes('drinkware')) return 18.50;
+  if (combined.includes('apparel') || combined.includes('clothing')) return 28.00;
+  if (combined.includes('electronics')) return 49.99;
+  if (combined.includes('accessories')) return 22.50;
+
+  // Consistent deterministic price generation for arbitrary items
+  let hash = 0;
+  for (let i = 0; i < combined.length; i++) {
+    hash = (hash << 5) - hash + combined.charCodeAt(i);
+    hash |= 0;
+  }
+  const base = 15 + Math.abs(hash % 70);
+  return Number((base + 0.99).toFixed(2));
+}
+
 // Authoritative fallback fixture data for Case C04 (P01 - P10)
 const DEFAULT_PRODUCTS = [
-  { product_id: 'P01', metadata_title: 'Blue Tshirt', category: 'Apparel', visible_description: 'Blue rounded rectangular product illustration', review_note: 'This is a synthetic illustration; title and product type are metadata, not proof of visible material or performance.' },
-  { product_id: 'P02', metadata_title: 'Blue Tshirt', category: 'Apparel', visible_description: 'Blue rounded rectangular product illustration', review_note: 'This is a synthetic illustration; title and product type are metadata, not proof of visible material or performance.' },
-  { product_id: 'P03', metadata_title: 'Red Tshirt', category: 'Apparel', visible_description: 'Red rounded rectangular product illustration', review_note: 'This is a synthetic illustration; title and product type are metadata, not proof of visible material or performance.' },
-  { product_id: 'P04', metadata_title: 'Blue Tshirt', category: 'Apparel', visible_description: 'Blue rounded rectangular product illustration', review_note: 'This is a synthetic illustration; title and product type are metadata, not proof of visible material or performance.' },
-  { product_id: 'P05', metadata_title: 'Blue Mug', category: 'Drinkware', visible_description: 'Blue rounded rectangular product illustration', review_note: 'This is a synthetic illustration; title and product type are metadata, not proof of visible material or performance.' },
-  { product_id: 'P06', metadata_title: 'Red Mug', category: 'Drinkware', visible_description: 'Red rounded rectangular product illustration', review_note: 'This is a synthetic illustration; title and product type are metadata, not proof of visible material or performance.' },
-  { product_id: 'P07', metadata_title: 'Black Mouse', category: 'Electronics', visible_description: 'Black rounded rectangular product illustration', review_note: 'This is a synthetic illustration; title and product type are metadata, not proof of visible material or performance.' },
-  { product_id: 'P08', metadata_title: 'Black Keyboard', category: 'Electronics', visible_description: 'Black rounded rectangular product illustration', review_note: 'This is a synthetic illustration; title and product type are metadata, not proof of visible material or performance.' },
-  { product_id: 'P09', metadata_title: 'Grey Hub', category: 'Accessories', visible_description: 'Grey rounded rectangular product illustration', review_note: 'This is a synthetic illustration; title and product type are metadata, not proof of visible material or performance.' },
-  { product_id: 'P10', metadata_title: 'Green Bottle', category: 'Drinkware', visible_description: 'Green rounded rectangular product illustration', review_note: 'This is a synthetic illustration; title and product type are metadata, not proof of visible material or performance.' },
+  { product_id: 'P01', metadata_title: 'Blue Tshirt', category: 'Apparel', price: 24.99, visible_description: 'Blue rounded rectangular product illustration', review_note: 'This is a synthetic illustration; title and product type are metadata, not proof of visible material or performance.' },
+  { product_id: 'P02', metadata_title: 'Blue Tshirt', category: 'Apparel', price: 24.99, visible_description: 'Blue rounded rectangular product illustration', review_note: 'This is a synthetic illustration; title and product type are metadata, not proof of visible material or performance.' },
+  { product_id: 'P03', metadata_title: 'Red Tshirt', category: 'Apparel', price: 26.50, visible_description: 'Red rounded rectangular product illustration', review_note: 'This is a synthetic illustration; title and product type are metadata, not proof of visible material or performance.' },
+  { product_id: 'P04', metadata_title: 'Blue Tshirt', category: 'Apparel', price: 24.99, visible_description: 'Blue rounded rectangular product illustration', review_note: 'This is a synthetic illustration; title and product type are metadata, not proof of visible material or performance.' },
+  { product_id: 'P05', metadata_title: 'Blue Mug', category: 'Drinkware', price: 16.00, visible_description: 'Blue rounded rectangular product illustration', review_note: 'This is a synthetic illustration; title and product type are metadata, not proof of visible material or performance.' },
+  { product_id: 'P06', metadata_title: 'Red Mug', category: 'Drinkware', price: 16.00, visible_description: 'Red rounded rectangular product illustration', review_note: 'This is a synthetic illustration; title and product type are metadata, not proof of visible material or performance.' },
+  { product_id: 'P07', metadata_title: 'Black Mouse', category: 'Electronics', price: 34.99, visible_description: 'Black rounded rectangular product illustration', review_note: 'This is a synthetic illustration; title and product type are metadata, not proof of visible material or performance.' },
+  { product_id: 'P08', metadata_title: 'Black Keyboard', category: 'Electronics', price: 68.00, visible_description: 'Black rounded rectangular product illustration', review_note: 'This is a synthetic illustration; title and product type are metadata, not proof of visible material or performance.' },
+  { product_id: 'P09', metadata_title: 'Grey Hub', category: 'Accessories', price: 42.50, visible_description: 'Grey rounded rectangular product illustration', review_note: 'This is a synthetic illustration; title and product type are metadata, not proof of visible material or performance.' },
+  { product_id: 'P10', metadata_title: 'Green Bottle', category: 'Drinkware', price: 19.99, visible_description: 'Green rounded rectangular product illustration', review_note: 'This is a synthetic illustration; title and product type are metadata, not proof of visible material or performance.' },
 ];
 
 // Dictionary of unsupported claims for real-time Review Guard
@@ -587,6 +620,7 @@ export default function App() {
               return {
                 ...existing,
                 ...img,
+                price: existing.price !== undefined ? existing.price : (img.price !== undefined ? img.price : getEstimatedProductPrice(img.category, img.metadata_title)),
                 image_url: `/assets/${img.product_id}.png`,
                 status: existing.status || img.status || 'PENDING',
                 draft: existing.draft || img.draft || img.visible_description,
@@ -2094,11 +2128,15 @@ export default function App() {
 
       // Client-side image quality check
       const qualityCheck = await checkImageQualityClient(base64);
+      const title = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+      const category = 'Merchant Item';
+      const estimatedPrice = getEstimatedProductPrice(category, title, file.name);
 
       const newProduct = {
         product_id: newId,
-        metadata_title: file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' '),
-        category: 'Merchant Item',
+        metadata_title: title,
+        category: category,
+        price: estimatedPrice,
         visible_description: 'Merchant uploaded product image',
         review_note: 'Merchant image upload; review observable features before approval.',
         image_url: base64,
@@ -2145,7 +2183,7 @@ export default function App() {
       setProducts((prev) => [...prev, newProduct]);
       setSelectedId(newId);
       setActiveTab('workspace');
-      setSuccessMessage(`Loaded upload ${newId} (${file.name}). Quality: ${qualityCheck.isGood ? 'Good' : 'Warning'}`);
+      setSuccessMessage(`Loaded upload ${newId} (${file.name}) — Estimated Price: $${estimatedPrice.toFixed(2)}. Quality: ${qualityCheck.isGood ? 'Good' : 'Warning'}`);
     };
     reader.readAsDataURL(file);
     e.target.value = '';
@@ -2356,10 +2394,13 @@ export default function App() {
       const category = grp.category || 'General';
       const coverage = computeClientViewCoverage(category, grp.images);
 
+      const estPrice = getEstimatedProductPrice(category, grp.group_name || `Multi-View Product ${newId}`);
+
       const product = {
         product_id: newId,
         metadata_title: grp.group_name || `Multi-View Product ${newId}`,
         category,
+        price: estPrice,
         visible_description: `Merchant multi-view product (${grp.images.length} angle photos: ${grp.images.map(img => img.view).join(', ')})`,
         review_note: `Multi-view product (${grp.images.length} views). Review all angles before final approval.`,
         image_url: grp.images[0]?.url || '',
@@ -2410,7 +2451,7 @@ export default function App() {
     }
     setShowGroupingModal(false);
     setActiveTab('workspace');
-    setSuccessMessage(`Successfully added ${createdProducts.length} multi-image product(s) to the queue!`);
+    setSuccessMessage(`Successfully added ${createdProducts.length} multi-image product(s) with estimated pricing to the queue!`);
   };
 
   // Add single view to the current active product (cap at 8)
@@ -2703,10 +2744,13 @@ export default function App() {
     const newId = `UPLOAD-${numStr}`;
     uploadCounterRef.current += 1;
 
+    const estPrice = getEstimatedProductPrice('Merchant Item', `Camera Photo ${newId}`);
+
     const newProduct = {
       product_id: newId,
       metadata_title: `Camera Photo ${newId}`,
       category: 'Merchant Item',
+      price: estPrice,
       visible_description: 'Direct camera photo of product',
       review_note: 'Direct camera capture; review observable details before approval.',
       image_url: dataUrl,
@@ -2744,7 +2788,7 @@ export default function App() {
     setProducts((prev) => [...prev, newProduct]);
     setSelectedId(newId);
     setActiveTab('workspace');
-    setSuccessMessage(`Captured ${newId} from camera! Quality: ${qualityCheck.isGood ? 'Good' : 'Warning'}`);
+    setSuccessMessage(`Captured ${newId} from camera! Estimated Price: $${estPrice.toFixed(2)}. Quality: ${qualityCheck.isGood ? 'Good' : 'Warning'}`);
   };
 
   const handleCloseCamera = () => {
@@ -2887,10 +2931,13 @@ export default function App() {
         ? formats.product_highlights.map((h) => `• ${h}`).join('\n')
         : formats.product_highlights;
 
+      const estPrice = getEstimatedProductPrice(cat, item.metadata_title, item.file?.name);
+
       const prod = {
         product_id: item.id,
         metadata_title: item.metadata_title,
         category: cat,
+        price: estPrice,
         visible_description: 'Merchant batch uploaded product',
         review_note: 'Batch image upload; review observable features before approval.',
         image_url: item.image_url,
@@ -3022,6 +3069,7 @@ export default function App() {
 
     const headers = [
       'product_id',
+      'price',
       'category',
       'merchant_name',
       'description',
@@ -3071,6 +3119,7 @@ export default function App() {
 
       return [
         escapeCsv(p.product_id),
+        escapeCsv(p.price !== undefined ? `$${Number(p.price).toFixed(2)}` : '$0.00'),
         escapeCsv(p.category || 'General'),
         escapeCsv(merchantName),
         escapeCsv(finalDesc),
@@ -3136,6 +3185,8 @@ export default function App() {
       records: targetProducts.map((p) => ({
         product_id: p.product_id,
         metadata_title: p.metadata_title,
+        price: p.price !== undefined ? Number(p.price) : 0,
+        price_formatted: `$${(p.price !== undefined ? Number(p.price) : 0).toFixed(2)}`,
         status: p.status,
         final_description: p.final_description || p.edited_text || p.draft,
         short_description: p.short_description || p.description_short,
@@ -3616,7 +3667,12 @@ export default function App() {
                           </div>
                         ) : null}
                         <div className="tile-content-wrap">
-                          <span className="tile-caption">{p.metadata_title || p.product_id}</span>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                            <span className="tile-caption">{p.metadata_title || p.product_id}</span>
+                            <span style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--emerald)', fontFamily: 'var(--font-mono)' }}>
+                              ${p.price !== undefined ? Number(p.price).toFixed(2) : '0.00'}
+                            </span>
+                          </div>
                           <span className="tile-desc-snippet">
                             {desc.length > 70 ? `${desc.slice(0, 67)}…` : desc}
                           </span>
@@ -3745,8 +3801,23 @@ export default function App() {
                   </span>
                 </div>
                 <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>|</span>
-                <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-                  Active Focus: <strong style={{ fontFamily: 'var(--font-mono)', color: 'var(--accent-indigo)' }}>{currentProduct.product_id}</strong> — {currentProduct.metadata_title}
+                <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                  <span>Active Focus: <strong style={{ fontFamily: 'var(--font-mono)', color: 'var(--accent-indigo)' }}>{currentProduct.product_id}</strong> — {currentProduct.metadata_title}</span>
+                  <span style={{
+                    fontSize: '0.74rem',
+                    fontWeight: 700,
+                    padding: '2px 8px',
+                    borderRadius: '999px',
+                    background: 'rgba(5, 150, 105, 0.12)',
+                    color: 'var(--emerald)',
+                    border: '1px solid rgba(5, 150, 105, 0.3)',
+                    fontFamily: 'var(--font-mono)',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                  }}>
+                    🏷️ ${currentProduct.price !== undefined ? Number(currentProduct.price).toFixed(2) : '0.00'}
+                  </span>
                 </span>
               </div>
 
@@ -3894,6 +3965,9 @@ export default function App() {
                           </div>
                           <div style={{ display: 'flex', gap: '4px', alignItems: 'center', marginTop: '2px', flexWrap: 'wrap' }}>
                             <span style={{ fontSize: '0.66rem', color: 'var(--text-muted)' }}>{p.category || 'General'}</span>
+                            <span style={{ fontSize: '0.66rem', fontWeight: 700, color: 'var(--emerald)', background: 'rgba(5, 150, 105, 0.1)', padding: '0 4px', borderRadius: '3px', fontFamily: 'var(--font-mono)' }}>
+                              ${p.price !== undefined ? Number(p.price).toFixed(2) : '0.00'}
+                            </span>
                             {imgCount > 1 && (
                               <span style={{ fontSize: '0.62rem', background: '#F3E8FF', color: '#7E22CE', padding: '0 4px', borderRadius: '3px', fontWeight: 700 }}>
                                 🔄 {imgCount} views
@@ -4532,6 +4606,27 @@ export default function App() {
                             className="context-input-field"
                           />
                         </div>
+                        <div className="context-input-group">
+                          <label className="context-input-label">
+                            Product Price ($):
+                          </label>
+                          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                            <span style={{ position: 'absolute', left: '10px', color: 'var(--text-muted)', fontWeight: 700, fontSize: '0.85rem' }}>$</span>
+                            <input
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              value={currentProduct.price !== undefined ? currentProduct.price : ''}
+                              onChange={(e) => {
+                                const val = e.target.value === '' ? '' : parseFloat(e.target.value);
+                                setProducts(prev => prev.map(p => p.product_id === currentProduct.product_id ? { ...p, price: val } : p));
+                              }}
+                              placeholder="e.g. 24.99"
+                              className="context-input-field"
+                              style={{ paddingLeft: '24px' }}
+                            />
+                          </div>
+                        </div>
                       </div>
 
                       {currentProduct.visible_description && (
@@ -4542,7 +4637,7 @@ export default function App() {
                       )}
 
                       <div className="context-note-pill">
-                        <span>ℹ️ <strong>Note:</strong> Product Name and Category are context only and are never proof of visual traits or specs.</span>
+                        <span>ℹ️ <strong>Note:</strong> Product Name, Category, and Price are context only and are never proof of visual traits or specs.</span>
                       </div>
                     </div>
 
@@ -6030,6 +6125,7 @@ export default function App() {
                       <th style={{ padding: '12px 14px', fontWeight: 700, fontFamily: 'var(--font-mono)', width: '60px' }}>ID</th>
                       <th style={{ padding: '12px 14px', fontWeight: 700, width: '60px' }}>Image</th>
                       <th style={{ padding: '12px 14px', fontWeight: 700 }}>Product Title</th>
+                      <th style={{ padding: '12px 14px', fontWeight: 700 }}>Price</th>
                       <th style={{ padding: '12px 14px', fontWeight: 700 }}>Status</th>
                       <th style={{ padding: '12px 14px', fontWeight: 700 }}>Origin</th>
                       <th style={{ padding: '12px 14px', fontWeight: 700 }}>Reviewed Description</th>
@@ -6039,7 +6135,7 @@ export default function App() {
                   <tbody>
                     {displayedExportProducts.length === 0 ? (
                       <tr>
-                        <td colSpan={8} style={{ padding: '36px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                        <td colSpan={9} style={{ padding: '36px', textAlign: 'center', color: 'var(--text-muted)' }}>
                           No products found matching "{exportSearchTerm}". Clear search filter to view catalogue.
                         </td>
                       </tr>
@@ -6081,6 +6177,9 @@ export default function App() {
                             <td style={{ padding: '12px 14px', fontWeight: 600, color: 'var(--text-ink)' }}>
                               <div>{p.metadata_title}</div>
                               <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 400 }}>{p.category || 'General'}</span>
+                            </td>
+                            <td style={{ padding: '12px 14px', fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--emerald)' }}>
+                              ${p.price !== undefined ? Number(p.price).toFixed(2) : '0.00'}
                             </td>
                             <td style={{ padding: '12px 14px' }}>
                               <span className={`status-pill ${p.status.toLowerCase().replace(/_/g, '-')}`}>

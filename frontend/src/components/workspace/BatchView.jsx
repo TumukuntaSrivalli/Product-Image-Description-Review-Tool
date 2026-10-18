@@ -128,6 +128,7 @@ export function BatchView({
               <tr style={{ background: 'var(--surface-card-subtle)', borderBottom: '1px solid var(--surface-border)', color: 'var(--text-muted)', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 <th style={{ padding: '12px 16px' }}>Product</th>
                 <th style={{ padding: '12px 16px' }}>Category</th>
+                <th style={{ padding: '12px 16px' }}>Price</th>
                 <th style={{ padding: '12px 16px' }}>Images / Views</th>
                 <th style={{ padding: '12px 16px' }}>View Coverage</th>
                 <th style={{ padding: '12px 16px' }}>Status</th>
@@ -165,6 +166,10 @@ export function BatchView({
 
                     <td style={{ padding: '14px 16px', color: 'var(--text-secondary)' }}>
                       {p.detected_category || p.category || 'General'}
+                    </td>
+
+                    <td style={{ padding: '14px 16px', fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--emerald)' }}>
+                      ${p.price !== undefined ? Number(p.price).toFixed(2) : '0.00'}
                     </td>
 
                     <td style={{ padding: '14px 16px' }}>
