@@ -542,6 +542,11 @@ export default function App() {
   const [showApproveLowRiskModal, setShowApproveLowRiskModal] = useState(false);
   const [isGeneratingMultiFormat, setIsGeneratingMultiFormat] = useState(false);
 
+  // Export Customization State: select particular descriptions/products
+  const [selectedExportIds, setSelectedExportIds] = useState(() => DEFAULT_PRODUCTS.map((p) => p.product_id));
+  const [exportSearchTerm, setExportSearchTerm] = useState('');
+  const [exportStatusFilter, setExportStatusFilter] = useState('ALL'); // 'ALL' | 'APPROVED' | 'PENDING' | 'INACCESSIBLE'
+
   // Derived aliases
   const isCameraActive = showCameraModal;
   const isListeningAll = listenAllPlaying;
@@ -2969,9 +2974,44 @@ export default function App() {
     setSuccessMessage('Approved all low-risk listened products!');
   };
 
-  // CSV Export Download
-  // Columns: product_id, category, merchant_name, description, description_short, description_bullets, description_long, status, product_identified, merchant_confirmed_specs, content_check_status, image_count, view_coverage
-  const handleExportCsv = () => {
+  // Export Selection Helpers
+  const handleToggleSelectExport = (id) => {
+    setSelectedExportIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const handleSelectAllExport = () => {
+    setSelectedExportIds(products.map((p) => p.product_id));
+  };
+
+  const handleClearExportSelection = () => {
+    setSelectedExportIds([]);
+  };
+
+  const handleSelectApprovedExportOnly = () => {
+    const approvedIds = products.filter((p) => p.status === 'APPROVED').map((p) => p.product_id);
+    setSelectedExportIds(approvedIds);
+  };
+
+  const handleSelectPendingExportOnly = () => {
+    const pendingIds = products.filter((p) => p.status !== 'APPROVED' && p.status !== 'INACCESSIBLE').map((p) => p.product_id);
+    setSelectedExportIds(pendingIds);
+  };
+
+  // CSV Export Download (supports custom/single product or selected products)
+  const handleExportCsv = (customProducts = null) => {
+    const targetProducts = Array.isArray(customProducts)
+      ? customProducts
+      : (selectedExportIds.length > 0
+          ? products.filter((p) => selectedExportIds.includes(p.product_id))
+          : []);
+
+    if (!targetProducts || targetProducts.length === 0) {
+      setErrorMessage('Please select at least one description to export.');
+      return;
+    }
+
     const escapeCsv = (str) => {
       const s = String(str ?? '');
       if (s.includes('"') || s.includes(',') || s.includes('\n') || s.includes('\r')) {
@@ -3002,7 +3042,7 @@ export default function App() {
       'readiness_score',
     ];
 
-    const rows = products.map((p) => {
+    const rows = targetProducts.map((p) => {
       const isInactive = p.status === 'INACCESSIBLE';
       const shortDesc = isInactive ? 'Image unavailable — manual review required.' : (p.short_description || p.description_short || p.visible_description);
       const bulletsDesc = isInactive ? 'Image unavailable — manual review required.' : (p.product_highlights || p.description_bullets || p.draft || `• ${p.visible_description}`);
@@ -3057,10 +3097,12 @@ export default function App() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = 'product_description_review_results.csv';
+    link.download = targetProducts.length === 1
+      ? `${targetProducts[0].product_id}_description.csv`
+      : 'product_description_review_results.csv';
     link.click();
     URL.revokeObjectURL(url);
-    setSuccessMessage(`Exported CSV with all ${products.length} products.`);
+    setSuccessMessage(`Exported CSV with ${targetProducts.length} selected description(s).`);
 
     // Sync session to backend
     fetch('/api/products/sync', {
@@ -3070,20 +3112,35 @@ export default function App() {
     }).catch(() => { });
   };
 
-  // JSON Export Download
-  const handleExportJson = () => {
+  // JSON Export Download (supports custom/single product or selected products)
+  const handleExportJson = (customProducts = null) => {
+    const targetProducts = Array.isArray(customProducts)
+      ? customProducts
+      : (selectedExportIds.length > 0
+          ? products.filter((p) => selectedExportIds.includes(p.product_id))
+          : []);
+
+    if (!targetProducts || targetProducts.length === 0) {
+      setErrorMessage('Please select at least one description to export.');
+      return;
+    }
+
     const payload = {
       app: 'VARNIX',
       case_id: 'C04',
-      total_records: products.length,
-      demo_count: products.filter((p) => !p.isUploaded).length,
-      upload_count: products.filter((p) => p.isUploaded).length,
-      approved_count: products.filter((p) => p.status === 'APPROVED').length,
-      records: products.map((p) => ({
+      total_records: targetProducts.length,
+      selected_count: targetProducts.length,
+      demo_count: targetProducts.filter((p) => !p.isUploaded).length,
+      upload_count: targetProducts.filter((p) => p.isUploaded).length,
+      approved_count: targetProducts.filter((p) => p.status === 'APPROVED').length,
+      records: targetProducts.map((p) => ({
         product_id: p.product_id,
         metadata_title: p.metadata_title,
         status: p.status,
         final_description: p.final_description || p.edited_text || p.draft,
+        short_description: p.short_description || p.description_short,
+        marketplace_description: p.marketplace_description,
+        bullet_points: p.product_highlights,
         quality_status: p.quality_status,
         quality_score: p.quality_score,
         reviewer_note: p.reviewer_note,
@@ -3095,9 +3152,21 @@ export default function App() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = 'product_description_review_results.json';
+    link.download = targetProducts.length === 1
+      ? `${targetProducts[0].product_id}_description.json`
+      : 'product_description_review_results.json';
     link.click();
     URL.revokeObjectURL(url);
+    setSuccessMessage(`Exported JSON with ${targetProducts.length} selected description(s).`);
+  };
+
+  // Quick single-item download handlers
+  const handleExportSingleCsv = (p) => {
+    handleExportCsv([p]);
+  };
+
+  const handleExportSingleJson = (p) => {
+    handleExportJson([p]);
   };
 
   // Filtered queue items
@@ -5728,141 +5797,371 @@ export default function App() {
         )}
 
         {/* TAB 4: EXPORT HUB (ALTLUME READINESS & AUDIT) */}
-        {activeFlow === 'workspace' && activeTab === 'export' && (
-          <div style={{ maxWidth: '1080px', margin: '30px auto 60px', padding: '0 20px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '14px' }}>
-              <div>
-                <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', color: 'var(--text-ink)', margin: '0 0 6px 0' }}>
-                  Export Reviewed Catalogue
-                </h1>
-                <p style={{ margin: 0, fontSize: '0.86rem', color: 'var(--text-secondary)' }}>
-                  Auditable export of human-approved visual descriptions with strict column contracts and complete ID preservation.
-                </p>
-              </div>
+        {activeFlow === 'workspace' && activeTab === 'export' && (() => {
+          const displayedExportProducts = products.filter((p) => {
+            if (exportStatusFilter === 'APPROVED' && p.status !== 'APPROVED') return false;
+            if (exportStatusFilter === 'PENDING' && (p.status === 'APPROVED' || p.status === 'INACCESSIBLE')) return false;
+            if (exportStatusFilter === 'INACCESSIBLE' && p.status !== 'INACCESSIBLE') return false;
+            if (exportSearchTerm.trim()) {
+              const q = exportSearchTerm.toLowerCase();
+              const matchId = p.product_id.toLowerCase().includes(q);
+              const matchTitle = (p.metadata_title || '').toLowerCase().includes(q);
+              const matchDesc = (p.final_description || p.edited_text || p.draft || '').toLowerCase().includes(q);
+              return matchId || matchTitle || matchDesc;
+            }
+            return true;
+          });
 
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <button
-                  type="button"
-                  className="btn-editorial-secondary"
-                  onClick={handleExportJson}
-                  data-cursor="Download"
-                >
-                  📦 Download JSON
-                </button>
-                <button
-                  type="button"
-                  className="btn-editorial-primary"
-                  onClick={handleExportCsv}
-                  data-cursor="Download"
-                >
-                  📥 Download CSV
-                </button>
-              </div>
-            </div>
+          const isAllVisibleSelected =
+            displayedExportProducts.length > 0 &&
+            displayedExportProducts.every((p) => selectedExportIds.includes(p.product_id));
 
-            {/* Readiness Checklist Card */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '24px' }}>
-              <div className="varnix-card" style={{ padding: '16px', background: 'var(--surface-card)' }}>
-                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontFamily: 'var(--font-mono)' }}>Total Items</div>
-                <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--text-ink)', marginTop: '4px' }}>
-                  {products.length} / 10
+          return (
+            <div style={{ maxWidth: '1120px', margin: '30px auto 60px', padding: '0 20px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '14px' }}>
+                <div>
+                  <span className="brand-pill" style={{ marginBottom: '8px', display: 'inline-block' }}>
+                    SELECTIVE & BATCH EXPORT
+                  </span>
+                  <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', color: 'var(--text-ink)', margin: '0 0 6px 0' }}>
+                    Export Reviewed Catalogue
+                  </h1>
+                  <p style={{ margin: 0, fontSize: '0.86rem', color: 'var(--text-secondary)' }}>
+                    Select specific product descriptions or download the entire verified catalogue in CSV and JSON.
+                  </p>
                 </div>
-                <div style={{ fontSize: '0.72rem', color: 'var(--emerald)', marginTop: '2px' }}>100% ID preserved</div>
-              </div>
 
-              <div className="varnix-card" style={{ padding: '16px', background: 'var(--surface-card)' }}>
-                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontFamily: 'var(--font-mono)' }}>Approved</div>
-                <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--emerald)', marginTop: '4px' }}>
-                  {approvedCount}
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                  <button
+                    type="button"
+                    className="btn-editorial-secondary"
+                    onClick={() => handleExportJson()}
+                    disabled={selectedExportIds.length === 0}
+                    style={{ opacity: selectedExportIds.length === 0 ? 0.5 : 1, cursor: selectedExportIds.length === 0 ? 'not-allowed' : 'pointer' }}
+                    title={selectedExportIds.length === 0 ? 'Select at least 1 description below' : `Download JSON for ${selectedExportIds.length} item(s)`}
+                  >
+                    📦 Download JSON ({selectedExportIds.length})
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-editorial-primary"
+                    onClick={() => handleExportCsv()}
+                    disabled={selectedExportIds.length === 0}
+                    style={{ opacity: selectedExportIds.length === 0 ? 0.5 : 1, cursor: selectedExportIds.length === 0 ? 'not-allowed' : 'pointer' }}
+                    title={selectedExportIds.length === 0 ? 'Select at least 1 description below' : `Download CSV for ${selectedExportIds.length} item(s)`}
+                  >
+                    📥 Download CSV ({selectedExportIds.length})
+                  </button>
                 </div>
-                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '2px' }}>Human endorsed</div>
               </div>
 
-              <div className="varnix-card" style={{ padding: '16px', background: 'var(--surface-card)' }}>
-                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontFamily: 'var(--font-mono)' }}>Pending Review</div>
-                <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--accent-amber)', marginTop: '4px' }}>
-                  {products.length - approvedCount - inaccessibleCount}
+              {/* Readiness Summary Metrics */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '20px' }}>
+                <div className="varnix-card" style={{ padding: '16px', background: 'var(--surface-card)' }}>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontFamily: 'var(--font-mono)' }}>Catalogue Items</div>
+                  <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--text-ink)', marginTop: '4px' }}>
+                    {products.length}
+                  </div>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--emerald)', marginTop: '2px' }}>100% ID preserved</div>
                 </div>
-                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '2px' }}>Awaiting editor</div>
-              </div>
 
-              <div className="varnix-card" style={{ padding: '16px', background: 'var(--surface-card)' }}>
-                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontFamily: 'var(--font-mono)' }}>Inaccessible</div>
-                <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--rose)', marginTop: '4px' }}>
-                  {inaccessibleCount}
+                <div className="varnix-card" style={{ padding: '16px', background: 'var(--surface-card)' }}>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontFamily: 'var(--font-mono)' }}>Selected For Export</div>
+                  <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--accent-indigo)', marginTop: '4px' }}>
+                    {selectedExportIds.length}
+                  </div>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '2px' }}>Will be in downloaded file</div>
                 </div>
-                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '2px' }}>Flagged for reshoot</div>
-              </div>
-            </div>
 
-            {/* 10-Product Audit Table with Human Edit Badge */}
-            <div style={{ background: 'var(--surface-card)', border: '1px solid var(--surface-border)', borderRadius: '12px', overflow: 'hidden', boxShadow: 'var(--shadow-sm)', marginBottom: '24px' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.8rem' }}>
-                <thead>
-                  <tr style={{ background: 'var(--surface-card-subtle)', borderBottom: '1px solid var(--surface-border)' }}>
-                    <th style={{ padding: '12px 16px', fontWeight: 700, fontFamily: 'var(--font-mono)' }}>ID</th>
-                    <th style={{ padding: '12px 16px', fontWeight: 700 }}>Image</th>
-                    <th style={{ padding: '12px 16px', fontWeight: 700 }}>Product Title</th>
-                    <th style={{ padding: '12px 16px', fontWeight: 700 }}>Status</th>
-                    <th style={{ padding: '12px 16px', fontWeight: 700 }}>Reviewer Origin</th>
-                    <th style={{ padding: '12px 16px', fontWeight: 700 }}>Final Description</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {products.map((p) => {
-                    const isHuman = p.is_human_edited || p.status === 'APPROVED' || p.edited_text;
-                    return (
-                      <tr key={p.product_id} style={{ borderBottom: '1px solid var(--surface-border)' }}>
-                        <td style={{ padding: '12px 16px', fontFamily: 'var(--font-mono)', fontWeight: 800, color: 'var(--accent-indigo)' }}>
-                          {p.product_id}
-                        </td>
-                        <td style={{ padding: '12px 16px' }}>
-                          <img
-                            src={p.image_url}
-                            alt=""
-                            style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '6px', border: '1px solid var(--surface-border)' }}
-                            onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                          />
-                        </td>
-                        <td style={{ padding: '12px 16px', fontWeight: 600, color: 'var(--text-ink)' }}>
-                          {p.metadata_title}
-                        </td>
-                        <td style={{ padding: '12px 16px' }}>
-                          <span className={`status-pill ${p.status.toLowerCase().replace(/_/g, '-')}`}>
-                            {p.status}
-                          </span>
-                        </td>
-                        <td style={{ padding: '12px 16px' }}>
-                          <span
-                            style={{
-                              fontSize: '0.68rem',
-                              fontWeight: 700,
-                              padding: '2px 8px',
-                              borderRadius: '4px',
-                              background: isHuman ? '#ECFDF5' : '#F3F4F6',
-                              color: isHuman ? '#047857' : '#6B7280',
-                              border: `1px solid ${isHuman ? '#A7F3D0' : '#E5E7EB'}`,
-                            }}
-                          >
-                            {isHuman ? '✍️ Human Edited' : '🤖 AI Draft'}
-                          </span>
-                        </td>
-                        <td style={{ padding: '12px 16px', color: 'var(--text-secondary)', maxWidth: '320px', lineHeight: 1.5 }}>
-                          {p.final_description || (p.status === 'INACCESSIBLE' ? 'Image unavailable — manual review required.' : p.edited_text || p.draft || '—')}
+                <div className="varnix-card" style={{ padding: '16px', background: 'var(--surface-card)' }}>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontFamily: 'var(--font-mono)' }}>Approved Items</div>
+                  <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--emerald)', marginTop: '4px' }}>
+                    {approvedCount}
+                  </div>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '2px' }}>Human endorsed</div>
+                </div>
+
+                <div className="varnix-card" style={{ padding: '16px', background: 'var(--surface-card)' }}>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontFamily: 'var(--font-mono)' }}>Pending Review</div>
+                  <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--accent-amber)', marginTop: '4px' }}>
+                    {products.length - approvedCount - inaccessibleCount}
+                  </div>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '2px' }}>Awaiting editor</div>
+                </div>
+              </div>
+
+              {/* Selection Control Toolbar */}
+              <div style={{
+                background: 'var(--surface-card)',
+                border: '1px solid var(--surface-border)',
+                borderRadius: '12px',
+                padding: '14px 18px',
+                marginBottom: '16px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '12px',
+                boxShadow: 'var(--shadow-sm)'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-ink)', marginRight: '4px' }}>
+                    Select:
+                  </span>
+                  <button
+                    type="button"
+                    className="btn-editorial-secondary"
+                    onClick={handleSelectAllExport}
+                    style={{ padding: '5px 10px', fontSize: '0.74rem' }}
+                  >
+                    ✦ All ({products.length})
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-editorial-secondary"
+                    onClick={handleSelectApprovedExportOnly}
+                    style={{ padding: '5px 10px', fontSize: '0.74rem' }}
+                  >
+                    ✓ Approved Only ({approvedCount})
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-editorial-secondary"
+                    onClick={handleSelectPendingExportOnly}
+                    style={{ padding: '5px 10px', fontSize: '0.74rem' }}
+                  >
+                    ⏳ Pending Only
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-editorial-secondary"
+                    onClick={handleClearExportSelection}
+                    style={{ padding: '5px 10px', fontSize: '0.74rem', color: 'var(--text-muted)' }}
+                  >
+                    ✕ Clear
+                  </button>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <input
+                    type="text"
+                    placeholder="🔍 Filter by ID, Title, or Words..."
+                    value={exportSearchTerm}
+                    onChange={(e) => setExportSearchTerm(e.target.value)}
+                    style={{
+                      padding: '6px 12px',
+                      borderRadius: '8px',
+                      border: '1px solid var(--surface-border)',
+                      background: 'var(--surface-card-subtle)',
+                      color: 'var(--text-ink)',
+                      fontSize: '0.76rem',
+                      width: '210px',
+                      outline: 'none'
+                    }}
+                  />
+                  <select
+                    value={exportStatusFilter}
+                    onChange={(e) => setExportStatusFilter(e.target.value)}
+                    style={{
+                      padding: '6px 10px',
+                      borderRadius: '8px',
+                      border: '1px solid var(--surface-border)',
+                      background: 'var(--surface-card-subtle)',
+                      color: 'var(--text-ink)',
+                      fontSize: '0.76rem',
+                      outline: 'none',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <option value="ALL">All Statuses</option>
+                    <option value="APPROVED">Approved Only</option>
+                    <option value="PENDING">Pending Only</option>
+                    <option value="INACCESSIBLE">Inaccessible</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Selection Notification Banner */}
+              <div style={{
+                background: selectedExportIds.length > 0 ? 'rgba(79, 70, 229, 0.07)' : '#FEF2F2',
+                border: `1px solid ${selectedExportIds.length > 0 ? 'rgba(79, 70, 229, 0.2)' : '#FECACA'}`,
+                borderRadius: '8px',
+                padding: '9px 14px',
+                marginBottom: '18px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '8px',
+                fontSize: '0.8rem',
+                color: selectedExportIds.length > 0 ? 'var(--text-ink)' : '#DC2626'
+              }}>
+                <div>
+                  <strong>{selectedExportIds.length}</strong> of {products.length} description{products.length === 1 ? '' : 's'} selected for download.
+                  {selectedExportIds.length === 0 && ' (Please check individual descriptions below)'}
+                </div>
+                <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
+                  💡 Use the checkboxes to choose custom descriptions, or click the individual <strong>📥 CSV</strong> / <strong>📦 JSON</strong> buttons on any row.
+                </div>
+              </div>
+
+              {/* Product Audit Table with Checkboxes & Row Actions */}
+              <div style={{ background: 'var(--surface-card)', border: '1px solid var(--surface-border)', borderRadius: '12px', overflow: 'hidden', boxShadow: 'var(--shadow-sm)', marginBottom: '24px' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.8rem' }}>
+                  <thead>
+                    <tr style={{ background: 'var(--surface-card-subtle)', borderBottom: '1px solid var(--surface-border)' }}>
+                      <th style={{ padding: '12px 14px', width: '38px', textAlign: 'center' }}>
+                        <input
+                          type="checkbox"
+                          checked={isAllVisibleSelected}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              const visibleIds = displayedExportProducts.map((p) => p.product_id);
+                              setSelectedExportIds((prev) => Array.from(new Set([...prev, ...visibleIds])));
+                            } else {
+                              const visibleSet = new Set(displayedExportProducts.map((p) => p.product_id));
+                              setSelectedExportIds((prev) => prev.filter((id) => !visibleSet.has(id)));
+                            }
+                          }}
+                          title="Select / deselect all visible rows"
+                          style={{ cursor: 'pointer', width: '16px', height: '16px', accentColor: 'var(--accent-indigo)' }}
+                        />
+                      </th>
+                      <th style={{ padding: '12px 14px', fontWeight: 700, fontFamily: 'var(--font-mono)', width: '60px' }}>ID</th>
+                      <th style={{ padding: '12px 14px', fontWeight: 700, width: '60px' }}>Image</th>
+                      <th style={{ padding: '12px 14px', fontWeight: 700 }}>Product Title</th>
+                      <th style={{ padding: '12px 14px', fontWeight: 700 }}>Status</th>
+                      <th style={{ padding: '12px 14px', fontWeight: 700 }}>Origin</th>
+                      <th style={{ padding: '12px 14px', fontWeight: 700 }}>Reviewed Description</th>
+                      <th style={{ padding: '12px 14px', fontWeight: 700, textAlign: 'center', width: '140px' }}>Download Single</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {displayedExportProducts.length === 0 ? (
+                      <tr>
+                        <td colSpan={8} style={{ padding: '36px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                          No products found matching "{exportSearchTerm}". Clear search filter to view catalogue.
                         </td>
                       </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+                    ) : (
+                      displayedExportProducts.map((p) => {
+                        const isHuman = p.is_human_edited || p.status === 'APPROVED' || p.edited_text;
+                        const isSelected = selectedExportIds.includes(p.product_id);
+                        const desc = p.final_description || (p.status === 'INACCESSIBLE' ? 'Image unavailable — manual review required.' : p.edited_text || p.draft || '—');
 
-            {/* Non-compliance Disclaimer */}
-            <div style={{ background: 'var(--surface-card-subtle)', border: '1px solid var(--surface-border)', borderRadius: '10px', padding: '16px 20px', fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.5, textAlign: 'center' }}>
-              ⚖️ <strong>Legal Notice:</strong> An export from this tool alone does not prove or guarantee website accessibility compliance. Human editorial review is strictly required.
+                        return (
+                          <tr
+                            key={p.product_id}
+                            style={{
+                              borderBottom: '1px solid var(--surface-border)',
+                              background: isSelected ? 'rgba(79, 70, 229, 0.04)' : 'transparent',
+                              transition: 'background 0.15s ease'
+                            }}
+                          >
+                            <td style={{ padding: '12px 14px', textAlign: 'center' }}>
+                              <input
+                                type="checkbox"
+                                checked={isSelected}
+                                onChange={() => handleToggleSelectExport(p.product_id)}
+                                title={`Toggle selection for ${p.product_id}`}
+                                style={{ cursor: 'pointer', width: '16px', height: '16px', accentColor: 'var(--accent-indigo)' }}
+                              />
+                            </td>
+                            <td style={{ padding: '12px 14px', fontFamily: 'var(--font-mono)', fontWeight: 800, color: 'var(--accent-indigo)' }}>
+                              {p.product_id}
+                            </td>
+                            <td style={{ padding: '12px 14px' }}>
+                              <img
+                                src={p.image_url}
+                                alt=""
+                                style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '6px', border: '1px solid var(--surface-border)' }}
+                                onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                              />
+                            </td>
+                            <td style={{ padding: '12px 14px', fontWeight: 600, color: 'var(--text-ink)' }}>
+                              <div>{p.metadata_title}</div>
+                              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 400 }}>{p.category || 'General'}</span>
+                            </td>
+                            <td style={{ padding: '12px 14px' }}>
+                              <span className={`status-pill ${p.status.toLowerCase().replace(/_/g, '-')}`}>
+                                {p.status}
+                              </span>
+                            </td>
+                            <td style={{ padding: '12px 14px' }}>
+                              <span
+                                style={{
+                                  fontSize: '0.68rem',
+                                  fontWeight: 700,
+                                  padding: '2px 8px',
+                                  borderRadius: '4px',
+                                  background: isHuman ? '#ECFDF5' : '#F3F4F6',
+                                  color: isHuman ? '#047857' : '#6B7280',
+                                  border: `1px solid ${isHuman ? '#A7F3D0' : '#E5E7EB'}`,
+                                }}
+                              >
+                                {isHuman ? '✍️ Human' : '🤖 AI Draft'}
+                              </span>
+                            </td>
+                            <td style={{ padding: '12px 14px', color: 'var(--text-secondary)', maxWidth: '320px', lineHeight: 1.5 }}>
+                              <div style={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                                {desc}
+                              </div>
+                            </td>
+                            <td style={{ padding: '12px 14px', textAlign: 'center' }}>
+                              <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
+                                <button
+                                  type="button"
+                                  onClick={() => handleExportSingleCsv(p)}
+                                  title={`Download CSV only for ${p.product_id}`}
+                                  style={{
+                                    padding: '4px 8px',
+                                    fontSize: '0.72rem',
+                                    fontWeight: 700,
+                                    borderRadius: '6px',
+                                    border: '1px solid var(--surface-border)',
+                                    background: 'var(--surface-card)',
+                                    color: 'var(--text-ink)',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.15s ease'
+                                  }}
+                                >
+                                  📥 CSV
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleExportSingleJson(p)}
+                                  title={`Download JSON only for ${p.product_id}`}
+                                  style={{
+                                    padding: '4px 8px',
+                                    fontSize: '0.72rem',
+                                    fontWeight: 700,
+                                    borderRadius: '6px',
+                                    border: '1px solid var(--surface-border)',
+                                    background: 'var(--surface-card)',
+                                    color: 'var(--text-ink)',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.15s ease'
+                                  }}
+                                >
+                                  📦 JSON
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Non-compliance Disclaimer */}
+              <div style={{ background: 'var(--surface-card-subtle)', border: '1px solid var(--surface-border)', borderRadius: '10px', padding: '16px 20px', fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.5, textAlign: 'center' }}>
+                ⚖️ <strong>Legal Notice:</strong> An export from this tool alone does not prove or guarantee website accessibility compliance. Human editorial review is strictly required.
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
 
         {/* TAB 404: MISSING IMAGE / SLIPPED FRAME */}
         {activeTab === '404' && (
