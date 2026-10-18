@@ -308,15 +308,40 @@ async function callGemini(contents, options = {}) {
   throw lastError || new Error('All Gemini candidate models failed.');
 }
 
-// Serve static assets with graceful fallback
+// Define FRONTEND_DIST path
+const FRONTEND_DIST = path.resolve(__dirname, '../frontend/dist');
+
+// Serve static frontend build first if it exists
+if (fs.existsSync(FRONTEND_DIST)) {
+  app.use(express.static(FRONTEND_DIST));
+}
+
+// Serve product image assets with graceful fallback
 app.use('/assets', express.static(ASSETS_DIR));
 
 app.get('/assets/:filename', (req, res) => {
   const filename = req.params.filename;
+
+  // 1. Check if it's a frontend compiled asset in frontend/dist/assets
+  if (fs.existsSync(FRONTEND_DIST)) {
+    const distAsset = path.join(FRONTEND_DIST, 'assets', filename);
+    if (fs.existsSync(distAsset)) {
+      return res.sendFile(distAsset);
+    }
+  }
+
+  // 2. Check if product image exists in ASSETS_DIR
   const filePath = path.join(ASSETS_DIR, filename);
   if (fs.existsSync(filePath)) {
     return res.sendFile(filePath);
   }
+
+  // 3. If requesting a JS or CSS file, return 404 (never return SVG image for scripts/styles)
+  if (filename.endsWith('.js') || filename.endsWith('.css') || filename.endsWith('.map')) {
+    return res.status(404).type('text/plain').send('Asset not found');
+  }
+
+  // 4. Graceful SVG placeholder for missing product images
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="100%" height="100%">
     <rect width="400" height="300" fill="#F4F6F9" rx="8" />
     <text x="200" y="150" text-anchor="middle" fill="#6B7280" font-family="system-ui, sans-serif" font-size="14">Asset Unavailable: ${filename}</text>
@@ -2053,10 +2078,8 @@ app.get(['/database', '/admin/database'], (req, res) => {
   res.send(html);
 });
 
-// Serve static frontend build if it exists (for combined single-service deployment on Render)
-const FRONTEND_DIST = path.resolve(__dirname, '../frontend/dist');
+// Catch-all SPA route for frontend navigation
 if (fs.existsSync(FRONTEND_DIST)) {
-  app.use(express.static(FRONTEND_DIST));
   app.get('*', (req, res, next) => {
     if (req.path.startsWith('/api') || req.path.startsWith('/database') || req.path.startsWith('/assets')) {
       return next();
