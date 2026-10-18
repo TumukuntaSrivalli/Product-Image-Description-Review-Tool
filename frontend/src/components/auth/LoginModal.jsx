@@ -75,8 +75,8 @@ export function LoginModal({ isOpen, onClose, onLoginSuccess }) {
         </button>
 
         <div className="auth-modal-header">
-          <div style={{ fontSize: '1.8rem', marginBottom: '8px' }}>✦</div>
-          <h2 className="auth-modal-title">Sign in to ALTLUME</h2>
+          <img src="/varnx-logo.png" alt="VarnX Logo" style={{ height: '44px', width: 'auto', borderRadius: '8px', marginBottom: '10px' }} />
+          <h2 className="auth-modal-title">Sign in to VarnX</h2>
           <p className="auth-modal-subtitle">
             Enter your email and password to begin catalogue onboarding and access your review studio.
           </p>

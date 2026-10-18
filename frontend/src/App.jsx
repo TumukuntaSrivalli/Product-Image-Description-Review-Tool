@@ -3481,10 +3481,11 @@ export default function App() {
                 setActiveFlow('home');
               }
             }}
-            title="ALTLUME Review Studio"
+            title="VarnX Review Studio"
             style={{ cursor: 'pointer' }}
           >
-            <span className="brand-wordmark">ALTLUME</span>
+            <img src="/varnx-logo.png" alt="VarnX Logo" className="brand-logo-img" />
+            <span className="brand-wordmark">VarnX</span>
             <span className="brand-pill">
               {activeFlow === 'home'
                 ? 'COMMERCE STUDIO'
@@ -3761,7 +3762,7 @@ export default function App() {
                   </span>
                   <h1>Good descriptions begin with looking.</h1>
                   <p>
-                    A tactile, calm review studio for commerce editors. ALTLUME pairs computer vision observations with disciplined human judgment—ensuring every product alt text is accurate, concise, and verifiable.
+                    A tactile, calm review studio for commerce editors. VarnX pairs computer vision observations with disciplined human judgment—ensuring every product alt text is accurate, concise, and verifiable.
                   </p>
                   <div className="hero-actions">
                     <button
@@ -7423,11 +7424,12 @@ export default function App() {
         onLoginSuccess={handleLoginSuccess}
       />
 
-      {/* Global ALTLUME Footer */}
+      {/* Global VarnX Footer */}
       <footer className="altlume-footer">
         <div style={{ maxWidth: '1440px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-          <div>
-            <strong>ALTLUME Review Studio</strong> — Human-in-the-loop product image descriptions for digital commerce.
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <img src="/varnx-logo.png" alt="VarnX" style={{ height: '22px', width: 'auto', borderRadius: '4px' }} />
+            <strong>VarnX Review Studio</strong> — Human-in-the-loop product image descriptions for digital commerce.
           </div>
           <div style={{ fontStyle: 'italic', color: 'var(--text-muted)' }}>
             This tool does not prove website accessibility compliance. Human review is strictly required.

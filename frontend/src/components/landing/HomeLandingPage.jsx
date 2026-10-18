@@ -29,7 +29,7 @@ export function HomeLandingPage({ onGetStarted, onLogin, products = [], onSelect
             Good descriptions begin with looking.
           </h1>
           <p style={{ fontSize: '1.12rem', lineHeight: 1.6, color: 'var(--text-secondary)', marginBottom: '32px' }}>
-            A tactile, disciplined review studio for commerce editors. ALTLUME pairs computer vision observations with human editorial sign-off—guaranteeing that every product description is accurate, accessible, and strictly verifiable from visible pixels.
+            A tactile, disciplined review studio for commerce editors. VarnX pairs computer vision observations with human editorial sign-off—guaranteeing that every product description is accurate, accessible, and strictly verifiable from visible pixels.
           </p>
 
           <div className="hero-actions">
