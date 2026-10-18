@@ -320,8 +320,15 @@ export default function App() {
     return 'home';
   });
 
-  // Navigation tabs within Workspace: 'dashboard' | 'batch' | 'workspace' (Studio) | 'method' | 'export'
+  // Navigation tabs within Workspace: 'dashboard' | 'batch' | 'workspace' (Studio) | 'export'
   const [activeTab, setActiveTab] = useState('dashboard');
+
+  // Auto-redirect if tab was set to 'method'
+  useEffect(() => {
+    if (activeTab === 'method') {
+      setActiveTab('workspace');
+    }
+  }, [activeTab]);
 
   const handleLoginSuccess = (user) => {
     localStorage.setItem('altlume_user', JSON.stringify(user));
@@ -3782,10 +3789,10 @@ export default function App() {
                     <button
                       type="button"
                       className="btn-editorial-secondary"
-                      onClick={() => setActiveTab('method')}
-                      data-cursor="Learn"
+                      onClick={() => setActiveTab('batch')}
+                      data-cursor="Batch"
                     >
-                      📖 See how it works
+                      ⚡ Bulk Processing
                     </button>
                   </div>
                 </div>
@@ -6020,70 +6027,6 @@ export default function App() {
           </div>
         )}
 
-        {/* TAB 3: METHOD PAGE (ALTLUME DISCIPLINE) */}
-        {activeFlow === 'workspace' && activeTab === 'method' && (
-          <div style={{ maxWidth: '980px', margin: '40px auto 60px', padding: '0 24px' }}>
-            <div style={{ textAlign: 'center', marginBottom: '36px' }}>
-              <span className="brand-pill" style={{ marginBottom: '12px', display: 'inline-block' }}>
-                EDITORIAL DISCIPLINE
-              </span>
-              <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2.8rem', color: 'var(--text-ink)', margin: '0 0 14px' }}>
-                The ALTLUME Method: Observe → Check → Review
-              </h1>
-              <p style={{ fontSize: '1.08rem', color: 'var(--text-secondary)', maxWidth: '640px', margin: '0 auto', lineHeight: 1.6 }}>
-                A systematic standard for commerce image descriptions. We separate visual evidence from marketing copy so every published alt text is factual, concise, and verifiable.
-              </p>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', marginBottom: '36px' }}>
-              <div className="step-card">
-                <span className="step-number">Phase 01</span>
-                <div className="step-title">Observe</div>
-                <p className="step-desc">
-                  Look closely at visible light, material texture, silhouette, and geometry. <strong>Catalogue metadata is not proof of visible detail</strong>—only what is rendered in pixels may be described.
-                </p>
-              </div>
-
-              <div className="step-card">
-                <span className="step-number">Phase 02</span>
-                <div className="step-title">Check</div>
-                <p className="step-desc">
-                  Apply deterministic guardrails against unsupported claims. Banned words (eco-friendly, durable, ergonomic, pure silk) must be confirmed by merchant specs or removed.
-                </p>
-              </div>
-
-              <div className="step-card">
-                <span className="step-number">Phase 03</span>
-                <div className="step-title">Review</div>
-                <p className="step-desc">
-                  <strong>A generated draft is never an approval.</strong> The commerce editor holds ultimate responsibility for clarity, brevity (under 125 characters), and screen reader accessibility.
-                </p>
-              </div>
-            </div>
-
-            <div style={{ background: 'var(--surface-card)', border: '1px solid var(--surface-border)', borderRadius: '14px', padding: '28px', marginBottom: '28px', boxShadow: 'var(--shadow-md)' }}>
-              <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.4rem', color: 'var(--text-ink)', marginTop: 0, marginBottom: '10px' }}>
-                W3C Web Accessibility Guidelines
-              </h2>
-              <p style={{ color: 'var(--text-secondary)', lineHeight: 1.6, fontSize: '0.92rem', margin: '0 0 16px 0' }}>
-                ALTLUME aligns with the World Wide Web Consortium (W3C) Web Content Accessibility Guidelines (WCAG 2.2). Before writing descriptions, verify image intent using the decision tree: decorative images must use null alt text, informative images require concise descriptions, and text-containing images require verbatim transcription.
-              </p>
-              <a
-                href="https://www.w3.org/WAI/tutorials/images/decision-tree/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn-editorial-primary"
-                style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
-              >
-                ↗ Open W3C Image Alt-Text Decision Tree
-              </a>
-            </div>
-
-            <div style={{ background: 'var(--surface-card-subtle)', border: '1px solid var(--surface-border)', borderRadius: '10px', padding: '16px 20px', fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-              <strong>Synthetic Fixture Notice:</strong> ALTLUME operates on fixture dataset (P01–P10). This tool assists editorial workflows and <strong>does not prove website accessibility compliance</strong>. Human editorial sign-off is strictly required before public publishing.
-            </div>
-          </div>
-        )}
 
         {/* TAB 4: EXPORT HUB (ALTLUME READINESS & AUDIT) */}
         {activeFlow === 'workspace' && activeTab === 'export' && (() => {
@@ -7404,7 +7347,6 @@ export default function App() {
               {[
                 { label: '✦ Review Workspace', tab: 'workspace' },
                 { label: '📊 Batch Dashboard', tab: 'dashboard' },
-                { label: '📖 Editorial Method (WCAG)', tab: 'method' },
                 { label: '📥 Export Hub (CSV & JSON)', tab: 'export' },
                 { label: '🖼️ Simulated 404 (Missing Frame)', tab: '404' },
               ].map((nav) => (
