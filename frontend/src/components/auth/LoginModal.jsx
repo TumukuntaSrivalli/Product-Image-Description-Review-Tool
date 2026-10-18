@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 
 export function LoginModal({ isOpen, onClose, onLoginSuccess }) {
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
 
   if (!isOpen) return null;
@@ -10,6 +12,7 @@ export function LoginModal({ isOpen, onClose, onLoginSuccess }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     const cleanEmail = email.trim();
+    const cleanPassword = password.trim();
     const cleanName = name.trim();
 
     if (!cleanEmail) {
@@ -17,7 +20,15 @@ export function LoginModal({ isOpen, onClose, onLoginSuccess }) {
       return;
     }
     if (!cleanEmail.includes('@') || !cleanEmail.includes('.')) {
-      setError('Please enter a valid email address.');
+      setError('Please enter a valid work email address.');
+      return;
+    }
+    if (!cleanPassword) {
+      setError('Please enter your account password.');
+      return;
+    }
+    if (cleanPassword.length < 4) {
+      setError('Password must be at least 4 characters.');
       return;
     }
 
@@ -29,6 +40,11 @@ export function LoginModal({ isOpen, onClose, onLoginSuccess }) {
   };
 
   const handleDemoLogin = () => {
+    setEmail('editor@brand.com');
+    setPassword('editorial2026!');
+    setName('Alex Morgan');
+    setError('');
+
     onLoginSuccess({
       email: 'editor@brand.com',
       name: 'Alex Morgan',
@@ -62,7 +78,7 @@ export function LoginModal({ isOpen, onClose, onLoginSuccess }) {
           <div style={{ fontSize: '1.8rem', marginBottom: '8px' }}>✦</div>
           <h2 className="auth-modal-title">Sign in to ALTLUME</h2>
           <p className="auth-modal-subtitle">
-            Enter your credentials to access your catalogue review studio and deterministic guardrails.
+            Enter your email and password to begin catalogue onboarding and access your review studio.
           </p>
         </div>
 
@@ -76,13 +92,13 @@ export function LoginModal({ isOpen, onClose, onLoginSuccess }) {
             fontSize: '0.82rem',
             marginBottom: '16px'
           }}>
-            {error}
+            ⚠️ {error}
           </div>
         )}
 
         <form onSubmit={handleSubmit}>
           <div className="auth-form-group">
-            <label className="auth-form-label" htmlFor="login-name">Your Name</label>
+            <label className="auth-form-label" htmlFor="login-name">Your Full Name (Optional)</label>
             <input
               id="login-name"
               type="text"
@@ -112,13 +128,46 @@ export function LoginModal({ isOpen, onClose, onLoginSuccess }) {
             />
           </div>
 
-          <button type="submit" className="auth-btn-primary">
-            Continue with Email →
+          <div className="auth-form-group">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+              <label className="auth-form-label" htmlFor="login-password" style={{ margin: 0 }}>Password *</label>
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--accent-indigo)',
+                  fontSize: '0.74rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  padding: 0
+                }}
+              >
+                {showPassword ? 'Hide 🙈' : 'Show 👁️'}
+              </button>
+            </div>
+            <input
+              id="login-password"
+              type={showPassword ? 'text' : 'password'}
+              required
+              className="auth-form-input"
+              placeholder="Enter your password"
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                if (error) setError('');
+              }}
+            />
+          </div>
+
+          <button type="submit" className="auth-btn-primary" style={{ marginTop: '12px' }}>
+            Sign In & Continue to Onboarding →
           </button>
         </form>
 
         <div className="auth-divider">
-          <span>or single-click access</span>
+          <span>or one-click demo login</span>
         </div>
 
         <button
@@ -127,11 +176,11 @@ export function LoginModal({ isOpen, onClose, onLoginSuccess }) {
           onClick={handleDemoLogin}
           title="Instant sign-in as Commerce Editor"
         >
-          <span>⚡ Continue as Demo Commerce Editor</span>
+          <span>⚡ Instant Demo Sign-In (editor@brand.com)</span>
         </button>
 
         <div style={{ textAlign: 'center', marginTop: '16px', fontSize: '0.74rem', color: 'var(--text-muted)' }}>
-          By continuing, you agree to editorial terms and human-in-the-loop review policies.
+          By continuing, you agree to human-in-the-loop validation policies and verified alt-text standards.
         </div>
       </div>
     </div>

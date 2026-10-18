@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { PaymentModal } from './PaymentModal';
 
 const PLANS = [
   {
@@ -16,8 +17,9 @@ const PLANS = [
       'Standard CSV & JSON export',
       'Community & documentation support',
     ],
-    ctaText: 'Choose Starter Plan',
+    ctaText: 'Choose Starter Plan (Free)',
     recommended: false,
+    requiresPayment: false,
   },
   {
     id: 'pro',
@@ -35,8 +37,9 @@ const PLANS = [
       'Human-in-the-loop batch sign-off workflow',
       'Priority Gemini candidate model routing',
     ],
-    ctaText: 'Choose Pro Growth (Recommended)',
+    ctaText: 'Choose Pro Growth ($49/mo) →',
     recommended: true,
+    requiresPayment: true,
   },
   {
     id: 'enterprise',
@@ -53,34 +56,56 @@ const PLANS = [
       'Unlimited team editor seats & audit trails',
       'Dedicated SLA & 24/7 priority support',
     ],
-    ctaText: 'Choose Enterprise Plan',
+    ctaText: 'Choose Enterprise Plan ($199/mo) →',
     recommended: false,
+    requiresPayment: true,
   },
 ];
 
-export function SubscriptionFlow({ onSelectPlan, currentPlanId = 'pro' }) {
+export function SubscriptionFlow({ onSelectPlan, currentPlanId = 'pro', user = null }) {
   const [selectedPlanId, setSelectedPlanId] = useState(currentPlanId);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [pendingPlan, setPendingPlan] = useState(null);
 
   const handleChoose = (plan) => {
     setSelectedPlanId(plan.id);
+
+    // If it requires payment (e.g. Pro Plan $49 or Enterprise $199), open Payment Modal
+    if (plan.requiresPayment) {
+      setPendingPlan(plan);
+      setShowPaymentModal(true);
+      return;
+    }
+
+    // Free plan activation
     const payload = {
       planId: plan.id,
       planName: plan.name,
       price: plan.price,
+      paymentStatus: 'FREE_TIER',
       selectedAt: new Date().toISOString(),
     };
     localStorage.setItem('altlume_subscription', JSON.stringify(payload));
     onSelectPlan(payload);
   };
 
+  const handlePaymentSuccess = (paymentData) => {
+    setShowPaymentModal(false);
+    localStorage.setItem('altlume_subscription', JSON.stringify(paymentData));
+    onSelectPlan(paymentData);
+  };
+
   return (
     <div className="subscription-container">
+      {/* Header section with high-contrast text and clean spacing */}
       <div className="subscription-header">
         <span className="brand-pill" style={{ marginBottom: '14px', display: 'inline-block' }}>
-          EDITORIAL CATALOGUE PLANS
+          ✦ EDITORIAL CATALOGUE PLANS
         </span>
-        <h1>Select an Editorial Review Plan</h1>
-        <p>
+        <h1 className="subscription-main-title">
+          Select an Editorial Review Plan
+        </h1>
+        <p className="subscription-main-subtitle">
           Transparent pricing tailored to your catalogue volume. Every plan includes our deterministic Review Guard to prevent unverified marketing claims.
         </p>
       </div>
@@ -132,17 +157,30 @@ export function SubscriptionFlow({ onSelectPlan, currentPlanId = 'pro' }) {
                 onClick={() => handleChoose(plan)}
                 style={{ width: '100%', justifyContent: 'center', padding: '12px', fontSize: '0.92rem' }}
               >
-                {isSelected ? `✓ Current Plan: ${plan.name}` : plan.ctaText}
+                {isSelected ? `✓ Selected: ${plan.name}` : plan.ctaText}
               </button>
             </div>
           );
         })}
       </div>
 
-      {/* Trust Notice */}
-      <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.8rem', maxWidth: '600px', margin: '0 auto' }}>
-        ✦ Prototype deployment notice: Plan selection is simulated and stored locally. No credit card required. All features are fully functional immediately.
+      {/* Security & Guarantee Note */}
+      <div style={{ textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.84rem', maxWidth: '640px', margin: '0 auto', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}>
+        <span>🔒 Secure 256-Bit SSL Checkout</span>
+        <span>•</span>
+        <span>Monthly Billing</span>
+        <span>•</span>
+        <span>Cancel Anytime</span>
       </div>
+
+      {/* Payment / Checkout Modal */}
+      <PaymentModal
+        isOpen={showPaymentModal}
+        plan={pendingPlan}
+        user={user}
+        onClose={() => setShowPaymentModal(false)}
+        onPaymentSuccess={handlePaymentSuccess}
+      />
     </div>
   );
 }

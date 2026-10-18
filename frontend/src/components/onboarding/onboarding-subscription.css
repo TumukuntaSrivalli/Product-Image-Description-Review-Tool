@@ -157,9 +157,9 @@
    MULTI-STEP ONBOARDING
    ========================================================================== */
 .onboarding-container {
-  max-width: 720px;
-  margin: 40px auto 60px;
-  padding: 0 20px;
+  max-width: 740px;
+  margin: 32px auto 80px;
+  padding: 24px 20px 0;
   animation: authFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -209,18 +209,27 @@
 
 .onboarding-question-title {
   font-family: var(--font-display);
-  font-size: 2rem;
-  color: var(--text-ink);
+  font-size: 2.2rem;
+  color: #111827;
   letter-spacing: -0.02em;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
   line-height: 1.2;
+  font-weight: 800;
+}
+
+[data-theme='dark'] .onboarding-question-title {
+  color: #F9FAFB;
 }
 
 .onboarding-question-subtitle {
-  font-size: 0.94rem;
-  color: var(--text-secondary);
+  font-size: 0.96rem;
+  color: #4B5563;
   margin-bottom: 28px;
   line-height: 1.5;
+}
+
+[data-theme='dark'] .onboarding-question-subtitle {
+  color: #9CA3AF;
 }
 
 /* Selectable Cards Grid */
@@ -317,29 +326,46 @@
    ========================================================================== */
 .subscription-container {
   max-width: 1180px;
-  margin: 40px auto 60px;
-  padding: 0 20px;
+  margin: 32px auto 80px;
+  padding: 24px 20px 0;
   animation: authFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .subscription-header {
   text-align: center;
-  max-width: 680px;
+  max-width: 760px;
   margin: 0 auto 40px;
+  padding: 12px 0 0;
 }
 
-.subscription-header h1 {
+.subscription-header h1,
+.subscription-main-title {
   font-family: var(--font-display);
-  font-size: 2.6rem;
-  color: var(--text-ink);
-  letter-spacing: -0.02em;
-  margin-bottom: 12px;
+  font-size: 2.7rem;
+  color: #111827;
+  letter-spacing: -0.025em;
+  margin-bottom: 14px;
+  font-weight: 800;
+  line-height: 1.15;
 }
 
-.subscription-header p {
-  font-size: 1.05rem;
-  color: var(--text-secondary);
+[data-theme='dark'] .subscription-header h1,
+[data-theme='dark'] .subscription-main-title {
+  color: #F9FAFB;
+}
+
+.subscription-header p,
+.subscription-main-subtitle {
+  font-size: 1.08rem;
+  color: #4B5563;
   line-height: 1.6;
+  max-width: 660px;
+  margin: 0 auto;
+}
+
+[data-theme='dark'] .subscription-header p,
+[data-theme='dark'] .subscription-main-subtitle {
+  color: #9CA3AF;
 }
 
 .pricing-grid {
@@ -533,4 +559,94 @@
   border: 1px solid rgba(79, 70, 229, 0.25);
   cursor: pointer;
   text-decoration: none;
+}
+
+/* ==========================================================================
+   PAYMENT CHECKOUT MODAL STYLES
+   ========================================================================== */
+.payment-checkout-card {
+  max-width: 500px;
+  padding: 32px 30px;
+  position: relative;
+}
+
+.payment-modal-close {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.payment-modal-close:hover {
+  color: var(--text-ink);
+  background: var(--surface-card-subtle);
+}
+
+.checkout-summary-box {
+  background: var(--surface-card-subtle);
+  border: 1px solid var(--surface-border);
+  border-radius: 14px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+}
+
+.checkout-plan-tag {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--accent-indigo);
+  background: rgba(79, 70, 229, 0.1);
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-bottom: 4px;
+}
+
+.payment-method-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.payment-method-btn {
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  border: 1.5px solid var(--surface-border);
+  background: var(--surface-card);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.payment-method-btn.active {
+  border-color: var(--accent-indigo);
+  color: var(--accent-indigo);
+  background: rgba(79, 70, 229, 0.08);
+}
+
+.payment-success-card {
+  text-align: center;
+  padding: 28px 16px;
+  animation: authFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes scaleUp {
+  from { transform: scale(0.6); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
 }

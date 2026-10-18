@@ -73,6 +73,7 @@ export function OnboardingFlow({ onComplete, initialValues = {} }) {
     if (currentStep < QUESTIONS.length - 1) {
       setCurrentStep((prev) => prev + 1);
       setValidationError('');
+      try { window.scrollTo({ top: 0, behavior: 'instant' }); } catch {}
     } else {
       // Finished all 3 questions!
       const payload = {
@@ -88,6 +89,7 @@ export function OnboardingFlow({ onComplete, initialValues = {} }) {
     if (currentStep > 0) {
       setCurrentStep((prev) => prev - 1);
       setValidationError('');
+      try { window.scrollTo({ top: 0, behavior: 'instant' }); } catch {}
     }
   };
 

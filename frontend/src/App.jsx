@@ -295,21 +295,17 @@ export default function App() {
     setCurrentUser(user);
     setShowLoginModal(false);
 
-    if (!onboardingData || !onboardingData.businessType) {
-      setActiveFlow('onboarding');
-    } else if (!subscriptionPlan || !subscriptionPlan.planId) {
-      setActiveFlow('subscription');
-    } else {
-      setActiveFlow('workspace');
-      setActiveTab('dashboard');
-    }
-    setSuccessMessage(`Welcome, ${user.name || 'Editor'}!`);
+    // As requested: After sign-in, always take user through business onboarding questionnaire
+    setActiveFlow('onboarding');
+    try { window.scrollTo({ top: 0, behavior: 'instant' }); } catch {}
+    setSuccessMessage(`Welcome, ${user.name || 'Editor'}! Please set up your business profile.`);
   };
 
   const handleLogout = () => {
     localStorage.removeItem('altlume_user');
     setCurrentUser(null);
     setActiveFlow('home');
+    try { window.scrollTo({ top: 0, behavior: 'instant' }); } catch {}
     setSuccessMessage('Signed out successfully.');
   };
 
@@ -317,6 +313,7 @@ export default function App() {
     setOnboardingData(data);
     localStorage.setItem('altlume_onboarding', JSON.stringify(data));
     setActiveFlow('subscription');
+    try { window.scrollTo({ top: 0, behavior: 'instant' }); } catch {}
     setSuccessMessage('Business onboarding completed! Please choose your catalogue plan.');
   };
 
@@ -325,7 +322,13 @@ export default function App() {
     localStorage.setItem('altlume_subscription', JSON.stringify(plan));
     setActiveFlow('workspace');
     setActiveTab('dashboard');
-    setSuccessMessage(`Subscribed to ${plan.planName}! Welcome to your workspace.`);
+    try { window.scrollTo({ top: 0, behavior: 'instant' }); } catch {}
+
+    if (plan.paymentStatus === 'PAID') {
+      setSuccessMessage(`Payment of ${plan.paidAmount} confirmed! Activated ${plan.planName} (Receipt: ${plan.transactionId}). Welcome to your review workspace!`);
+    } else {
+      setSuccessMessage(`Subscribed to ${plan.planName}! Welcome to your review workspace.`);
+    }
   };
 
   // Session-wide Merchant Name
@@ -3423,14 +3426,7 @@ export default function App() {
         {/* FLOW 1: MODERN INTERACTIVE HERO / LANDING PAGE */}
         {activeFlow === 'home' && (
           <HomeLandingPage
-            onGetStarted={() => {
-              if (currentUser) {
-                setActiveFlow('workspace');
-                setActiveTab('dashboard');
-              } else {
-                setShowLoginModal(true);
-              }
-            }}
+            onGetStarted={() => setShowLoginModal(true)}
             onLogin={() => setShowLoginModal(true)}
             products={products}
             onSelectProduct={(id) => {
@@ -3457,6 +3453,7 @@ export default function App() {
         {activeFlow === 'subscription' && (
           <SubscriptionFlow
             currentPlanId={subscriptionPlan?.planId || 'pro'}
+            user={currentUser}
             onSelectPlan={handleSelectSubscription}
           />
         )}
