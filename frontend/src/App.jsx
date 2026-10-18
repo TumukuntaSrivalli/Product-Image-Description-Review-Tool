@@ -370,89 +370,10 @@ export default function App() {
   // Review Language: 'en' | 'hi' | 'te'
   const [reviewLanguage, setReviewLanguage] = useState('en');
 
-  // Master product queue
-  const [products, setProducts] = useState(() =>
-    DEFAULT_PRODUCTS.map((p) => ({
-      ...p,
-      image_url: `/assets/${p.product_id}.png`,
-      file_name: `${p.product_id}.png`,
-      status: 'PENDING', // PENDING | DRAFT_READY | EDITED | APPROVED | INACCESSIBLE
-      draft: `• ${p.visible_description}\n• Clean geometric silhouette with smooth rounded corners.\n• Centrally positioned against a neutral background.`,
-      description_short: `${p.visible_description} with a clean, modern finish.`,
-      description_bullets: `• ${p.visible_description}\n• Clean geometric silhouette with smooth rounded corners.\n• Centrally positioned against a neutral background.`,
-      description_long: `${p.visible_description}. Observable details feature rounded contours against a neutral background. Its simple, balanced silhouette offers a clean, versatile aesthetic.`,
-      selected_description_type: 'bullets', // short | bullets | long
-      edited_text: '',
-      final_description: '',
-      mode: 'BULLETS', // SHORT | BULLETS | LONG
-      quality_status: 'GOOD',
-      quality_score: 92,
-      quality_warning: null,
-      quality_details: {
-        resolution: '1200 x 900 px',
-        aspect_ratio: '4:3',
-        visual_clarity: 'Good',
-        blur_estimate: 'Sharp / Clear focus',
-        brightness: '84% (Optimal)',
-        contrast: '12.4:1 (High)',
-      },
-      detected_features: [
-        { id: 'f-1', name: 'Primary Color', value: p.metadata_title.includes('Blue') ? 'Solid Blue hue' : p.metadata_title.includes('Red') ? 'Solid Red hue' : p.metadata_title.includes('Black') ? 'Solid Black finish' : p.metadata_title.includes('Green') ? 'Solid Green hue' : 'Solid Grey hue', confidence: 'high' },
-        { id: 'f-2', name: 'Silhouette', value: 'Rounded rectangular profile with defined edges', confidence: 'high' },
-        { id: 'f-3', name: 'Framing', value: 'Centered placement against clean neutral background', confidence: 'high' },
-        { id: 'f-4', name: 'Surface Finish', value: 'Even matte graphical presentation', confidence: 'medium' },
-      ],
-      feature_choices: { 'f-1': 'INCLUDE', 'f-2': 'INCLUDE', 'f-3': 'INCLUDE', 'f-4': 'INCLUDE' },
-      listened: false,
-      selected_language: 'en',
-      translations: {
-        en: p.visible_description,
-        hi: 'नीले रंग का गोल किनारों वाला आयताकार उत्पाद चित्र।',
-        te: 'నీలం రంగులో గుండ్రని అంచులు ఉన్న దీర్ఘచతురస్రాకార ఉత్పత్తి చిత్రం.',
-        ta: 'நீல நிற வட்டமான செவ்வக வடிவ தயாரிப்பு விளக்கம்.',
-      },
-      edge_cases: {
-        is_decorative: false,
-        contains_text: false,
-        multiple_products: false,
-        ambiguous_color: false,
-      },
-      history: [
-        { action: 'INITIALIZED', timestamp: '10:00:00 AM' }
-      ],
-      reviewer_note: '',
-      inaccessible_reason: '',
-      imageError: false,
-      isUploaded: false,
-      images: [
-        {
-          id: `${p.product_id}-v1`,
-          url: `/assets/${p.product_id}.png`,
-          view: 'front',
-          confidence: 'high',
-          is_inaccessible: false,
-        },
-      ],
-      active_view_index: 0,
-      image_count: 1,
-      view_coverage: {
-        score: 25,
-        expected_views: ['front', 'back', 'side', 'detail'],
-        present_views: ['front'],
-        missing_views: ['back', 'side', 'detail'],
-        recommendation: 'Coverage 25% (Single view) – Back view recommended to inspect rear design.',
-        is_single_view: true,
-      },
-      // Batch 3 Multi-Format Fields
-      product_highlights: p.description_bullets || p.draft || '• Clean observable contours and balanced presentation.',
-      short_description: p.description_short || p.short_description || p.visible_description,
-      marketplace_description: p.description_long || p.detailed_description || `${p.visible_description}. Observable details feature rounded contours against a neutral background.`,
-      card_summary: `${(p.visible_description || '').slice(0, 80)}...`,
-      readiness_score: 40,
-    }))
-  );
+  // Master product queue (empty by default; user uploads products directly)
+  const [products, setProducts] = useState(() => []);
 
-  const [selectedId, setSelectedId] = useState('P01');
+  const [selectedId, setSelectedId] = useState('');
   const [queueFilter, setQueueFilter] = useState('ALL'); // ALL | PENDING | APPROVED | INACCESSIBLE
   const [categoryFilter, setCategoryFilter] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
@@ -576,7 +497,7 @@ export default function App() {
   const [isGeneratingMultiFormat, setIsGeneratingMultiFormat] = useState(false);
 
   // Export Customization State: select particular descriptions/products
-  const [selectedExportIds, setSelectedExportIds] = useState(() => DEFAULT_PRODUCTS.map((p) => p.product_id));
+  const [selectedExportIds, setSelectedExportIds] = useState(() => []);
   const [exportSearchTerm, setExportSearchTerm] = useState('');
   const [exportStatusFilter, setExportStatusFilter] = useState('ALL'); // 'ALL' | 'APPROVED' | 'PENDING' | 'INACCESSIBLE'
 
@@ -608,38 +529,9 @@ export default function App() {
     }
   }, [selectedVoiceName]);
 
-  // Load authoritative data from backend on mount
+  // Keep review queue clean for merchant uploads (no auto-injected dummy data)
   useEffect(() => {
-    fetch('/api/images')
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (data && Array.isArray(data.images) && data.images.length > 0) {
-          setProducts((prev) => {
-            const mappedDemo = data.images.slice(0, 10).map((img, i) => {
-              const existing = prev.find((p) => p.product_id === img.product_id) || prev[i] || {};
-              return {
-                ...existing,
-                ...img,
-                price: existing.price !== undefined ? existing.price : (img.price !== undefined ? img.price : getEstimatedProductPrice(img.category, img.metadata_title)),
-                image_url: `/assets/${img.product_id}.png`,
-                status: existing.status || img.status || 'PENDING',
-                draft: existing.draft || img.draft || img.visible_description,
-                edited_text: existing.edited_text || '',
-                final_description: existing.final_description || '',
-                translations: {
-                  ...existing.translations,
-                  ...(img.translations || {}),
-                },
-              };
-            });
-            const uploaded = prev.filter((p) => p.isUploaded);
-            return [...mappedDemo, ...uploaded];
-          });
-        }
-      })
-      .catch(() => {
-        // Fallback uses DEFAULT_PRODUCTS
-      });
+    // Queue is driven by merchant uploads
   }, []);
 
   // Auto-sync products to SQLite database on state updates
@@ -662,7 +554,7 @@ export default function App() {
     return () => clearTimeout(timer);
   }, [products, merchantName]);
 
-  const currentProduct = products.find((p) => p.product_id === selectedId) || products[0];
+  const currentProduct = products.find((p) => p.product_id === selectedId) || products[0] || null;
 
   // Transparent category view checklist calculator
   const computeClientViewCoverage = (category = '', images = []) => {
@@ -2110,7 +2002,7 @@ export default function App() {
 
   // Single Merchant File Upload with client-side quality check
   const handleFileUpload = async (e) => {
-    const file = e.target.files?.[0];
+    const file = e?.target?.files?.[0] || e?.dataTransfer?.files?.[0] || (e instanceof File ? e : null);
     if (!file) return;
 
     const allowed = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
@@ -2186,7 +2078,26 @@ export default function App() {
       setSuccessMessage(`Loaded upload ${newId} (${file.name}) — Estimated Price: $${estimatedPrice.toFixed(2)}. Quality: ${qualityCheck.isGood ? 'Good' : 'Warning'}`);
     };
     reader.readAsDataURL(file);
-    e.target.value = '';
+    if (e?.target) e.target.value = '';
+  };
+
+  // Remove single product from review queue
+  const handleDeleteProduct = (id) => {
+    setProducts((prev) => {
+      const next = prev.filter((p) => p.product_id !== id);
+      if (selectedId === id) {
+        setSelectedId(next.length > 0 ? next[0].product_id : '');
+      }
+      return next;
+    });
+    setSuccessMessage(`Removed product ${id} from queue.`);
+  };
+
+  // Clear entire queue
+  const handleClearQueue = () => {
+    setProducts([]);
+    setSelectedId('');
+    setSuccessMessage('Cleared review queue.');
   };
 
   // ==========================================
@@ -2801,12 +2712,12 @@ export default function App() {
 
   // Bulk Upload (max 20 images)
   const handleBulkFilesSelected = async (e) => {
-    const files = Array.from(e.target.files || []);
+    const files = Array.from(e?.target?.files || e?.dataTransfer?.files || []);
     if (files.length === 0) return;
 
     if (files.length > 20) {
       setErrorMessage(`Batch limit exceeded: You selected ${files.length} images. Maximum 20 images per batch allowed (10 recommended).`);
-      e.target.value = '';
+      if (e?.target) e.target.value = '';
       return;
     }
 
@@ -2841,7 +2752,7 @@ export default function App() {
     setBulkQueue(newQueueItems);
     setBulkProgress({ total: newQueueItems.length, completed: 0 });
     setShowBulkUploadModal(true);
-    e.target.value = '';
+    if (e?.target) e.target.value = '';
 
     // Process bulk items sequentially (2 concurrent)
     processBulkQueue(newQueueItems);
@@ -3801,24 +3712,30 @@ export default function App() {
                   </span>
                 </div>
                 <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>|</span>
-                <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-                  <span>Active Focus: <strong style={{ fontFamily: 'var(--font-mono)', color: 'var(--accent-indigo)' }}>{currentProduct.product_id}</strong> — {currentProduct.metadata_title}</span>
-                  <span style={{
-                    fontSize: '0.74rem',
-                    fontWeight: 700,
-                    padding: '2px 8px',
-                    borderRadius: '999px',
-                    background: 'rgba(5, 150, 105, 0.12)',
-                    color: 'var(--emerald)',
-                    border: '1px solid rgba(5, 150, 105, 0.3)',
-                    fontFamily: 'var(--font-mono)',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '4px'
-                  }}>
-                    🏷️ ${currentProduct.price !== undefined ? Number(currentProduct.price).toFixed(2) : '0.00'}
+                {currentProduct ? (
+                  <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                    <span>Active Focus: <strong style={{ fontFamily: 'var(--font-mono)', color: 'var(--accent-indigo)' }}>{currentProduct.product_id}</strong> — {currentProduct.metadata_title}</span>
+                    <span style={{
+                      fontSize: '0.74rem',
+                      fontWeight: 700,
+                      padding: '2px 8px',
+                      borderRadius: '999px',
+                      background: 'rgba(5, 150, 105, 0.12)',
+                      color: 'var(--emerald)',
+                      border: '1px solid rgba(5, 150, 105, 0.3)',
+                      fontFamily: 'var(--font-mono)',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}>
+                      🏷️ ${currentProduct.price !== undefined ? Number(currentProduct.price).toFixed(2) : '0.00'}
+                    </span>
                   </span>
-                </span>
+                ) : (
+                  <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                    <span>✨ Review Studio Ready — Upload your merchant product images to begin review</span>
+                  </span>
+                )}
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
@@ -3879,7 +3796,7 @@ export default function App() {
                 <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                   <input
                     type="text"
-                    placeholder="Filter P01–P10..."
+                    placeholder="Search products..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     style={{
@@ -3914,85 +3831,146 @@ export default function App() {
                   </select>
                 </div>
 
-                {/* Filmstrip Items (P01–P10) */}
+                {/* Filmstrip Items */}
                 <div className="filmstrip-items">
-                  {filteredProducts.map((p) => {
-                    const isSelected = p.product_id === selectedId;
-                    const statusClass = p.status.toLowerCase().replace(/_/g, '-');
-                    const imgCount = p.image_count || (Array.isArray(p.images) ? p.images.length : 1);
-
-                    // Duplicate-description marker check
-                    const descText = (p.final_description || p.edited_text || p.draft || '').trim().toLowerCase();
-                    const isDuplicate =
-                      descText &&
-                      descText.length > 10 &&
-                      products.filter(
-                        (other) =>
-                          other.product_id !== p.product_id &&
-                          (other.final_description || other.edited_text || other.draft || '').trim().toLowerCase() === descText
-                      ).length > 0;
-
-                    return (
+                  {filteredProducts.length === 0 ? (
+                    <div style={{
+                      textAlign: 'center',
+                      padding: '24px 12px',
+                      background: 'var(--surface-card)',
+                      borderRadius: '8px',
+                      border: '1px dashed var(--surface-border)',
+                      margin: '6px 0'
+                    }}>
+                      <div style={{ fontSize: '1.6rem', marginBottom: '8px' }}>📸</div>
+                      <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-ink)', marginBottom: '4px' }}>
+                        {products.length === 0 ? 'No products in queue' : 'No matching products'}
+                      </div>
+                      <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', margin: '0 0 12px', lineHeight: 1.4 }}>
+                        {products.length === 0
+                          ? 'Upload product images to start reviewing and generating visual descriptions.'
+                          : 'Try adjusting your search query or filter.'}
+                      </p>
                       <button
-                        key={p.product_id}
                         type="button"
-                        className={`filmstrip-card ${isSelected ? 'active' : ''}`}
-                        onClick={() => setSelectedId(p.product_id)}
-                        data-cursor="Review"
+                        className="btn-editorial-primary"
+                        style={{ padding: '6px 12px', fontSize: '0.72rem', width: '100%', justifyContent: 'center' }}
+                        onClick={() => fileInputRef.current?.click()}
                       >
-                        <img
-                          src={p.image_url}
-                          alt=""
-                          className="filmstrip-thumb"
-                          onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                        />
-                        <div className="filmstrip-meta">
-                          <div className="meta-row">
-                            <span className="product-id-badge">{p.product_id}</span>
-                            <span className={`status-pill ${statusClass}`}>{p.status}</span>
-                          </div>
-                          <div
+                        + Upload Image
+                      </button>
+                    </div>
+                  ) : (
+                    filteredProducts.map((p) => {
+                      const isSelected = p.product_id === selectedId;
+                      const statusClass = p.status.toLowerCase().replace(/_/g, '-');
+                      const imgCount = p.image_count || (Array.isArray(p.images) ? p.images.length : 1);
+
+                      // Duplicate-description marker check
+                      const descText = (p.final_description || p.edited_text || p.draft || '').trim().toLowerCase();
+                      const isDuplicate =
+                        descText &&
+                        descText.length > 10 &&
+                        products.filter(
+                          (other) =>
+                            other.product_id !== p.product_id &&
+                            (other.final_description || other.edited_text || other.draft || '').trim().toLowerCase() === descText
+                        ).length > 0;
+
+                      return (
+                        <div
+                          key={p.product_id}
+                          style={{ position: 'relative' }}
+                        >
+                          <button
+                            type="button"
+                            className={`filmstrip-card ${isSelected ? 'active' : ''}`}
+                            onClick={() => setSelectedId(p.product_id)}
+                            data-cursor="Review"
+                            style={{ width: '100%', textAlign: 'left' }}
+                          >
+                            <img
+                              src={p.image_url}
+                              alt=""
+                              className="filmstrip-thumb"
+                              onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                            />
+                            <div className="filmstrip-meta">
+                              <div className="meta-row">
+                                <span className="product-id-badge">{p.product_id}</span>
+                                <span className={`status-pill ${statusClass}`}>{p.status}</span>
+                              </div>
+                              <div
+                                style={{
+                                  fontSize: '0.74rem',
+                                  color: 'var(--text-ink)',
+                                  fontWeight: 600,
+                                  whiteSpace: 'nowrap',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                }}
+                              >
+                                {p.metadata_title}
+                              </div>
+                              <div style={{ display: 'flex', gap: '4px', alignItems: 'center', marginTop: '2px', flexWrap: 'wrap' }}>
+                                <span style={{ fontSize: '0.66rem', color: 'var(--text-muted)' }}>{p.category || 'General'}</span>
+                                <span style={{ fontSize: '0.66rem', fontWeight: 700, color: 'var(--emerald)', background: 'rgba(5, 150, 105, 0.1)', padding: '0 4px', borderRadius: '3px', fontFamily: 'var(--font-mono)' }}>
+                                  ${p.price !== undefined ? Number(p.price).toFixed(2) : '0.00'}
+                                </span>
+                                {imgCount > 1 && (
+                                  <span style={{ fontSize: '0.62rem', background: '#F3E8FF', color: '#7E22CE', padding: '0 4px', borderRadius: '3px', fontWeight: 700 }}>
+                                    🔄 {imgCount} views
+                                  </span>
+                                )}
+                                {p.listened && (
+                                  <span style={{ fontSize: '0.62rem', background: '#EEF2FF', color: '#4338CA', padding: '0 4px', borderRadius: '3px', fontWeight: 700 }}>
+                                    🔊 Listened
+                                  </span>
+                                )}
+                                {p.quality_warning && (
+                                  <span style={{ fontSize: '0.62rem', background: '#FEF3C7', color: '#B45309', padding: '0 4px', borderRadius: '3px', fontWeight: 700 }}>
+                                    ⚠️ Quality
+                                  </span>
+                                )}
+                              </div>
+                              {isDuplicate && (
+                                <span className="dup-warning-badge" title="Description repeats wording from another product in this queue">
+                                  ⚠️ Duplicate wording
+                                </span>
+                              )}
+                            </div>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteProduct(p.product_id);
+                            }}
+                            title="Remove this product"
                             style={{
-                              fontSize: '0.74rem',
-                              color: 'var(--text-ink)',
-                              fontWeight: 600,
-                              whiteSpace: 'nowrap',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
+                              position: 'absolute',
+                              top: '6px',
+                              right: '6px',
+                              width: '18px',
+                              height: '18px',
+                              borderRadius: '50%',
+                              border: 'none',
+                              background: 'rgba(239, 68, 68, 0.1)',
+                              color: 'var(--danger-text, #DC2626)',
+                              fontSize: '11px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              cursor: 'pointer',
+                              zIndex: 2,
                             }}
                           >
-                            {p.metadata_title}
-                          </div>
-                          <div style={{ display: 'flex', gap: '4px', alignItems: 'center', marginTop: '2px', flexWrap: 'wrap' }}>
-                            <span style={{ fontSize: '0.66rem', color: 'var(--text-muted)' }}>{p.category || 'General'}</span>
-                            <span style={{ fontSize: '0.66rem', fontWeight: 700, color: 'var(--emerald)', background: 'rgba(5, 150, 105, 0.1)', padding: '0 4px', borderRadius: '3px', fontFamily: 'var(--font-mono)' }}>
-                              ${p.price !== undefined ? Number(p.price).toFixed(2) : '0.00'}
-                            </span>
-                            {imgCount > 1 && (
-                              <span style={{ fontSize: '0.62rem', background: '#F3E8FF', color: '#7E22CE', padding: '0 4px', borderRadius: '3px', fontWeight: 700 }}>
-                                🔄 {imgCount} views
-                              </span>
-                            )}
-                            {p.listened && (
-                              <span style={{ fontSize: '0.62rem', background: '#EEF2FF', color: '#4338CA', padding: '0 4px', borderRadius: '3px', fontWeight: 700 }}>
-                                🔊 Listened
-                              </span>
-                            )}
-                            {p.quality_warning && (
-                              <span style={{ fontSize: '0.62rem', background: '#FEF3C7', color: '#B45309', padding: '0 4px', borderRadius: '3px', fontWeight: 700 }}>
-                                ⚠️ Quality
-                              </span>
-                            )}
-                          </div>
-                          {isDuplicate && (
-                            <span className="dup-warning-badge" title="Description repeats wording from another product in this queue">
-                              ⚠️ Duplicate wording
-                            </span>
-                          )}
+                            ✕
+                          </button>
                         </div>
-                      </button>
-                    );
-                  })}
+                      );
+                    })
+                  )}
                 </div>
 
                 {/* Secondary Features: Spacious Studio Tools Drawer (Never Squished) */}
@@ -4187,9 +4165,11 @@ export default function App() {
                 </div>
               </aside>
 
-              {/* COLUMN 2: CENTER IMAGE & QUALITY STAGE */}
-              <section className="center-column" aria-label="Visual Understanding & Quality Stage">
-                <div className="varnix-card">
+              {currentProduct ? (
+                <>
+                  {/* COLUMN 2: CENTER IMAGE & QUALITY STAGE */}
+                  <section className="center-column" aria-label="Visual Understanding & Quality Stage">
+                    <div className="varnix-card">
                   <div className="queue-card-header" style={{ flexWrap: 'wrap', gap: '8px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                       <span style={{ fontWeight: 800, fontFamily: 'var(--font-mono)', color: 'var(--primary)' }}>
@@ -5742,7 +5722,129 @@ export default function App() {
                   </div>
                 </div>
               </aside>
+            </>
+          ) : (
+            /* INTERACTIVE UPLOAD HUB (Shown when queue is empty) */
+            <div
+              style={{
+                gridColumn: '2 / -1',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '20px',
+                padding: '10px 0'
+              }}
+            >
+              {/* Drag and Drop Zone */}
+              <div
+                onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleBulkFilesSelected(e);
+                }}
+                style={{
+                  background: 'var(--surface-card)',
+                  border: '2px dashed var(--accent-indigo)',
+                  borderRadius: '16px',
+                  padding: '48px 24px',
+                  textAlign: 'center',
+                  boxShadow: 'var(--shadow-md)',
+                  transition: 'all 0.2s ease',
+                  cursor: 'pointer'
+                }}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <div style={{
+                  width: '64px',
+                  height: '64px',
+                  borderRadius: '50%',
+                  background: 'rgba(99, 102, 241, 0.12)',
+                  color: 'var(--accent-indigo)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '28px',
+                  marginBottom: '16px'
+                }}>
+                  ☁️
+                </div>
+                <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-ink)', margin: '0 0 8px 0' }}>
+                  Upload Product Images to Review
+                </h2>
+                <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', maxWidth: '520px', margin: '0 auto 24px auto', lineHeight: 1.5 }}>
+                  Drag & drop single images or batch upload up to 20 product photos. The AI will automatically analyze visual attributes, estimate market price, and draft accessible descriptions.
+                </p>
+
+                {/* Primary Upload Actions */}
+                <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }} onClick={(e) => e.stopPropagation()}>
+                  <button
+                    type="button"
+                    className="btn-editorial-primary"
+                    style={{ padding: '10px 22px', fontSize: '0.85rem' }}
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    📁 Select Single Image
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-editorial-secondary"
+                    style={{ padding: '10px 22px', fontSize: '0.85rem' }}
+                    onClick={() => bulkFileInputRef.current?.click()}
+                  >
+                    📂 Bulk Upload (Up to 20)
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-editorial-secondary"
+                    style={{ padding: '10px 22px', fontSize: '0.85rem' }}
+                    onClick={handleStartCamera}
+                  >
+                    📸 Take Photo
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-editorial-secondary"
+                    style={{ padding: '10px 22px', fontSize: '0.85rem' }}
+                    onClick={() => multiImageUploadRef.current?.click()}
+                  >
+                    🔄 Multi-Angle Views
+                  </button>
+                </div>
+              </div>
+
+              {/* Feature Highlights Grid */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+                <div className="varnix-card" style={{ padding: '20px' }}>
+                  <div style={{ fontSize: '24px', marginBottom: '8px' }}>⚡</div>
+                  <div style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--text-ink)', marginBottom: '4px' }}>
+                    Instant Price Estimation
+                  </div>
+                  <p style={{ fontSize: '0.76rem', color: 'var(--text-muted)', margin: 0, lineHeight: 1.4 }}>
+                    Automated market pricing engine classifies category and predicts estimated retail price for every uploaded product.
+                  </p>
+                </div>
+                <div className="varnix-card" style={{ padding: '20px' }}>
+                  <div style={{ fontSize: '24px', marginBottom: '8px' }}>🛡️</div>
+                  <div style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--text-ink)', marginBottom: '4px' }}>
+                    Automated Preflight Quality
+                  </div>
+                  <p style={{ fontSize: '0.76rem', color: 'var(--text-muted)', margin: 0, lineHeight: 1.4 }}>
+                    Checks blur, lighting, contrast, and resolution automatically. Retake blurry shots with live camera before drafting.
+                  </p>
+                </div>
+                <div className="varnix-card" style={{ padding: '20px' }}>
+                  <div style={{ fontSize: '24px', marginBottom: '8px' }}>📥</div>
+                  <div style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--text-ink)', marginBottom: '4px' }}>
+                    Selective CSV / JSON Export
+                  </div>
+                  <p style={{ fontSize: '0.76rem', color: 'var(--text-muted)', margin: 0, lineHeight: 1.4 }}>
+                    Export exactly the reviewed descriptions you choose with individual checkboxes and one-click bulk export.
+                  </p>
+                </div>
+              </div>
             </div>
+          )}
+        </div>
           </div>
         )}
 
