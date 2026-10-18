@@ -4996,25 +4996,6 @@ export default function App() {
                     </div>
                   )}
 
-                  {/* SINGLE-PRODUCT INTELLIGENCE: Visual Quality Observations */}
-                  {singleProductIntelligenceEnabled && currentProduct.quality_observations?.length > 0 && (
-                    <div style={{ marginBottom: '12px', background: '#F8FAFC', padding: '10px 12px', borderRadius: '6px', border: '1px solid var(--border)' }}>
-                      <div style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '6px' }}>
-                        Visual Observations (Appearance Only):
-                      </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        {currentProduct.quality_observations.map((obs, idx) => (
-                          <div key={idx} className="quality-obs-tag" style={{ margin: 0 }}>
-                            <span className="quality-obs-label">{obs.label || 'visual observation'}</span>
-                            <span>{obs.observation}</span>
-                          </div>
-                        ))}
-                      </div>
-                      <div style={{ fontSize: '0.67rem', color: 'var(--text-muted)', fontStyle: 'italic', marginTop: '4px' }}>
-                        Visible appearance only; never implies durability or verified material composition.
-                      </div>
-                    </div>
-                  )}
 
                   {/* SECTION A: QUICK REVIEW UI — "Which features should we highlight?" Accordion */}
                   <div className="features-highlight-card" style={{ marginBottom: '14px', background: 'var(--surface-card)', padding: '14px', borderRadius: '10px', border: '1px solid var(--surface-border)', boxShadow: 'var(--shadow-sm)' }}>
