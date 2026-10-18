@@ -137,7 +137,7 @@ export function PaymentModal({
 
           <div style={{ borderTop: '1px solid var(--surface-border)', paddingTop: '10px', fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'flex', justifyContent: 'space-between' }}>
             <span>Total Due Today:</span>
-            <strong style={{ color: 'var(--text-ink)', fontSize: '0.92rem' }}>{plan.price}.00</strong>
+            <strong style={{ color: 'var(--text-ink)', fontSize: '0.92rem' }}>{plan.price} / month</strong>
           </div>
         </div>
 
@@ -307,7 +307,7 @@ export function PaymentModal({
                   Processing Secure Payment...
                 </>
               ) : (
-                `🔒 Pay ${plan.price}.00 & Activate Subscription →`
+                `🔒 Pay ${plan.price} & Activate Subscription →`
               )}
             </button>
 

@@ -298,9 +298,9 @@ export default function App() {
   const [subscriptionPlan, setSubscriptionPlan] = useState(() => {
     try {
       const saved = localStorage.getItem('altlume_subscription');
-      return saved ? JSON.parse(saved) : { planId: 'pro', planName: 'Pro Growth', price: '$49' };
+      return saved ? JSON.parse(saved) : { planId: 'growth', planName: 'Growth', price: '₹4,499' };
     } catch {
-      return { planId: 'pro', planName: 'Pro Growth', price: '$49' };
+      return { planId: 'growth', planName: 'Growth', price: '₹4,499' };
     }
   });
 
@@ -3572,7 +3572,7 @@ export default function App() {
         {/* FLOW 3: SUBSCRIPTION & PRICING PLANS */}
         {activeFlow === 'subscription' && (
           <SubscriptionFlow
-            currentPlanId={subscriptionPlan?.planId || 'pro'}
+            currentPlanId={subscriptionPlan?.planId || 'growth'}
             user={currentUser}
             onSelectPlan={handleSelectSubscription}
           />
