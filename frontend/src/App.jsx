@@ -369,6 +369,23 @@ export default function App() {
 
   // Review Language: 'en' | 'hi' | 'te'
   const [reviewLanguage, setReviewLanguage] = useState('en');
+  const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
+  const langDropdownRef = useRef(null);
+
+  // Close custom language popover when clicking outside
+  useEffect(() => {
+    const handleOutsideLangClick = (e) => {
+      if (langDropdownRef.current && !langDropdownRef.current.contains(e.target)) {
+        setShowLanguageDropdown(false);
+      }
+    };
+    if (showLanguageDropdown) {
+      document.addEventListener('mousedown', handleOutsideLangClick);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideLangClick);
+    };
+  }, [showLanguageDropdown]);
 
   // Master product queue (empty by default; user uploads products directly)
   const [products, setProducts] = useState(() => []);
@@ -5353,43 +5370,141 @@ export default function App() {
                     {/* Language & Voice Selection Controls */}
                     <div className="lang-voice-bar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', padding: '10px 12px', background: 'var(--surface-card)', border: '1px solid var(--surface-border)', borderRadius: '8px', marginBottom: '12px', flexWrap: 'wrap' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                        <span style={{ fontSize: '0.86rem', fontWeight: 700, color: 'var(--text-ink)', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                        <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-ink)', display: 'flex', alignItems: 'center', gap: '5px' }}>
                           🌐 Language:
                         </span>
-                        <select
-                          value={reviewLanguage}
-                          onChange={(e) => {
-                            const newLang = e.target.value;
-                            setReviewLanguage(newLang);
-                            if (newLang !== 'en') {
-                              handleTranslate(newLang);
-                            }
-                          }}
-                          className="lang-select-dropdown"
-                          style={{
-                            padding: '7px 14px',
-                            fontSize: '0.92rem',
-                            fontWeight: 600,
-                            borderRadius: '8px',
-                            border: '1.5px solid var(--surface-border)',
-                            background: 'var(--surface-card-subtle)',
-                            color: 'var(--text-ink)',
-                            cursor: 'pointer',
-                            outline: 'none',
-                            minHeight: '38px',
-                            minWidth: '170px',
-                          }}
-                        >
-                          <option value="en" style={{ fontSize: '0.94rem', fontWeight: 600, padding: '8px 12px' }}>🇬🇧 English</option>
-                          <option value="hi" style={{ fontSize: '0.94rem', fontWeight: 600, padding: '8px 12px' }}>🇮🇳 हिन्दी (Hindi)</option>
-                          <option value="te" style={{ fontSize: '0.94rem', fontWeight: 600, padding: '8px 12px' }}>🇮🇳 తెలుగు (Telugu)</option>
-                          <option value="ta" style={{ fontSize: '0.94rem', fontWeight: 600, padding: '8px 12px' }}>🇮🇳 தமிழ் (Tamil)</option>
-                          <option value="es" style={{ fontSize: '0.94rem', fontWeight: 600, padding: '8px 12px' }}>🇪🇸 Español (Spanish)</option>
-                          <option value="fr" style={{ fontSize: '0.94rem', fontWeight: 600, padding: '8px 12px' }}>🇫🇷 Français (French)</option>
-                          <option value="de" style={{ fontSize: '0.94rem', fontWeight: 600, padding: '8px 12px' }}>🇩🇪 Deutsch (German)</option>
-                        </select>
+
+                        {/* Custom High-Visibility Language Selector Popover */}
+                        <div ref={langDropdownRef} style={{ position: 'relative', display: 'inline-block' }}>
+                          <button
+                            type="button"
+                            onClick={() => setShowLanguageDropdown((prev) => !prev)}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              gap: '12px',
+                              padding: '8px 16px',
+                              fontSize: '0.96rem',
+                              fontWeight: 700,
+                              borderRadius: '8px',
+                              border: '1.5px solid var(--surface-border)',
+                              background: 'var(--surface-card)',
+                              color: 'var(--text-ink)',
+                              cursor: 'pointer',
+                              minWidth: '190px',
+                              boxShadow: 'var(--shadow-sm)',
+                              transition: 'all 0.15s ease'
+                            }}
+                          >
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                              {(() => {
+                                const current = [
+                                  { code: 'en', flag: '🇬🇧', label: 'English' },
+                                  { code: 'hi', flag: '🇮🇳', label: 'हिन्दी (Hindi)' },
+                                  { code: 'te', flag: '🇮🇳', label: 'తెలుగు (Telugu)' },
+                                  { code: 'ta', flag: '🇮🇳', label: 'தமிழ் (Tamil)' },
+                                  { code: 'es', flag: '🇪🇸', label: 'Español (Spanish)' },
+                                  { code: 'fr', flag: '🇫🇷', label: 'Français (French)' },
+                                  { code: 'de', flag: '🇩🇪', label: 'Deutsch (German)' },
+                                ].find((l) => l.code === reviewLanguage);
+                                return (
+                                  <>
+                                    <span style={{ fontSize: '1.2rem', lineHeight: 1 }}>{current?.flag || '🇬🇧'}</span>
+                                    <span>{current?.label || 'English'}</span>
+                                  </>
+                                );
+                              })()}
+                            </span>
+                            <span style={{ fontSize: '0.78rem', opacity: 0.75, transform: showLanguageDropdown ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s ease' }}>
+                              ▼
+                            </span>
+                          </button>
+
+                          {showLanguageDropdown && (
+                            <div
+                              style={{
+                                position: 'absolute',
+                                top: 'calc(100% + 6px)',
+                                left: 0,
+                                zIndex: 1000,
+                                minWidth: '240px',
+                                background: 'var(--surface-card)',
+                                border: '1.5px solid var(--surface-border)',
+                                borderRadius: '10px',
+                                boxShadow: '0 12px 28px -4px rgba(0, 0, 0, 0.25), 0 8px 12px -6px rgba(0, 0, 0, 0.15)',
+                                padding: '6px',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '3px'
+                              }}
+                            >
+                              {[
+                                { code: 'en', flag: '🇬🇧', label: 'English', sub: 'Default' },
+                                { code: 'hi', flag: '🇮🇳', label: 'हिन्दी', sub: 'Hindi' },
+                                { code: 'te', flag: '🇮🇳', label: 'తెలుగు', sub: 'Telugu' },
+                                { code: 'ta', flag: '🇮🇳', label: 'தமிழ்', sub: 'Tamil' },
+                                { code: 'es', flag: '🇪🇸', label: 'Español', sub: 'Spanish' },
+                                { code: 'fr', flag: '🇫🇷', label: 'Français', sub: 'French' },
+                                { code: 'de', flag: '🇩🇪', label: 'Deutsch', sub: 'German' },
+                              ].map((lang) => {
+                                const isSelected = reviewLanguage === lang.code;
+                                return (
+                                  <button
+                                    key={lang.code}
+                                    type="button"
+                                    onClick={() => {
+                                      setReviewLanguage(lang.code);
+                                      setShowLanguageDropdown(false);
+                                      if (lang.code !== 'en') {
+                                        handleTranslate(lang.code);
+                                      }
+                                    }}
+                                    style={{
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'space-between',
+                                      padding: '10px 14px',
+                                      borderRadius: '7px',
+                                      border: 'none',
+                                      background: isSelected ? 'rgba(79, 70, 229, 0.12)' : 'transparent',
+                                      color: isSelected ? 'var(--accent-indigo)' : 'var(--text-ink)',
+                                      cursor: 'pointer',
+                                      textAlign: 'left',
+                                      transition: 'background 0.15s ease',
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      if (!isSelected) e.currentTarget.style.background = 'var(--surface-card-subtle)';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      if (!isSelected) e.currentTarget.style.background = 'transparent';
+                                    }}
+                                  >
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                      <span style={{ fontSize: '1.25rem', lineHeight: 1 }}>{lang.flag}</span>
+                                      <div>
+                                        <div style={{ fontSize: '0.96rem', fontWeight: 700, lineHeight: 1.2 }}>
+                                          {lang.label}
+                                        </div>
+                                        <div style={{ fontSize: '0.76rem', color: 'var(--text-secondary)', fontWeight: 500 }}>
+                                          {lang.sub}
+                                        </div>
+                                      </div>
+                                    </div>
+                                    {isSelected && (
+                                      <span style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--accent-indigo)' }}>
+                                        ✓
+                                      </span>
+                                    )}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+
                         {isTranslating && (
-                          <span style={{ fontSize: '0.7rem', color: 'var(--accent-indigo)', fontWeight: 600 }}>
+                          <span style={{ fontSize: '0.78rem', color: 'var(--accent-indigo)', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                             ⚡ Translating...
                           </span>
                         )}
