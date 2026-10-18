@@ -36,6 +36,7 @@ import {
   saveProductsBatch,
   getAllProductsMap,
   getAllProductsList,
+  getUploadedProductsList,
   getProduct,
   logAudit,
   getAuditHistory,
@@ -1524,6 +1525,21 @@ app.post('/api/products/sync', (req, res) => {
     logAudit(null, 'SYNC', { count: products.length });
   }
   return res.json({ success: true, count: products?.length || 0 });
+});
+
+// GET /api/products/uploaded - Return previously uploaded products and their images from persistent SQLite
+app.get('/api/products/uploaded', (req, res) => {
+  try {
+    const list = getUploadedProductsList();
+    return res.json({
+      success: true,
+      products: list,
+      count: list.length,
+    });
+  } catch (err) {
+    console.error('Error fetching uploaded products:', err);
+    return res.status(500).json({ success: false, error: err.message, products: [] });
+  }
 });
 
 // GET & POST /api/export/csv

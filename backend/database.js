@@ -142,6 +142,8 @@ function rowToProduct(row) {
     reviewer_note: row.reviewer_note ?? '',
     inaccessible_reason: row.inaccessible_reason ?? '',
     is_uploaded: Boolean(row.is_uploaded),
+    isUploaded: Boolean(row.is_uploaded),
+    image_url: extra.image_url || extra.imageUrl || '',
     page_context: row.page_context ?? '',
     is_decorative: Boolean(row.is_decorative),
     translations,
@@ -155,6 +157,7 @@ function rowToProduct(row) {
 export function saveProduct(product) {
   if (!product || !product.product_id) return;
   const pid = String(product.product_id);
+  const isUploadedVal = Boolean(product.is_uploaded || product.isUploaded || pid.startsWith('UPLOAD-'));
 
   // Extract separate JSON columns and remaining extra fields
   const {
@@ -175,10 +178,16 @@ export function saveProduct(product) {
     reviewer_note = '',
     inaccessible_reason = '',
     is_uploaded = false,
+    isUploaded = false,
     page_context = '',
     is_decorative = false,
     ...extra
   } = product;
+
+  // Preserve image_url in extra so it is saved in extra_json
+  if (product.image_url && !extra.image_url) {
+    extra.image_url = product.image_url;
+  }
 
   upsertProductStmt.run(
     pid,
@@ -196,7 +205,7 @@ export function saveProduct(product) {
     Number(quality_score) || 92,
     reviewer_note,
     inaccessible_reason,
-    is_uploaded ? 1 : 0,
+    isUploadedVal ? 1 : 0,
     page_context,
     is_decorative ? 1 : 0,
     JSON.stringify(translations || {}),
@@ -242,6 +251,14 @@ export function getAllProductsMap() {
  */
 export function getAllProductsList() {
   const rows = selectAllProductsStmt.all();
+  return rows.map(rowToProduct);
+}
+
+/**
+ * Get all uploaded products as an array
+ */
+export function getUploadedProductsList() {
+  const rows = db.prepare(`SELECT * FROM products WHERE is_uploaded = 1 OR product_id LIKE 'UPLOAD-%' ORDER BY rowid ASC`).all();
   return rows.map(rowToProduct);
 }
 
